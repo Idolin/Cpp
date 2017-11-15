@@ -395,7 +395,6 @@ big_integer &big_integer::operator&=(const big_integer &b)
         return *this;
     if (b._number.get_sign() == 0)
         return (*this = 0);
-
     unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
     unsigned b_index = 0;
     while (b._number[b_index] == 0)

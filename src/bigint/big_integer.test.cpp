@@ -371,6 +371,10 @@ TEST_PACK(big_integer)
         EXPECT_EQ(a & (-b), a);
         EXPECT_EQ((-a) & b, 0);
         EXPECT_EQ((-a) & (-b), -a);
+
+        a++;
+        b <<= 32;
+        EXPECT_EQ(a & b, b);
     }
 
     TEST(long_and_2, REPEAT(100000))
