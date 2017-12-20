@@ -424,10 +424,9 @@ TEST_PACK(big_integer)
         a++;
         big_integer b = 1;
 
-        EXPECT_EQ(a | b, big_integer(UINT32_MAX)
-                +1);
+        EXPECT_EQ(a | b, big_integer(UINT32_MAX) + 1);
         EXPECT_EQ(a | (-b), -1);
-        EXPECT_EQ((-a) | b, UINT32_MAX);
+        EXPECT_EQ((-a) | b, -big_integer(UINT32_MAX));
         EXPECT_EQ((-a) | (-b), -1);
 
         a++;
@@ -447,7 +446,7 @@ TEST_PACK(big_integer)
         EXPECT_EQ(a | b, b);
         EXPECT_EQ(a | (-b), -b);
         EXPECT_EQ((-a) | b, -a);
-        EXPECT_EQ((-a) & (-b), -a);
+        EXPECT_EQ((-a) | (-b), -a);
     }
 
     TEST(xor_)

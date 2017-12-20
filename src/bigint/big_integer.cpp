@@ -161,7 +161,8 @@ big_integer::big_integer(int number) : _number(big_integer_container())
     {
         _number.set_sign((number > 0));
         _number[0] = static_cast<uint32_t>(number);
-    } else
+    }
+    else
     {
         _number.set_sign(-1);
         _number[0] = _abs(number);
@@ -181,7 +182,8 @@ big_integer::big_integer(long number) : _number(big_integer_container(2))
     {
         _number.set_sign((number > 0));
         value = (uint64_t) number;
-    } else
+    }
+    else
     {
         _number.set_sign(-1);
         value = _abs(number);
@@ -235,7 +237,8 @@ big_integer::big_integer(string const &s) : _number(big_integer_container(static
             k = 10;
             for(p = 1; p < j; p++)
                 k *= 10;
-        } else
+        }
+        else
             j = 9;
         p = 0;
         for(; j > 0; pos++, j--)
@@ -280,7 +283,8 @@ string big_integer::to_string() const
                 s = (char) (l % 10 + '0') + s;
                 l /= 10;
             }
-        } else
+        }
+        else
             zeroCount += 9;
     }
     if(_number.get_sign() < 0)
@@ -348,7 +352,8 @@ big_integer &big_integer::operator>>=(int k)
         _number[_number.get_max_set() - s] = _number[_number.get_max_set()] >> l;
         if(_number.get_sign() < 0)
             _number[_number.get_max_set() - s] |= 0xffffffff << (32 - l);
-    } else
+    }
+    else
         for(unsigned i = 0; i <= _number.get_max_set() - s; i++)
             _number[i] = _number[i + s];
     if(_number.get_sign() < 0)
@@ -373,7 +378,8 @@ big_integer &big_integer::operator<<=(int k)
         for(unsigned i = this->_number.get_max_set() + s + 1; i > s; i--)
             _number[i] = (_number[i - s] << l) + (_number[i - s - 1] >> (32 - l));
         _number[s] = _number[0] << l;
-    } else
+    }
+    else
         for(unsigned i = _number.get_max_set() + s; i >= s; i--)
             _number[i] = _number[i - s];
     _number.fill(0, s);
@@ -412,7 +418,8 @@ big_integer &big_integer::operator&=(const big_integer &b)
             this->_number[b_index] &= ~(b._number[b_index] - 1);
             for(unsigned i = b_index + 1; i <= min_max_set; i++)
                 this->_number[i] &= ~b._number[i];
-        } else
+        }
+        else
         {
             for(unsigned i = b_index; i <= min_max_set; i++)
                 this->_number[i] &= b._number[i];
@@ -420,7 +427,7 @@ big_integer &big_integer::operator&=(const big_integer &b)
                 this->_number.fill(min_max_set + 1, this->_number.get_max_set() - min_max_set);
         }
     }
-    this->_number.fill(0, min(b_index, min_max_set + 1));
+    this->_number.fill(0, min(min_max_set + 1, b_index));
     if(this->_number.get_sign() < 0)
     {
         if(b._number.get_max_set() > min_max_set)
@@ -445,7 +452,8 @@ big_integer &big_integer::operator&=(const big_integer &b)
                 for(; i <= min_max_set; i++)
                     this->_number[i] = ~this->_number[i];
             }
-        } else
+        }
+        else
             this->_number.set_sign(1);
     }
     this->_number.getms();
@@ -454,7 +462,7 @@ big_integer &big_integer::operator&=(const big_integer &b)
 
 big_integer &big_integer::operator|=(const big_integer &b)
 {
-    if(this->_number.get_sign())
+    if(this->_number.get_sign() == 0)
         return (*this = b);
     if(b._number.get_sign() == 0)
         return *this;
@@ -478,18 +486,14 @@ big_integer &big_integer::operator|=(const big_integer &b)
         }
         if(b._number.get_sign() < 0)
         {
-            this->_number[b_index] &= ~(b._number[b_index] - 1);
+            this->_number[b_index] |= ~(b._number[b_index] - 1);
             for(unsigned i = b_index + 1; i <= min_max_set; i++)
-                this->_number[i] &= ~b._number[i];
-        } else
-        {
-            for(unsigned i = b_index; i <= min_max_set; i++)
-                this->_number[i] &= b._number[i];
-            if(this->_number.get_max_set() > min_max_set)
-                this->_number.fill(min_max_set + 1, this->_number.get_max_set() - min_max_set);
+                this->_number[i] |= ~b._number[i];
         }
+        else
+            for(unsigned i = b_index; i <= min_max_set; i++)
+                this->_number[i] |= b._number[i];
     }
-    this->_number.fill(0, min(b_index, min_max_set + 1));
     if(this->_number.get_sign() < 0)
     {
         if(b._number.get_max_set() > min_max_set)
@@ -514,7 +518,8 @@ big_integer &big_integer::operator|=(const big_integer &b)
                 for(; i <= min_max_set; i++)
                     this->_number[i] = ~this->_number[i];
             }
-        } else
+        }
+        else
             this->_number.set_sign(1);
     }
     this->_number.getms();
@@ -543,9 +548,9 @@ big_integer &big_integer::operator^=(const big_integer &b)
     {
         this->_inv(max_set);
         this->_number.set_sign(-1);
-    } else
+    }
+    else
         this->_number.set_sign(1);
-    _number.set_max_set(max_set);
     _number.getms();
     return *this;
 }
@@ -823,7 +828,8 @@ big_integer &big_integer::div_big(const big_integer &b, big_integer &remainder)
             return (*this = 0);
         }
         remainder._number.set_max_set(remainder._number.get_max_set() - 1);
-    } else
+    }
+    else
     {
         remainder._number[remainder._number.get_max_set()] = 1;
         *this -= m;
