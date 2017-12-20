@@ -6,18 +6,18 @@
 
 using std::swap;
 
-template<typename T>
+template<typename TData, typename TKey = int>
 struct heap
 {
     struct heap_element
     {
-        int key;
-        T data;
+        TKey key;
+        TData data;
 
         heap_element()
         {}
 
-        heap_element(int key, T data) : key(key), data(data)
+        heap_element(TKey key, TData data) : key(key), data(data)
         {}
     };
 
@@ -70,7 +70,7 @@ struct heap
         shiftDown(node);
     }
 
-    bool insert(int key, T data)
+    bool insert(TKey key, TData data)
     {
         if(heap_size + 1 == _array_size)
             _resize();
@@ -78,11 +78,11 @@ struct heap
         return shiftUp(heap_size++);
     }
 
-    T get_min()
+    TData get_min()
     {
         if(heap_size == 0)
             throw 19;
-        T r = heap_array[0].data;
+        TData r = heap_array[0].data;
         remove(0);
         return r;
     }

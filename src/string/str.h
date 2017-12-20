@@ -43,7 +43,7 @@ public:
 
     char operator[](unsigned);
 
-    void operator+=(const str &);
+    str operator+=(const str &);
 
     bool operator==(const str &) const;
 
@@ -65,6 +65,7 @@ protected:
     void unlink() const;
 };
 
+str operator+(str a, str const &b);
 str read_str();
 
 inline bool operator==(const str &a, const char *const b)

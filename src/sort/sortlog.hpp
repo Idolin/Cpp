@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../other/commonmethods.hxx"
+#include "../other/commonmethods.hpp"
 #include "../other/rand.h"
-#include "sortsquare.hxx"
+#include "sortsquare.hpp"
+#include "partition.hpp"
 
 #include <math.h>
 
@@ -64,32 +65,18 @@ void mergesort(T *start, T *end)
     }
 }
 
-template<typename T>
-void quicksort(T *start, T *end, unsigned count = 0, T min = (T) 0)
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+void quicksort(T *start, T *end)
 {
     if(end - start < 17)
     {
-        insertionsort(start, end);
+        insertionsort<T, compare>(start, end);
         return;
     }
     T df = *(start + (end - start) / 2);
-    T *sp, *esp;
-    sp = start + randomU() % (unsigned) (end - start), esp = start + randomU() % (unsigned) (end - start);
-    if(_more(*sp, *esp))
-    {
-        if(_more(*esp, df))
-            df = *esp;
-        else if(_more(df, *sp))
-            df = *sp;
-    } else if(_more(*sp, df))
-        df = *sp;
-    else if(_more(df, *esp))
-        df = *esp;
-    esp = start + count;
-    sp = partition(start, end, df, count, min);
-    if(sp > esp + 1)
-        quicksort(esp, sp);
-    quicksort(sp, end, count, df);
+    T *sp = partition<T, compare>(start, end, df);
+    quicksort<T, compare>(start, sp);
+    quicksort<T, compare>(sp, end);
 }
 
 void timsort()

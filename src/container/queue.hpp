@@ -44,7 +44,7 @@ struct queue
 
     void push(T x)
     {
-        if(len == 0)
+        if(head == nullptr)
         {
             head = tail = new char[blocksize * sizeof(T) + sizeof(tail)];
             headlast = taillast = tail + blocksize * sizeof(T);

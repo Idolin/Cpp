@@ -8,7 +8,7 @@ graph::gTransition::gTransition(gTransition const &t) : node(t.node), weight(t.w
 
 graph::graph(unsigned nodes, bool oriented) : waysFrom(new vect<gTransition>[nodes]), waysTo(0),
                                               gLen(nodes), oriented(oriented), reversed(false), cycles(false),
-                                              _tmp(new unsigned char[gLen]), _uatmp(0), _utmp(0)
+                                              negative(false), _tmp(new unsigned char[gLen]), _uatmp(0), _utmp(0)
 {
     _fill(_tmp, gLen);
     waysGo = waysFrom;
@@ -24,6 +24,7 @@ graph::~graph()
 
 void graph::addWay(unsigned from, unsigned to, int weight)
 {
+    negative |= (weight < 0);
     waysFrom[from].push(gTransition(to, weight));
     if(!oriented)
     {
@@ -71,11 +72,11 @@ void graph::dfsA(void(onEnter)(graph *g, unsigned node), void(onExit)(graph *g, 
     _fill(_tmp, gLen);
 }
 
-int *graph::dijkstra(unsigned node)
+long *graph::dijkstra(unsigned node)
 {
-    heap<unsigned> *nextmin = new heap<unsigned>(gLen);
-    int *distance = new int[gLen];
-    _vfill(distance, gLen, INT_MAX);
+    heap<unsigned, long> *nextmin = new heap<unsigned, long>(gLen);
+    long *distance = new long[gLen];
+    _vfill(distance, gLen, LONG_MAX);
     distance[node] = 0;
     nextmin->insert(0, node);
     while(nextmin->heap_size)
@@ -90,6 +91,58 @@ int *graph::dijkstra(unsigned node)
     }
     return distance;
 }
+
+//long long *floyd() //no negative cycles
+//{
+//    for(unsigned i = 0;i < n;i++)
+//        for(unsigned k = 0;k < n;k++)
+//            for(unsigned j = 0;j < n;j++)
+//                smin_(d[k][j], d[k][i] + d[i][j]);
+//}
+
+//long *bellman_ford(unsigned node)
+//{
+//    for(unsigned j = 1;j <= n;j++)
+//    {
+//        bool changes = false;
+//        for(unsigned i = 0; i < n; i++)
+//            if(distance[i] < mx)
+//                for(unsigned k = 0; k < waysGo[i].maxs; k++)
+//                    if((distance[waysGo[i][k].node] > mn) &&
+//                       (distance[waysGo[i][k].node] > distance[i] + waysGo[i][k].weight))
+//                    {
+//                        changes = true;
+//                        distance[waysGo[i][k].node] = distance[i] + waysGo[i][k].weight;
+//                    }
+//        if(!changes)
+//            break;
+//        if(j == n)
+//        {
+//            for(unsigned i = 0; i < n; i++)
+//                for(unsigned k = 0; k < waysGo[i].maxs; k++)
+//                    if((distance[waysGo[i][k].node] != mx) && ((distance[waysGo[i][k].node] <= mn) ||
+//                                                               (distance[waysGo[i][k].node] > distance[i] + waysGo[i][k].weight)))
+//                        f[waysGo[i][k].node] = true;
+//            for(unsigned i = 0; i < n; i++)
+//                if(f[i])
+//                {
+//                    q[m++] = i;
+//                    distance[i] = mn;
+//                }
+//            while(s < m)
+//            {
+//                unsigned v = q[s++];
+//                for(unsigned r = 0; r < waysGo[v].maxs; r++)
+//                    if(!f[waysGo[v][r].node])
+//                    {
+//                        distance[waysGo[v][r].node] = mn;
+//                        f[waysGo[v][r].node] = true;
+//                        q[m++] = waysGo[v][r].node;
+//                    }
+//            }
+//        }
+//    }
+//}
 
 int *graph::bellman_ford(unsigned node)
 {
@@ -112,26 +165,28 @@ int *graph::bellman_ford(unsigned node)
     }
 }
 
-int graph::shortestWay(unsigned node1, unsigned node2)
+long *graph::shortestWay(unsigned node)
 {
-    if(!oriented)
-        return 0;
     _uatmp = new unsigned[gLen];
     _utmp = gLen;
-    dfs(node1, 0, _gpushback);
-    if(cycles)
-        return 0;
-    int *distance = new int[gLen];
-    _vfill(distance, gLen, INT_MAX);
-    distance[node1] = 0;
-    for(unsigned i = _utmp; i < gLen; i++)
-        for(unsigned k = 0; k < waysGo[_uatmp[i]].maxs; k++)
-            distance[waysGo[_uatmp[i]][k].node] = _min(distance[waysGo[_uatmp[i]][k].node],
-                                                       distance[_uatmp[i]] + waysGo[_uatmp[i]][k].weight);
-    delete[] _uatmp;
-    int ans = distance[node2];
-    delete[] distance;
-    return ans;
+    dfs(node, nullptr, _gpushback);
+    if(cycles && negative)
+        return nullptr;
+    if(!cycles)
+    {
+        long *distance = new long[gLen];
+        _vfill(distance, gLen, LONG_MAX);
+        distance[node] = 0;
+        for(unsigned i = _utmp; i < gLen; i++)
+            for(unsigned k = 0; k < waysGo[_uatmp[i]].maxs; k++)
+                distance[waysGo[_uatmp[i]][k].node] = _min(distance[waysGo[_uatmp[i]][k].node],
+                                                           distance[_uatmp[i]] + waysGo[_uatmp[i]][k].weight);
+        delete[] _uatmp;
+        return distance;
+    } elif(!negative)
+        return dijkstra(node);
+    else
+        return nullptr;
 }
 
 unsigned *graph::topsort()
@@ -286,18 +341,20 @@ bool graph::kuhn(unsigned node)
     return false;
 }
 
-unsigned graph::max_matching(bool *color)
+unsigned graph::max_matching(bool *color, unsigned *matching)
 {
     _uatmp = new unsigned[gLen];
     _vfill(_uatmp, gLen, gLen);
     _utmp = 0;
     for(unsigned i = 0; i < gLen; i++)
-        if(color[i])
+        if(!color[i])
         {
             if(kuhn(i))
                 _utmp++;
             _fill(_tmp, gLen);
         }
+    if(matching)
+        _copy(matching, gLen, _uatmp);
     delete[] _uatmp;
     return _utmp;
 }
@@ -315,6 +372,119 @@ unsigned graph::min_paths_covery()
     delete[] c;
     delete dv;
     return a;
+}
+
+void graph::dfsMatching(unsigned node, unsigned *mathcing, bool colored)
+{
+    _tmp[node] = 1;
+    if(colored)
+    {
+        for(unsigned i = 0; i < waysGo[node].maxs; i++)
+            if(!_tmp[waysGo[node][i].node] && (mathcing[node] != waysGo[node][i].node))
+                dfsMatching(waysGo[node][i].node, mathcing, false);
+    } else
+    {
+        for(unsigned i = 0; i < waysGo[node].maxs; i++)
+            if(!_tmp[waysGo[node][i].node] && (mathcing[waysGo[node][i].node] == node))
+                dfsMatching(waysGo[node][i].node, mathcing, true);
+    }
+}
+
+bool *graph::min_vertex_covery(bool *color, unsigned *matching)
+{
+    bool *color_mt;
+    unsigned *matching_vc;
+    if(!(color))
+    {
+        color_mt = new bool[gLen];
+        if(!isBipartite(color_mt))
+            return 0;
+    } else
+        color_mt = color;
+    if(!(matching) || !(color))
+    {
+        matching_vc = new unsigned[gLen];
+        max_matching(color_mt, matching_vc);
+    } else
+        matching_vc = matching;
+    for(unsigned i = 0; i < gLen; i++)
+        if(color_mt[i] && (matching_vc[i] == gLen) && (waysGo[i].maxs > 0) && !_tmp[i])
+            dfsMatching(i, matching_vc);
+    bool *color_vc;
+    if(color)
+        color_vc = new bool[gLen];
+    else
+        color_vc = color_mt;
+    for(unsigned i = 0; i < gLen; i++)
+        color_vc[i] = color_mt[i] ^ (_tmp[i]);
+    if(!(matching) || !(color))
+        delete[] matching_vc;
+    _fill(_tmp, gLen);
+    return color_vc;
+}
+
+unsigned *graph::getEuler(bool cycle)
+{
+    unsigned edges = 0, oddVertex = 0;
+    unsigned char odd = 0;
+    unsigned *d = new unsigned[gLen];
+    _fill(d, gLen);
+    for(unsigned i = 0; i < gLen; i++)
+    {
+        edges += waysGo[i].maxs;
+        for(unsigned r = 0; r < waysGo[i].maxs; r++)
+            d[waysGo[i][r].node]++;
+    }
+    for(unsigned i = 0; i < gLen; i++)
+        if(waysGo[i].maxs > d[i])
+        {
+            oddVertex = i;
+            odd++;
+            break;
+        }
+    if(!oriented)
+        edges >>= 1;
+    if(odd && cycle)
+        return nullptr;
+    if(!cycle && (odd > 2))
+        return nullptr;
+    _uatmp = new unsigned[edges + 1];
+    _uatmp[edges] = oddVertex;
+    _utmp = 0;
+    _utmp2 = edges;
+    unsigned *p = new unsigned[gLen];
+    _fill(p, gLen);
+    while(_utmp2 <= edges)
+    {
+        unsigned v = _uatmp[_utmp2];
+        bool pop = true;
+        while(p[v] < waysGo[v].maxs)
+        {
+            if(!waysGo[v][p[v]].isOnCover)
+            {
+                waysGo[v][p[v]].isOnCover = true;
+                if(!oriented)
+                    waysGo[waysGo[v][p[v]].node][waysGo[v][p[v]].reversed].isOnCover = true;
+                _uatmp[--_utmp2] = waysGo[v][p[v]].node;
+                p[v]++;
+                pop = false;
+                break;
+            }
+            p[v]++;
+        }
+        if(pop)
+        {
+            _uatmp[_utmp++] = v;
+            _utmp2++;
+        }
+    }
+    delete[] p;
+    if(_utmp <= edges)
+    {
+        delete[] _uatmp;
+        return nullptr;
+    }
+    return _uatmp;
 }
 
 inline void _gpushback(graph *g, unsigned node)

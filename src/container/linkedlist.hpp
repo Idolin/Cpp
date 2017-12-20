@@ -6,73 +6,69 @@ struct oneLinkedList
     struct node
     {
         //pointer to data
-        T *data;
+        T data;
         //pointer to next node
         node *next;
 
-        node(T data) : data(&data), next(0)
+        node(T data, node *next = nullptr) : data(data), next(next)
         {}
 
-        node(T data, node *next) : data(&data), next(next)
-        {}
-
-        ~node()
-        {}
+        ~node() = default;
     };
 
     //first, last and detour(for cycling throw)
-    node *first, *detour, *last;
+    node *first, *last;
 
-    oneLinkedList() : first(0), detour(0), last(0)
+    oneLinkedList() : first(nullptr), last(nullptr)
     {}
 
-    //insert new node after now(if now == 0 than add new node as first)
+    //insert new node after now
     void insert(node *now, T data)
     {
-        if(now == 0)
-            first = node(data, first);
-        else
-            now->next = node(data, now->next);
+        now->next = new node(data, now->next);
         if(last == now)
             last = now->next;
     }
 
-    //insert new node in the tail
-    void insert(T data)
+    //insert new node to the front
+    void insert_front(T data)
     {
-        if(first == 0)
-            first = last = new node(data, 0);
+        if(first == nullptr)
+            first = last = new node(data);
+        else
+            first = new node(data, first);
+    }
+
+    //insert new node to the tail
+    void insert_tail(T data)
+    {
+        if(first == nullptr)
+            first = last = new node(data);
         else
             last->next = new node(data, last->next);
     }
 
+    T removeNext(node *beforeDel)
+    {
+        if(!beforeDel)
+            return remove();
+        T data = beforeDel->next->data;
+        node *nextToNext = beforeDel->next->next;
+        delete beforeDel->next;
+        beforeDel->next = nextToNext;
+        return data;
+    }
+
     //remove first node and return it's data
-    T remove(node *toDel)
+    T remove()
     {
         if(!first)
             throw 56;
-        T *dataPointer = toDel->data;
-        toDel->data = 0;
-        return *dataPointer;
-    }
-
-    //cycle throw list
-    T getNext()
-    {
-        node *previous = detour;
-        detour = (detour) ? detour->next : first;
-        while(detour && !(detour->data))
-        {
-            delete detour;
-            detour = detour->next;
-        }
-        if(!previous)
-            first = detour;
-        else
-            previous->next = detour;
-        if(!detour)
-            last = previous;
-        return detour ? *(detour->data) : 0;
+        T data = first->data;
+        node *second = first->next;
+        delete first;
+        first = second;
+        return data;
     }
 };
 

@@ -15,7 +15,7 @@ unsigned char randomizer::randomC()
 
 bool randomizer::randomB()
 {
-    return (randomC() & 0x01);
+    return static_cast<bool>(randomC() & 0x01);
 }
 
 unsigned short randomizer::randomS()

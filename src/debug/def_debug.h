@@ -27,9 +27,9 @@
 class assert_failed : public std::exception
 {
 public:
-    assert_failed(const std::string &s);
+    explicit assert_failed(const std::string &s);
 
-    virtual const char *what() const throw();
+    const char *what() const throw() override;
 
 private:
     std::string message;

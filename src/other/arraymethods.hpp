@@ -160,11 +160,11 @@ inline void _display2D(T **array, unsigned length, unsigned height, const char *
         return;
     for(unsigned y = 0; y < height; y++)
     {
-        printf(prf, array[y]);
+        printf(prf, array[y][0]);
         for(unsigned x = 1; x < length; x++)
         {
             fputs(del, stdout);
-            printf(prf, array[y] + x);
+            printf(prf, array[y][x]);
         }
         printf(ldel, stdout);
     }
@@ -275,11 +275,11 @@ inline Ts _sum(Ta *start, Ta *end)
     return sum;
 }
 
-template<typename T>
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 inline bool _checksorted(T *start, T *end)
 {
     while(++start < end)
-        if(_more(*(start - 1), *start))
+        if(compare(*start, *(start - 1)))
             return false;
     return true;
 }

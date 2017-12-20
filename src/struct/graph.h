@@ -9,10 +9,24 @@
 
 using std::pair;
 
-typedef vect<pair<unsigned, unsigned>> transitions;
-
+//template<bool weighted>
 struct graph
 {
+    template<bool, typename dummy = void>
+    struct gt
+    {
+    };
+
+    template<typename dummy>
+    struct gt<true, dummy>
+    {
+        int x;
+    };
+
+    template<bool gX>
+    using g = gt<gX>;
+
+    //g<X> a;
     struct gTransition
     {
         unsigned node, reversed;
@@ -26,10 +40,9 @@ struct graph
 
     vect<gTransition> *waysFrom, *waysTo, *waysGo;
     unsigned gLen;
-    bool oriented, reversed, cycles;
+    bool oriented, reversed, cycles, negative;
     unsigned char *_tmp;
     unsigned *_uatmp, _utmp, _utmp2;
-    transitions *t_tmp;
 
     graph(unsigned nodes, bool oriented = true);
 
@@ -43,11 +56,11 @@ struct graph
 
     void dfsA(void(onEnter)(graph *g, unsigned node) = 0, void(onExit)(graph *g, unsigned node) = 0);
 
-    int *dijkstra(unsigned node = 0);
+    long *dijkstra(unsigned node = 0);
 
     int *bellman_ford(unsigned node);
 
-    int shortestWay(unsigned node1, unsigned node2);
+    long *shortestWay(unsigned node1);
 
     unsigned *topsort();
 
@@ -67,9 +80,15 @@ struct graph
 
     bool kuhn(unsigned node);
 
-    unsigned max_matching(bool *color);
+    unsigned max_matching(bool *color, unsigned *matching = nullptr);
 
     unsigned min_paths_covery();
+
+    void dfsMatching(unsigned node, unsigned *mathcing, bool colored = true);
+
+    bool *min_vertex_covery(bool *color, unsigned *matching);
+
+    unsigned *getEuler(bool cycle);
 };
 
 inline void _gpushback(graph *g, unsigned node);

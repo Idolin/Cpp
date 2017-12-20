@@ -73,7 +73,7 @@ char str::operator[](unsigned i)
     return s[i];
 }
 
-void str::operator+=(const str &b)
+str str::operator+=(const str &b)
 {
     unsigned new_len = info->len + b.length();
     char *a = nullptr;
@@ -91,6 +91,7 @@ void str::operator+=(const str &b)
     unlink();
     s = a;
     info = new str_info(new_len);
+    return *this;
 }
 
 bool str::operator==(const str &b) const
@@ -174,6 +175,11 @@ void str::unlink() const
         delete[] s;
         delete info;
     }
+}
+
+str operator+(str a, str const &b)
+{
+    return a += b;
 }
 
 str read_str()

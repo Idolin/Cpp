@@ -389,7 +389,6 @@ big_integer &big_integer::operator&=(const big_integer &b)
         return *this;
     if(b._number.get_sign() == 0)
         return (*this = 0);
-
     unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
     unsigned b_index = 0;
     while(b._number[b_index] == 0)
@@ -420,8 +419,8 @@ big_integer &big_integer::operator&=(const big_integer &b)
             if(this->_number.get_max_set() > min_max_set)
                 this->_number.fill(min_max_set + 1, this->_number.get_max_set() - min_max_set);
         }
-    } else
-        this->_number.fill(0, min_max_set + 1);
+    }
+    this->_number.fill(0, min(b_index, min_max_set + 1));
     if(this->_number.get_sign() < 0)
     {
         if(b._number.get_max_set() > min_max_set)
@@ -451,101 +450,74 @@ big_integer &big_integer::operator&=(const big_integer &b)
     }
     this->_number.getms();
     return *this;
-
-
-    uint32_t xb = 0;
-    bool n = false;
-    if(this->_number.get_sign() < 0)
-    {
-        if(this->_number[0])
-            this->_number[0]--;
-        else
-            this->_sub(1);
-        n = (b._number.get_sign() < 0);
-    }
-    unsigned i = 0;
-    uint32_t bf = b._number[0];
-    if(b._number.get_sign() < 0)
-    {
-        while(b._number[i] == 0)
-            i++;
-        if(i > this->_number.get_max_set())
-        {
-            if(this->_number.get_sign() > 0)
-                return (*this = 0);
-            else
-                return (*this = b);
-        } else
-            this->_number.fill(0, i);
-        bf = b._number[i] - 1;
-        xb = UINT32_MAX;
-    }
-    unsigned is = i;
-    if(this->_number.get_sign() < 0)
-        for(; i <= min_max_set; i++)
-            this->_number[i] = ~this->_number[i];
-    i = is;
-    while(true)
-    {
-        this->_number[i] = (this->_number[i]) & (bf ^ xb);
-        if(++i > min_max_set)
-            break;
-        bf = b._number[i];
-    }
-    if(n)
-        for(; is < i; is++)
-            this->_number[is] = ~this->_number[is];
-    if((b._number.get_max_set() >= i) && (this->_number.get_sign() < 0))
-    {
-        if(b._number.get_max_set() >= this->_number.get_size())
-            this->_number.resize(b._number.get_max_set() + 1);
-        if(n)
-            for(; i <= b._number.get_max_set(); i++)
-                this->_number[i] = ~b._number[i];
-        else
-            for(; i <= b._number.get_max_set(); i++)
-                this->_number[i] = b._number[i];
-        this->_number.set_max_set(b._number.get_max_set());
-    } else
-    {
-        if((this->_number.get_max_set() >= i) && (b._number.get_sign() > 0))
-        {
-            this->_number.fill(i, this->_number.get_max_set() - min_max_set);
-            this->_number.set_max_set(min_max_set);
-        }
-        _number.getms();
-    }
-    if(n)
-        this->_add(1);
-    elif(this->_number.get_sign() < 0)
-        this->_number.set_sign(1);
-    return *this;
 }
 
 big_integer &big_integer::operator|=(const big_integer &b)
 {
-    if(this->_number.get_sign() == 0)
+    if(this->_number.get_sign())
         return (*this = b);
     if(b._number.get_sign() == 0)
         return *this;
-    unsigned max_set = max(this->_number.get_max_set(), b._number.get_max_set());
-    if(b._number.get_max_set() > this->_number.get_size())
-        this->_resize(b._number.get_max_set());
-    if(this->_number.get_sign() < 0)
-        this->_inv(max_set);
-    big_integer c(b);
-    if(b._number.get_size() < max_set)
-        c._resize(max_set);
-    if(b._number.get_sign() < 0)
-        c._inv(max_set);
-    for(unsigned i = 0; i <= max_set; i++)
-        this->_number[i] |= c[i];
-    if((this->_number.get_sign() | b._number.get_sign()) == -1)
+    unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
+    unsigned b_index = 0;
+    while(b._number[b_index] == 0)
+        b_index++;
+    if(b_index <= min_max_set)
     {
-        this->_inv(max_set);
-        this->_number.set_sign(-1);
+        if(this->_number.get_sign() < 0)
+        {
+            unsigned i = 0;
+            for(; i <= min_max_set; i++)
+                if(this->_number[i])
+                {
+                    this->_number[i]--;
+                    break;
+                }
+            for(; i <= min_max_set; i++)
+                this->_number[i] = ~this->_number[i];
+        }
+        if(b._number.get_sign() < 0)
+        {
+            this->_number[b_index] &= ~(b._number[b_index] - 1);
+            for(unsigned i = b_index + 1; i <= min_max_set; i++)
+                this->_number[i] &= ~b._number[i];
+        } else
+        {
+            for(unsigned i = b_index; i <= min_max_set; i++)
+                this->_number[i] &= b._number[i];
+            if(this->_number.get_max_set() > min_max_set)
+                this->_number.fill(min_max_set + 1, this->_number.get_max_set() - min_max_set);
+        }
     }
-    _number.getms();
+    this->_number.fill(0, min(b_index, min_max_set + 1));
+    if(this->_number.get_sign() < 0)
+    {
+        if(b._number.get_max_set() > min_max_set)
+        {
+            if(b._number.get_max_set() >= this->_number.get_size())
+                this->_number.resize(b._number.get_max_set() + 1);
+            this->_number.copy(min_max_set + 1, b._number.get_max_set() - min_max_set, b._number, min_max_set + 1);
+            this->_number.set_max_set(b._number.get_max_set());
+        }
+        if(b._number.get_sign() < 0)
+        {
+            this->_number.set_sign(-1);
+            if(b_index <= min_max_set)
+            {
+                unsigned i = 0;
+                for(; i <= min_max_set; i++)
+                    if(this->_number[i])
+                    {
+                        this->_number[i]--;
+                        break;
+                    }
+                for(; i <= min_max_set; i++)
+                    this->_number[i] = ~this->_number[i];
+            }
+        } else
+            this->_number.set_sign(1);
+    }
+    this->_number.getms();
     return *this;
 }
 
@@ -573,6 +545,7 @@ big_integer &big_integer::operator^=(const big_integer &b)
         this->_number.set_sign(-1);
     } else
         this->_number.set_sign(1);
+    _number.set_max_set(max_set);
     _number.getms();
     return *this;
 }

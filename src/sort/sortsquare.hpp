@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/commonmethods.hxx"
+#include "../other/commonmethods.hpp"
 
 template<typename T>
 void bubblesort(T *start, T *end)
@@ -65,12 +65,12 @@ void minmaxsort(T *start, T *end)
     }
 }
 
-template<typename T>
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 void insertionsort(T *start, T *end)
 {
     for(T *t = start + 1; t < end; t++)
         for(T *p = t; p > start; p--)
-            if(_more(*(p - 1), *p))
+            if(compare(*p, *(p - 1)))
                 _swap(p - 1, p);
             else
                 break;

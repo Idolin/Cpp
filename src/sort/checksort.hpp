@@ -1,8 +1,17 @@
-#include "checksort.h"
+#pragma once
+
+#define COUNTSWAPS
+
+#include "../other/rand.h"
+#include "../other/arraymethods.hpp"
+
+#include <time.h>
+#include <unistd.h>
+#include <stdio.h>
 
 extern unsigned long long swapscounter;
 
-unsigned checkArraySizes[] = {1, 2, 10, 100, 1000, 10000, 100000, 1000000, 1000000};
+unsigned checkArraySizes[] = {100, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
 unsigned sizesToCheck = 9;
 
 double getClocksPerCount()
@@ -24,8 +33,8 @@ double getClocksPerCount()
     return (double) (2 * middle - start - end) / countAmount;
 }
 
-template<typename T>
-void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI)
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
 {
     T *e = s + mas_len;
     swapscounter = 0;
@@ -35,21 +44,16 @@ void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI)
     t2 -= t;
     unsigned long long clocks = t2 - (clock_t) ((double) swapscounter * CPCI + 0.5);
     printf("~%llu clocks, %llu swaps, ", clocks, swapscounter);
-    if(_checksorted(s, e))
+    if(_checksorted<T, compare>(s, e))
         printf("OK\n");
     else
         printf("Failed!!!\n");
 }
 
-template<typename T>
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 void checksort(void(sortf)(T *, T *))
 {
     double CLOCKSPERCOUNTERINCREASE = getClocksPerCount();
-    if(sizesToCheck == 0)
-    {
-        printf("!!No array sizes to check were given!!");
-        return;
-    }
     T *t = new unsigned[_max(checkArraySizes, sizesToCheck)];
     for(unsigned sizei = 0; sizei < sizesToCheck; sizei++)
     {
@@ -57,25 +61,25 @@ void checksort(void(sortf)(T *, T *))
         printf("<<Checking size: %u>>\n", size);
         if(size)
         {
-            T r = (sizeof(t[0]) <= 32) ? reinterpret_cast<T>(random32()) : reinterpret_cast<T>(random64());
+            T r = (sizeof(t[0]) <= 32) ? (T) (random32()) : (T) (random64());
             _vfill(t, size, r);
         }
         printf("\tOne value: ");
-        checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         for(unsigned i = 0; i < size; i++)
             t[i] = i;
         printf("\tSorted: ");
-        checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         for(unsigned i = 0; i < size; i++)
             t[i] = size - i;
         printf("\tInversed: ");
-        checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         if(size >= 10)
         {
             for(unsigned i = 0; i < size; i++)
                 t[i] = randomU() & 0x000f;
-            printf("/tTen different elements: ");
-            checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+            printf("\tTen different elements: ");
+            checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         }
         if(size >= 100)
         {
@@ -88,22 +92,22 @@ void checksort(void(sortf)(T *, T *))
                     blockEnd = size;
                 else
                     blockEnd = halfBlockSize * (2 * i + 1) - randomU() % (halfBlockSize * 2);
-                T startR = (sizeof(t[0]) <= 32) ? reinterpret_cast<T>(random32()) : reinterpret_cast<T>(random64());;
+                T startR = (sizeof(t[0]) <= 32) ? (T) (random32()) : (T) (random64());;
                 for(unsigned k = blockStart; k < blockEnd; k++)
-                    t[k] = startR += reinterpret_cast<T>(random8());
+                    t[k] = startR += (T) (random8());
                 blockStart = blockEnd;
             }
             printf("\tPartically sorted: ");
-            checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+            checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         }
         if(sizeof(t[0]) <= 32)
             for(unsigned i = 0; i < size; i++)
-                t[i] = reinterpret_cast<T>(random32());
+                t[i] = (T) (random32());
         else
             for(unsigned i = 0; i < size; i++)
-                t[i] = reinterpret_cast<T>(random64());
-        printf("/tFull random: ");
-        checksortfa(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+                t[i] = (T) (random64());
+        printf("\tFull random: ");
+        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         usleep(1000);
     }
     delete[] t;
