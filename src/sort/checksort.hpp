@@ -11,8 +11,8 @@
 
 extern unsigned long long swapscounter;
 
-unsigned checkArraySizes[] = {100, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-unsigned sizesToCheck = 9;
+unsigned checkArraySizes[] = {0, 1, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+unsigned sizesToCheck = 10;
 
 double getClocksPerCount()
 {
@@ -36,6 +36,9 @@ double getClocksPerCount()
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
 {
+    T xor_val = 0;
+    for(unsigned i = 0; i < mas_len; i++)
+        xor_val ^= s[i];
     T *e = s + mas_len;
     swapscounter = 0;
     clock_t t = clock();
@@ -44,7 +47,9 @@ void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.
     t2 -= t;
     unsigned long long clocks = t2 - (clock_t) ((double) swapscounter * CPCI + 0.5);
     printf("~%llu clocks, %llu swaps, ", clocks, swapscounter);
-    if(_checksorted<T, compare>(s, e))
+    for(unsigned i = 0; i < mas_len; i++)
+        xor_val ^= s[i];
+    if((xor_val == 0) && _checksorted<T, compare>(s, e))
         printf("OK\n");
     else
         printf("Failed!!!\n");

@@ -3,7 +3,7 @@
 #include "../sort/sortline.hxx"
 #include "../sort/sortlog.hxx"
 #include "../sort/sortsquare.hxx"
-#include "../sort/checksort.h"
+#include "../sort/checksort.hpp"
 
 void smoothsort()
 {}
