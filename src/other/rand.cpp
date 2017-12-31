@@ -1,29 +1,77 @@
 #include "rand.h"
 
+#define DEBUG
+
 static randomizer defaultRandomizer;
 
-randomizer::randomizer() : rand64(UINT64_C(9316722631499553187))
+randomizer::randomizer() : randU64(UINT64_C(9316722631499553187))
 {}
-
-unsigned char randomizer::randomC()
-{
-    randC ^= randC >> 3;
-    randC ^= randC << 7;
-    randC ^= randC >> 5;
-    return randC;
-}
 
 bool randomizer::randomB()
 {
-    return static_cast<bool>(randomC() & 0x01);
+    return static_cast<bool>(randomUC() & 0x01);
 }
 
-unsigned short randomizer::randomS()
+template<>
+bool randomizer::random()
 {
-    randS ^= randS >> 3;
-    randS ^= randS << 7;
-    randS ^= randS >> 11;
+    return this->randomB();
+}
+
+unsigned char randomizer::randomUC()
+{
+    randUC ^= randUC >> 3;
+    randUC ^= randUC << 7;
+    randUC ^= randUC >> 5;
+    return randUC;
+}
+
+template<>
+unsigned char randomizer::random()
+{
+    return this->randomUC();
+}
+
+char randomizer::randomC()
+{
+    randUC ^= randUC >> 3;
+    randUC ^= randUC << 7;
+    randUC ^= randUC >> 5;
+    return randC;
+}
+
+template<>
+char randomizer::random()
+{
+    return this->randomC();
+}
+
+unsigned short randomizer::randomUS()
+{
+    randUS ^= randUS >> 3;
+    randUS ^= randUS << 7;
+    randUS ^= randUS >> 11;
+    return randUS;
+}
+
+template<>
+unsigned short randomizer::random()
+{
+    return this->randomUS();
+}
+
+short randomizer::randomS()
+{
+    randUS ^= randUS >> 3;
+    randUS ^= randUS << 7;
+    randUS ^= randUS >> 11;
     return randS;
+}
+
+template<>
+short randomizer::random()
+{
+    return this->randomS();
 }
 
 unsigned randomizer::randomU()
@@ -34,51 +82,144 @@ unsigned randomizer::randomU()
     return randU;
 }
 
-unsigned long randomizer::randomL()
+template<>
+unsigned randomizer::random()
 {
-    randL ^= randL >> 3;
-    randL ^= randL << 7;
-    randL ^= randL >> 11;
+    return this->randomU();
+}
+
+int randomizer::randomI()
+{
+    randU ^= randU >> 3;
+    randU ^= randU << 7;
+    randU ^= randU >> 11;
+    return randI;
+}
+
+template<>
+int randomizer::random()
+{
+    return this->randomI();
+}
+
+unsigned long randomizer::randomUL()
+{
+    randUL ^= randUL >> 3;
+    randUL ^= randUL << 7;
+    randUL ^= randUL >> 11;
+    return randUL;
+}
+
+template<>
+unsigned long randomizer::random()
+{
+    return this->randomUL();
+}
+
+long randomizer::randomL()
+{
+    randUL ^= randUL >> 3;
+    randUL ^= randUL << 7;
+    randUL ^= randUL >> 11;
     return randL;
 }
 
-unsigned long long randomizer::randomLL()
+template<>
+long randomizer::random()
 {
-    randLL ^= randLL >> 3;
-    randLL ^= randLL << 7;
-    randLL ^= randLL >> 11;
+    return this->randomL();
+}
+
+unsigned long long randomizer::randomULL()
+{
+    randULL ^= randULL >> 3;
+    randULL ^= randULL << 7;
+    randULL ^= randULL >> 11;
+    return randULL;
+}
+
+template<>
+unsigned long long randomizer::random()
+{
+    return this->randomULL();
+}
+
+long long randomizer::randomLL()
+{
+    randULL ^= randULL >> 3;
+    randULL ^= randULL << 7;
+    randULL ^= randULL >> 11;
     return randLL;
 }
 
-uint8_t randomizer::random8()
+template<>
+long long randomizer::random()
 {
-    rand8 ^= rand8 >> 3;
-    rand8 ^= rand8 << 7;
-    rand8 ^= rand8 >> 5;
+    return this->randomLL();
+}
+
+uint8_t randomizer::randomU8()
+{
+    randU8 ^= randU8 >> 3;
+    randU8 ^= randU8 << 7;
+    randU8 ^= randU8 >> 5;
+    return randU8;
+}
+
+int8_t randomizer::random8()
+{
+    randU8 ^= randU8 >> 3;
+    randU8 ^= randU8 << 7;
+    randU8 ^= randU8 >> 5;
     return rand8;
 }
 
-uint16_t randomizer::random16()
+uint16_t randomizer::randomU16()
 {
-    rand16 ^= rand16 >> 3;
-    rand16 ^= rand16 << 7;
-    rand16 ^= rand16 >> 11;
+    randU16 ^= randU16 >> 3;
+    randU16 ^= randU16 << 7;
+    randU16 ^= randU16 >> 11;
+    return randU16;
+}
+
+int16_t randomizer::random16()
+{
+    randU16 ^= randU16 >> 3;
+    randU16 ^= randU16 << 7;
+    randU16 ^= randU16 >> 11;
     return rand16;
 }
 
-uint32_t randomizer::random32()
+uint32_t randomizer::randomU32()
 {
-    rand32 ^= rand32 >> 3;
-    rand32 ^= rand32 << 7;
-    rand32 ^= rand32 >> 11;
+    randU32 ^= randU32 >> 3;
+    randU32 ^= randU32 << 7;
+    randU32 ^= randU32 >> 11;
+    return randU32;
+}
+
+int32_t randomizer::random32()
+{
+    randU32 ^= randU32 >> 3;
+    randU32 ^= randU32 << 7;
+    randU32 ^= randU32 >> 11;
     return rand32;
 }
 
-uint64_t randomizer::random64()
+
+uint64_t randomizer::randomU64()
 {
-    rand64 ^= rand64 >> 3;
-    rand64 ^= rand64 << 7;
-    rand64 ^= rand64 >> 11;
+    randU64 ^= randU64 >> 3;
+    randU64 ^= randU64 << 7;
+    randU64 ^= randU64 >> 11;
+    return randU64;
+}
+
+int64_t randomizer::random64()
+{
+    randU64 ^= randU64 >> 3;
+    randU64 ^= randU64 << 7;
+    randU64 ^= randU64 >> 11;
     return rand64;
 }
 
@@ -87,14 +228,54 @@ bool randomB()
     return defaultRandomizer.randomB();
 }
 
-unsigned char randomC()
+template<>
+bool randomA<bool>()
+{
+    return defaultRandomizer.random<bool>();
+}
+
+unsigned char randomUC()
+{
+    return defaultRandomizer.randomUC();
+}
+
+template<>
+unsigned char randomA<unsigned char>()
+{
+    return defaultRandomizer.random<unsigned char>();
+}
+
+char randomC()
 {
     return defaultRandomizer.randomC();
 }
 
-unsigned short randomS()
+template<>
+char randomA<char>()
+{
+    return defaultRandomizer.random<char>();
+}
+
+unsigned short randomUS()
+{
+    return defaultRandomizer.randomUS();
+}
+
+template<>
+unsigned short randomA<unsigned short>()
+{
+    return defaultRandomizer.random<unsigned short>();
+}
+
+short randomS()
 {
     return defaultRandomizer.randomS();
+}
+
+template<>
+short randomA<short>()
+{
+    return defaultRandomizer.random<short>();
 }
 
 unsigned randomU()
@@ -102,32 +283,103 @@ unsigned randomU()
     return defaultRandomizer.randomU();
 }
 
-unsigned long randomL()
+template<>
+unsigned randomA<unsigned>()
+{
+    return defaultRandomizer.random<unsigned>();
+}
+
+int randomI()
+{
+    return defaultRandomizer.randomI();
+}
+
+template<>
+int randomA<int>()
+{
+    return defaultRandomizer.random<int>();
+}
+
+unsigned long randomUL()
+{
+    return defaultRandomizer.randomUL();
+}
+
+template<>
+unsigned long randomA<unsigned long>()
+{
+    return defaultRandomizer.random<unsigned long>();
+}
+
+long randomL()
 {
     return defaultRandomizer.randomL();
 }
 
-unsigned long long randomLL()
+template<>
+long randomA<long>()
+{
+    return defaultRandomizer.random<long>();
+}
+
+unsigned long long randomULL()
+{
+    return defaultRandomizer.randomULL();
+}
+
+template<>
+unsigned long long randomA<unsigned long long>()
+{
+    return defaultRandomizer.random<unsigned long long>();
+}
+
+long long randomLL()
 {
     return defaultRandomizer.randomLL();
 }
 
-uint8_t random8()
+template<>
+long long randomA<long long>()
+{
+    return defaultRandomizer.random<long long>();
+}
+
+uint8_t randomU8()
+{
+    return defaultRandomizer.randomU8();
+}
+
+int8_t random8()
 {
     return defaultRandomizer.random8();
 }
 
-uint16_t random16()
+uint16_t randomU16()
+{
+    return defaultRandomizer.randomU16();
+}
+
+int16_t random16()
 {
     return defaultRandomizer.random16();
 }
 
-uint32_t random32()
+uint32_t randomU32()
+{
+    return defaultRandomizer.randomU32();
+}
+
+int32_t random32()
 {
     return defaultRandomizer.random32();
 }
 
-uint64_t random64()
+uint64_t randomU64()
+{
+    return defaultRandomizer.randomU64();
+}
+
+int64_t random64()
 {
     return defaultRandomizer.random64();
 }
