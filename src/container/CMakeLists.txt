@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.2)
 
-set(SOURCE_TGT vector.hpp)
+set(VECTOR_SOURCE_TGT vector.hpp)
 add_custom_target(vector_tgt
-        DEPENDS "${SOURCE_TGT}")
+        DEPENDS "${VECTOR_SOURCE_TGT}")
 add_dependencies(vector_tgt heap_tgt)
+
+set(LINKED_LIST_SOURCE_TGR linkedlist.hpp)
+add_custom_target(linkedlist_tgt
+        DEPENDS "${LINKED_LIST_SOURCE_TGT}")
+
+add_test(linkedlist_test linkedlist.test.cpp)
+list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/linkedlist.test.cpp)
+set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)

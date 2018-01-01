@@ -1,311 +1,256 @@
 #pragma once
 
+template<typename T, bool bidirectional = true>
+struct linkedList
+{
+};
+
 template<typename T>
-struct oneLinkedList
+struct linkedList<T, false>
 {
     struct node
     {
-        //pointer to data
-        T data;
-        //pointer to next node
-        node *next;
+        T data; //data
+        node *next; //pointer to next node
 
-        node(T data, node *next = nullptr) : data(data), next(next)
+        explicit node(T data, node *next = nullptr) : data(data), next(next)
+        {}
+        ~node() = default;
+    };
+
+    node *head, *tail;
+    unsigned len;
+
+    linkedList() : head(nullptr), tail(nullptr), len(0)
+    {}
+
+    ~linkedList()
+    {
+        node *it = head, *next;
+        while(it)
+        {
+            next = it->next;
+            delete it;
+            it = next;
+        }
+    }
+
+    node *insert(node *now, T data) //insert new node after now
+    {
+        len++;
+        now->next = new node(data, now->next);
+        if(tail == now)
+            tail = now->next;
+        return now->next;
+    }
+
+    node *push_front(T data) //insert new node to the front
+    {
+        len++;
+        if(head == nullptr)
+            return (head = tail = new node(data));
+        else
+            return (head = new node(data, head));
+    }
+
+    node *push_tail(T data) //insert new node to the tail
+    {
+        len++;
+        if(tail == nullptr)
+            return (head = tail = new node(data));
+        else
+        {
+            tail->next = new node(data);
+            return (tail = tail->next);
+        }
+    }
+
+    T remove_next(node *prev) //remove node after prev (head for prev == nullptr)
+    {
+        if(!prev)
+            return remove_head();
+        ASSERT(prev != tail);
+        len--;
+        node *next = prev->next;
+        if(next == tail)
+            tail = prev;
+        T data = next->data;
+        prev->next = next->next;
+        delete next;
+        return data;
+    }
+
+    T remove_head() //remove first node and return it's data
+    {
+        ASSERT(head);
+        len--;
+        T data = head->data;
+        node *second = head->next;
+        delete head;
+        head = second;
+        if(!head)
+            tail = nullptr;
+        return data;
+    }
+
+    node *at(unsigned index) //return node at index position
+    {
+        ASSERT(index < len);
+        node *it = head;
+        while(index--)
+            it = it->next;
+        return it;
+    }
+
+    bool empty() //if list is empty
+    {
+        return (len == 0);
+    }
+};
+
+template<typename T>
+struct linkedList<T, true>
+{
+    struct node
+    {
+        T data;
+        node *next, *prev;
+
+        explicit node(T data, node *next = nullptr, node *prev = nullptr) : data(data), next(next), prev(prev)
         {}
 
         ~node() = default;
     };
 
-    //first, last and detour(for cycling throw)
-    node *first, *last;
-
-    oneLinkedList() : first(nullptr), last(nullptr)
-    {}
-
-    //insert new node after now
-    void insert(node *now, T data)
-    {
-        now->next = new node(data, now->next);
-        if(last == now)
-            last = now->next;
-    }
-
-    //insert new node to the front
-    void insert_front(T data)
-    {
-        if(first == nullptr)
-            first = last = new node(data);
-        else
-            first = new node(data, first);
-    }
-
-    //insert new node to the tail
-    void insert_tail(T data)
-    {
-        if(first == nullptr)
-            first = last = new node(data);
-        else
-            last->next = new node(data, last->next);
-    }
-
-    T removeNext(node *beforeDel)
-    {
-        if(!beforeDel)
-            return remove();
-        T data = beforeDel->next->data;
-        node *nextToNext = beforeDel->next->next;
-        delete beforeDel->next;
-        beforeDel->next = nextToNext;
-        return data;
-    }
-
-    //remove first node and return it's data
-    T remove()
-    {
-        if(!first)
-            throw 56;
-        T data = first->data;
-        node *second = first->next;
-        delete first;
-        first = second;
-        return data;
-    }
-};
-
-template<typename T>
-struct dllist
-{
-    struct clist
-    {
-        T c;
-        clist *n, *p;
-
-        clist(T c, clist *n = 0, clist *p = 0) : c(c), n(n), p(p)
-        {}
-
-        ~clist()
-        {}
-    };
-
-    clist *t, *h;
+    node *head, *tail;
     unsigned len;
 
-    dllist() : t(0), h(0), len(0)
+    linkedList() : head(nullptr), tail(nullptr), len(0)
     {}
 
-    ~dllist()
+    ~linkedList()
     {
-        T *s = h, *ns;
-        while(s != 0)
+        if(len)
         {
-            ns = s->n;
-            delete s;
-            s = ns;
+            node *it = head->next;
+            while(it)
+            {
+                delete it->prev;
+                it = it->next;
+            }
+            delete tail;
         }
     }
 
-    void pushtail(T x)
+    node *insert(node *now, T data) //insert new node after now
     {
-        clist e(x, 0, t);
-        if(t == 0)
-            h = *e;
-        else
-            t->n = *e;
-        t = *e;
         len++;
-    }
-
-    void pushfront(T x)
-    {
-        clist e(x, h, 0);
-        if(h == 0)
-            t = *e;
+        now->next = new node(data, now->next, now);
+        if((now = now->next)->next)
+            now->next->prev = now;
         else
-            h->p = *e;
-        h = *e;
+            tail = now;
+    }
+
+    node *push_front(T data)
+    {
         len++;
-    }
-
-    void push(unsigned p, T x)
-    {
-        if(p <= len)
+        if(head)
         {
-            if(p >= (len + 1) / 2)
-            {
-                p = len - p;
-                clist *k = t;
-                while(p-- > 0)
-                {
-                    k = k->p;
-                }
-                clist e(x);
-                if(k == 0)
-                {
-                    len = 1;
-                    h = *e;
-                    t = *e;
-                    return;
-                }
-                e.p = k;
-                e.n = k->n;
-                if(k->n != 0)
-                    k->n->p = *e;
-                else
-                    t = *e;
-                k->n = *e;
-                len++;
-            } else
-            {
-                clist *k = h;
-                while(p-- > 0)
-                {
-                    k = k->n;
-                }
-                clist e(x, k, k->p);
-                if(k->p != 0)
-                    k->p->n = *e;
-                else
-                    h = *e;
-                k->p = *e;
-                len++;
-            }
+            head->prev = new node(data, head, nullptr);
+            return (head = head->prev);
         }
+        else
+            return (head = tail = new node(data));
     }
 
-    T poptail()
+    node *push_tail(T data)
     {
-        if(len > 0)
+        len++;
+        if(tail)
         {
-            T x = t->c;
-            clist *k = t->p;
-            if(k != 0)
-                k->n = 0;
-            else
-                h = 0;
-            delete t;
-            t = k;
-            len--;
-            return x;
-        } else
-            return -1;
-    }
-
-    T popfront()
-    {
-        if(h > 0)
-        {
-            T x = h->c;
-            clist *k = h->n;
-            if(k != 0)
-                k->p = 0;
-            else
-                t = 0;
-            delete h;
-            h = k;
-            len--;
-            return x;
-        } else
-            return -1;
-    }
-
-    T pop(unsigned p)
-    {
-        if(p < len)
-        {
-            if(p >= (len + 1) / 2)
-            {
-                p = len - p;
-                clist *k = t;
-                while(p-- > 1)
-                {
-                    k = k->p;
-                }
-                T x = k->c;
-                if(k->n != 0)
-                    k->n->p = k->p;
-                else
-                    t = k->p;
-                k->p->n = k->n;
-                delete k;
-                len--;
-                return x;
-            } else
-            {
-                clist *k = h;
-                while(p-- > 0)
-                {
-                    k = k->n;
-                }
-                T x = k->c;
-                if(k->n == 0)
-                {
-                    delete k;
-                    t = 0;
-                    h = 0;
-                    len = 0;
-                    return x;
-                }
-                if(k->p != 0)
-                    k->p->n = k->n;
-                else
-                    h = k->n;
-                k->n->p = k->p;
-                delete k;
-                len--;
-                return x;
-            }
-        } else
-            return -1;
-    }
-
-    T get(unsigned p)
-    {
-        if(p < len)
-        {
-            clist *k;
-            if(p >= (len + 1) / 2)
-            {
-                p = len - p;
-                k = t;
-                while(p-- > 1)
-                {
-                    k = k->p;
-                }
-            } else
-            {
-                k = h;
-                while(p-- > 0)
-                {
-                    k = k->n;
-                }
-            }
-            return k->c;
-        } else
-            return -1;
-    }
-
-    void set(unsigned p, T x)
-    {
-        if(p < len)
-        {
-            clist *k;
-            if(p >= (len + 1) / 2)
-            {
-                p = len - p;
-                k = t;
-                while(p-- > 1)
-                {
-                    k = k->p;
-                }
-            } else
-            {
-                k = h;
-                while(p-- > 0)
-                {
-                    k = k->n;
-                }
-            }
-            k->c = x;
+            tail->next = new node(data, nullptr, tail);
+            return (tail = tail->next);
         }
+        else
+            return (head = tail = new node(data));
+    }
+
+    T remove(node *rem)
+    {
+        len--;
+        if(rem->prev)
+            rem->prev->next = rem->next;
+        else
+            head = rem->next;
+        if(rem->next)
+            rem->next->prev = rem->prev;
+        else
+            tail = rem->prev;
+        T data = rem->data;
+        delete rem;
+        return data;
+    }
+
+    T remove_head()
+    {
+        ASSERT(head);
+        len--;
+        T data = head->data;
+        if(head->next)
+        {
+            head = head->next;
+            delete head->prev;
+            head->prev = nullptr;
+        }
+        else
+        {
+            delete head;
+            head = tail = nullptr;
+        }
+        return data;
+    }
+
+    T remove_tail()
+    {
+        ASSERT(tail);
+        len--;
+        T data = tail->data;
+        if(tail->prev)
+        {
+            tail = tail->prev;
+            delete tail->next;
+            tail->next = nullptr;
+        }
+        else
+        {
+            delete tail;
+            head = tail = nullptr;
+        }
+        return data;
+    }
+
+    node *at(unsigned index)
+    {
+        ASSERT(index < len);
+        node *it;
+        if(index < len / 2)
+        {
+            it = head;
+            while(index--)
+                it = it->next;
+        }
+        else
+        {
+            it = tail;
+            while(++index < len)
+                it = it->prev;
+        }
+        return it;
+    }
+
+    bool empty()
+    {
+        return (len == 0);
     }
 };
