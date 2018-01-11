@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../debug/def_debug.h"
 #include <iterator>
 
 template<typename T, bool bidirectional = true>
@@ -16,13 +17,13 @@ private:
         T data; //data
         node *next; //pointer to next node
 
-        explicit node(const T &data, node *next = nullptr) : data(data), next(next)
+        explicit node(const T &data, node *next = nullptr): data(data), next(next)
         {}
         ~node() = default;
     };
 
 public:
-    struct iterator : public std::iterator<std::forward_iterator_tag, T>
+    struct iterator: public std::iterator<std::forward_iterator_tag, T>
     {
         friend struct linkedList<T, false>;
 
@@ -31,12 +32,12 @@ public:
 
     public:
 
-        iterator(node *ptr = nullptr) : ptr(ptr)
+        iterator(node *ptr = nullptr): ptr(ptr)
         {}
 
         ~iterator() = default;
 
-        iterator(const iterator &otr) : ptr(otr.ptr)
+        iterator(const iterator &otr): ptr(otr.ptr)
         {}
 
         iterator &operator=(iterator const &otr)
@@ -81,7 +82,7 @@ public:
     iterator head, tail;
     unsigned len;
 
-    linkedList() : head(), tail(), len(0)
+    linkedList(): head(), tail(), len(0)
     {}
 
     ~linkedList()
@@ -187,14 +188,14 @@ private:
         T data;
         node *next, *prev;
 
-        explicit node(T data, node *next = nullptr, node *prev = nullptr) : data(data), next(next), prev(prev)
+        explicit node(T data, node *next = nullptr, node *prev = nullptr): data(data), next(next), prev(prev)
         {}
 
         ~node() = default;
     };
 
 public:
-    struct iterator : public std::iterator<std::bidirectional_iterator_tag, T>
+    struct iterator: public std::iterator<std::bidirectional_iterator_tag, T>
     {
         friend struct linkedList<T, true>;
 
@@ -202,20 +203,20 @@ public:
         node *ptr;
         bool end;
 
-        iterator(node *ptr, bool end) : ptr(ptr), end(end)
+        iterator(node *ptr, bool end): ptr(ptr), end(end)
         {}
 
     public:
 
-        iterator() : ptr(nullptr), end(true)
+        iterator(): ptr(nullptr), end(true)
         {}
 
-        iterator(node *ptr) : ptr(ptr), end(false)
+        iterator(node *ptr): ptr(ptr), end(false)
         {}
 
         ~iterator() = default;
 
-        iterator(const iterator &otr) : ptr(otr.ptr), end(otr.end)
+        iterator(const iterator &otr): ptr(otr.ptr), end(otr.end)
         {}
 
         iterator &operator=(iterator const &otr)
@@ -226,6 +227,8 @@ public:
 
         bool operator==(const iterator &otr) const
         {
+            if(end ^ otr.end)
+                return false;
             return (ptr == otr.ptr) || (end && otr.end);
         }
 
@@ -280,7 +283,7 @@ public:
     iterator head, tail;
     unsigned len;
 
-    linkedList() : head(), tail(), len(0)
+    linkedList(): head(), tail(), len(0)
     {}
 
     ~linkedList()

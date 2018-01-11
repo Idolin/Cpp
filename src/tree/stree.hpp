@@ -3,6 +3,7 @@
 #include "../debug/def_debug.h"
 
 #include <algorithm>
+#include <mutex>
 #include <stdio.h>
 
 using std::make_pair;
@@ -28,7 +29,7 @@ struct search_tree_node
 };
 
 template<typename TData, typename TKey, class S>
-struct search_tree_node_crtp : search_tree_node<TData, TKey>
+struct search_tree_node_crtp: search_tree_node<TData, TKey>
 {
     S *left, *right, *parent;
 
@@ -101,7 +102,7 @@ struct tree_iterator
     search_tree_node<TData, TKey> *current;
     bool is_end;
 
-    tree_iterator(search_tree_node<TData, TKey> *node, bool end_iterator = false) : current(node), is_end(end_iterator)
+    tree_iterator(search_tree_node<TData, TKey> *node, bool end_iterator = false): current(node), is_end(end_iterator)
     {}
 
     // Элемент на который сейчас ссылается итератор.
@@ -177,7 +178,9 @@ struct tree_iterator
     // Сравнение итераторов двух разных контейнеров не определено.
     bool operator==(const tree_iterator<TData, TKey> i) const
     {
-        return ((current == i.current) && (is_end == i.is_end));
+        if(is_end ^ i.is_end)
+            return false;
+        return (current == i.current) || (is_end && i.is_end);
     }
 
     bool operator!=(const tree_iterator<TData, TKey> i) const
@@ -207,25 +210,36 @@ struct search_tree_abstract
     virtual t_iterator begin() const = 0;
 
     virtual t_iterator end() const = 0;
+
+    virtual void lock() const = 0;
+
+    virtual bool try_lock() const = 0;
+
+    virtual void unlock() const = 0;
 };
 
 template<typename TData, typename TKey, class S>
 struct search_tree_abstract_crtp;
 
 template<typename TData, typename TKey, class S>
-bool check_binary_tree(search_tree_abstract_crtp<TKey, TData, S> *);
+static bool check_binary_tree(search_tree_abstract_crtp<TKey, TData, S> *);
 
 template<typename TData, typename TKey, class S>
-struct search_tree_abstract_crtp : search_tree_abstract<TData, TKey>
+struct search_tree_abstract_crtp: search_tree_abstract<TData, TKey>
 {
 protected:
     S *root;
 
+    mutable std::recursive_mutex _lock;
+
     friend bool check_binary_tree<TData, TKey, S>(search_tree_abstract_crtp<TKey, TData, S> *);
 
 public:
-    search_tree_abstract_crtp() : root(0)
-    {}
+    search_tree_abstract_crtp(): root(0)
+    {
+        static_assert(std::is_base_of<search_tree_node<TData, TKey>, S>::value,
+                      "S must be derived from search_tree_node with same TData & TKey");
+    }
 
     virtual ~search_tree_abstract_crtp()
     {}
@@ -237,10 +251,27 @@ public:
 
     virtual void show() const
     {
+        _lock.lock();
         for(unsigned level = 0; show_level(root, level); level++)
             putchar('\n');
+        _lock.unlock();
         putchar('\n');
         fflush(stdout);
+    }
+
+    virtual void lock() const
+    {
+        _lock.lock();
+    }
+
+    virtual bool try_lock() const
+    {
+        return _lock.try_lock();
+    }
+
+    virtual void unlock() const
+    {
+        _lock.unlock();
     }
 
 private:
@@ -255,20 +286,23 @@ private:
                 if(!show_level(node->right, level - 1))
                     return ok;
                 return true;
-            } else
+            }
+            else
             {
                 show_level(0, level - 1);
                 putchar('|');
                 show_level(0, level - 1);
                 return false;
             }
-        } else
+        }
+        else
         {
             if(node)
             {
                 node->show_node();
                 return ((node->left) || (node->right));
-            } else
+            }
+            else
             {
                 fputs("empty", stdout);
                 return false;
@@ -278,7 +312,7 @@ private:
 };
 
 template<typename TData, typename TKey, class S>
-bool check_binary_tree_node(search_tree_node_crtp<TKey, TData, S> *node)
+static bool check_binary_tree_node(search_tree_node_crtp<TKey, TData, S> *node)
 {
     if(!node)
         return true;
@@ -292,5 +326,8 @@ bool check_binary_tree_node(search_tree_node_crtp<TKey, TData, S> *node)
 template<typename TData, typename TKey, class S>
 bool check_binary_tree(search_tree_abstract_crtp<TKey, TData, S> *tree)
 {
-    return check_binary_tree_node(tree->root);
+    tree->lock();
+    bool ok = check_binary_tree_node(tree->root);
+    tree->unlock();
+    return ok;
 }

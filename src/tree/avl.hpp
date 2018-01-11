@@ -16,11 +16,11 @@ struct avl_node_tag
 };
 
 template<typename TData, typename TKey, class S>
-struct avl_node_crtp : search_tree_node_crtp<TData, TKey, S>, avl_node_tag
+struct avl_node_crtp: search_tree_node_crtp<TData, TKey, S>, avl_node_tag
 {
     unsigned char height;
 
-    avl_node_crtp(TKey key, TData data, S *parent) :
+    avl_node_crtp(TKey key, TData data, S *parent):
             search_tree_node_crtp<TData, TKey, S>(key, data, parent), height(0)
     {}
 
@@ -49,7 +49,7 @@ struct avl_node_crtp : search_tree_node_crtp<TData, TKey, S>, avl_node_tag
 template<typename TData, typename TKey>
 struct avl_node_t : avl_node_crtp<TData, TKey, avl_node_t<TData, TKey>>
 {
-    avl_node_t(TKey key, TData data, avl_node_t *parent) :
+    avl_node_t(TKey key, TData data, avl_node_t *parent):
             avl_node_crtp<TData, TKey, avl_node_t<TData, TKey>>(key, data, parent)
     {}
 };
@@ -63,18 +63,19 @@ bool check_avl_tree(avl_tree<TKey, TData, S> *);
 
 template<typename TData, typename TKey, class avl_node,
         typename enable_if<is_base_of<avl_node_tag, avl_node>::value>::type *>
-struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
+struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
 {
     friend bool check_avl_tree<>(avl_tree<TData, TKey, avl_node> *);
 
     typedef tree_iterator<TData, TKey> t_iterator;
 
-    avl_tree() : search_tree_abstract_crtp<TData, TKey, avl_node>()
+    avl_tree(): search_tree_abstract_crtp<TData, TKey, avl_node>()
     {}
 
     std::pair<t_iterator, bool> insert(TKey key, TData data, bool rewrite = false)
     {
         DEBUGLVLMSG(7, "AVL Tree: Inserting new node");
+        this->_lock.lock();
         avl_node *node = 0, **next = &this->root;
         for(;;)
         {
@@ -83,7 +84,9 @@ struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
             else
             {
                 balance((*next = new avl_node(key, data, node)));
-                return make_pair(t_iterator(*next), true);
+                t_iterator t = t_iterator(*next);
+                this->_lock.unlock();
+                return make_pair(t, true);
             }
             if(node->key != key)
                 next = node->key > key ? &(node->left) : &(node->right);
@@ -91,7 +94,9 @@ struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
             {
                 if(rewrite)
                     (*next)->changeData(data, this->root);
-                return make_pair(t_iterator(*next), false);
+                t_iterator t = t_iterator(*next);
+                this->_lock.unlock();
+                return make_pair(t, false);
             }
         }
     }
@@ -99,6 +104,7 @@ struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
     t_iterator findKey(TKey key) const
     {
         DEBUGLVLMSG(7, "AVL Tree: Searching for node");
+        this->_lock.lock();
         avl_node *node = this->root;
         while(node != 0)
             if(node->key > key)
@@ -106,13 +112,19 @@ struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
             elif(node->key < key)
                 node = node->right;
             else
+            {
+                this->_lock.unlock();
                 return t_iterator(node);
-        return end();
+            }
+        t_iterator t = end();
+        this->_lock.unlock();
+        return t;
     }
 
     TData erase(t_iterator iterator_)
     {
         DEBUGLVLMSG(7, "AVL Tree: Deleting node");
+        this->_lock.lock();
         avl_node *node = (avl_node *) (iterator_.current);
         avl_node *swap = (node->right) ? node->right : node->left;
         if(swap)
@@ -132,27 +144,40 @@ struct avl_tree : search_tree_abstract_crtp<TData, TKey, avl_node>
         TData &data = node->data;
         balance(node);
         delete node;
+        this->_lock.unlock();
         return data;
     }
 
     t_iterator begin() const
     {
+        this->_lock.lock();
         avl_node *left = this->root;
         if(!left)
+        {
+            this->_lock.unlock();
             return t_iterator(0, true);
+        }
         while(left->left)
             left = left->left;
-        return t_iterator(left);
+        t_iterator t = t_iterator(left);
+        this->_lock.unlock();
+        return t;
     }
 
     t_iterator end() const
     {
+        this->_lock.lock();
         avl_node *right = this->root;
         if(!right)
+        {
+            this->_lock.unlock();
             return t_iterator(0, true);
+        }
         while(right->right)
             right = right->right;
-        return t_iterator(right, true);
+        t_iterator t = t_iterator(right, true);
+        this->_lock.unlock();
+        return t;
     }
 
 private:
@@ -170,13 +195,15 @@ private:
                 node = smallLeft(node);
             else
                 node = bigLeft(node);
-        } elif(balance == -2)
+        }
+        elif(balance == -2)
         {
             if(node->left->getBalance() <= 0)
                 node = smallRight(node);
             else
                 node = bigRight(node);
-        } else
+        }
+        else
             node->fixHeight();
         if(isRoot)
             this->root = node;
@@ -196,14 +223,16 @@ private:
                 list->right = node->right;
                 if(node->right)
                     node->right->parent = list;
-            } else
+            }
+            else
             {
                 list->right = node;
                 list->left = node->left;
                 if(node->left)
                     node->left->parent = list;
             }
-        } else
+        }
+        else
         {
             if(list->parent->left == list)
                 list->parent->left = node;
@@ -227,7 +256,8 @@ private:
                 list->parent->left = list;
             else
                 list->parent->right = list;
-        } else
+        }
+        else
             this->root = list;
     }
 
@@ -285,7 +315,7 @@ private:
 };
 
 template<typename TKey, typename TData, class S>
-int check_avl_balance(avl_node_crtp<TKey, TData, S> *node)
+static int check_avl_balance(avl_node_crtp<TKey, TData, S> *node)
 {
     if(!node)
         return 0;
@@ -305,5 +335,8 @@ int check_avl_balance(avl_node_crtp<TKey, TData, S> *node)
 template<typename TData, typename TKey, class S>
 bool check_avl_tree(avl_tree<TKey, TData, S> *tree)
 {
-    return (check_avl_balance(tree->root) && check_binary_tree_node(tree->root));
+    tree->lock();
+    bool ok = (check_avl_balance(tree->root) && check_binary_tree_node(tree->root));
+    tree->unlock();
+    return ok;
 }
