@@ -95,7 +95,73 @@ inline void _copy_a(T *const start, unsigned len, T *const source)
 }
 
 template<typename T>
-inline void _display(T *start, T *end, const char *prf = "%u", const char *del = " ")
+struct _format
+{
+};
+
+template<>
+struct _format<unsigned char>
+{
+    constexpr static const char *const specifier = "%u";
+};
+
+template<>
+struct _format<char>
+{
+    constexpr static const char *const specifier = "%c";
+};
+
+template<>
+struct _format<unsigned short>
+{
+    constexpr static const char *const specifier = "%u";
+};
+
+template<>
+struct _format<short>
+{
+    constexpr static const char *const specifier = "%d";
+};
+
+template<>
+struct _format<unsigned>
+{
+    constexpr static const char *const specifier = "%u";
+};
+
+template<>
+struct _format<int>
+{
+    constexpr static const char *const specifier = "%d";
+};
+
+template<>
+struct _format<unsigned long>
+{
+    constexpr static const char *const specifier = "%lu";
+};
+
+template<>
+struct _format<long>
+{
+    constexpr static const char *const specifier = "%ld";
+};
+
+template<>
+struct _format<unsigned long long>
+{
+    constexpr static const char *const specifier = "%llu";
+};
+
+template<>
+struct _format<long long>
+{
+    constexpr static const char *const specifier = "%lld";
+};
+
+template<typename T>
+inline void _display(const T *const start, const T *const end, const char *const prf = _format<T>::specifier,
+                     const char *const del = " ")
 {
     ASSERT(start <= end);
     if(start == end)
@@ -110,7 +176,7 @@ inline void _display(T *start, T *end, const char *prf = "%u", const char *del =
 }
 
 template<typename T>
-inline void _display(T *start, unsigned len, const char *prf = "%u", const char *del = " ")
+inline void _display(T *start, unsigned len, const char *prf = _format<T>::specifier, const char *del = " ")
 {
     if(len == 0)
         return;
@@ -124,37 +190,9 @@ inline void _display(T *start, unsigned len, const char *prf = "%u", const char 
 }
 
 template<typename T>
-inline void _tdisplay(T *start, T *end, const char *del = " ")
-{
-    ASSERT(start <= end);
-    if(start == end)
-        return;
-    _tshow(*start);
-    while(++start < end)
-    {
-        fputs(del, stdout);
-        _tshow(*start);
-    }
-    putchar('\n');
-}
-
-template<typename T>
-inline void _tdisplay(T *start, unsigned len, const char *del = " ")
-{
-    if(len == 0)
-        return;
-    _tshow(*start);
-    while(len-- > 1)
-    {
-        fputs(del, stdout);
-        _tshow(*++start);
-    }
-    putchar('\n');
-}
-
-template<typename T>
-inline void _display2D(T **array, unsigned length, unsigned height, const char *prf = "%u", const char *del = " ",
-                       const char *ldel = "\n")
+inline void
+_display2D(T **array, unsigned length, unsigned height, const char *prf = _format<T>::specifier, const char *del = " ",
+           const char *ldel = "\n")
 {
     if((height == 0) or (length == 0))
         return;

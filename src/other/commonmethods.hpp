@@ -50,6 +50,21 @@ T to2(T k)
 {
     T a = 1;
     while((a < k) and (a > 0))
-        a *= 2;
+        a <<= 1;
     return a;
+}
+
+template<typename T>
+unsigned char max_bit_pos(T value)
+{
+    if(value < 0)
+        return sizeof(T) << 3;
+    T mask = ~0;
+    unsigned char ans = 0;
+    while(mask & value)
+    {
+        mask <<= 1;
+        ans++;
+    }
+    return ans;
 }

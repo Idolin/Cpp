@@ -1,6 +1,7 @@
-#include "./debug/tests_run.h"
+#include <stdio.h>
+#include "debug/tests_run.h"
 
 int main()
 {
-    run_test("big_integer");
+    run_test("linkedlist_bidirectional");
 }

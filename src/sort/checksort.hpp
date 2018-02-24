@@ -11,8 +11,8 @@
 
 extern unsigned long long swapscounter;
 
-unsigned checkArraySizes[] = {100, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-unsigned sizesToCheck = 9;
+unsigned checkArraySizes[] = {0, 1, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+unsigned sizesToCheck = 10;
 
 double getClocksPerCount()
 {
@@ -34,8 +34,11 @@ double getClocksPerCount()
 }
 
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
-void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
+bool checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
 {
+    T xor_val = 0;
+    for(unsigned i = 0; i < mas_len; i++)
+        xor_val ^= s[i];
     T *e = s + mas_len;
     swapscounter = 0;
     clock_t t = clock();
@@ -44,41 +47,54 @@ void checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.
     t2 -= t;
     unsigned long long clocks = t2 - (clock_t) ((double) swapscounter * CPCI + 0.5);
     printf("~%llu clocks, %llu swaps, ", clocks, swapscounter);
-    if(_checksorted<T, compare>(s, e))
+    for(unsigned i = 0; i < mas_len; i++)
+        xor_val ^= s[i];
+    if((xor_val == 0) && _checksorted<T, compare>(s, e))
+    {
         printf("OK\n");
-    else
-        printf("Failed!!!\n");
+        return true;
+    }
+    printf("Failed!!!\n");
+    return false;
 }
 
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 void checksort(void(sortf)(T *, T *))
 {
     double CLOCKSPERCOUNTERINCREASE = getClocksPerCount();
-    T *t = new unsigned[_max(checkArraySizes, sizesToCheck)];
+    T *t = new T[_max(checkArraySizes, sizesToCheck)];
     for(unsigned sizei = 0; sizei < sizesToCheck; sizei++)
     {
         unsigned size = checkArraySizes[sizei];
         printf("<<Checking size: %u>>\n", size);
         if(size)
         {
-            T r = (sizeof(t[0]) <= 32) ? (T) (random32()) : (T) (random64());
+            T r = randomA<T>();
             _vfill(t, size, r);
         }
         printf("\tOne value: ");
         checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
-        for(unsigned i = 0; i < size; i++)
-            t[i] = i;
+        if(sizeof(T) >= 4)
+            for(unsigned i = 0; i < size; i++)
+                t[i] = i;
+        else
+            for(unsigned i = 0; i < size; i++)
+                t[i] = (i * 63) << max_bit_pos(size);
         printf("\tSorted: ");
         checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
-        for(unsigned i = 0; i < size; i++)
-            t[i] = size - i;
-        printf("\tInversed: ");
+        if(sizeof(T) >= 4)
+            for(unsigned i = 0; i < size; i++)
+                t[i] = size - i;
+        else
+            for(unsigned i = 0; i < size; i++)
+                t[i] = ((size - i) * 63) << max_bit_pos(size);
+        printf("\tInverted: ");
         checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         if(size >= 10)
         {
             for(unsigned i = 0; i < size; i++)
-                t[i] = randomU() & 0x000f;
-            printf("\tTen different elements: ");
+                t[i] = randomA<T>() & 0x000f;
+            printf("\tSixteen different elements: ");
             checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         }
         if(size >= 100)
@@ -92,20 +108,16 @@ void checksort(void(sortf)(T *, T *))
                     blockEnd = size;
                 else
                     blockEnd = halfBlockSize * (2 * i + 1) - randomU() % (halfBlockSize * 2);
-                T startR = (sizeof(t[0]) <= 32) ? (T) (random32()) : (T) (random64());;
+                T startR = randomA<T>();
                 for(unsigned k = blockStart; k < blockEnd; k++)
-                    t[k] = startR += (T) (random8());
+                    t[k] = startR += randomA<T>() & 0xff;
                 blockStart = blockEnd;
             }
             printf("\tPartically sorted: ");
             checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         }
-        if(sizeof(t[0]) <= 32)
-            for(unsigned i = 0; i < size; i++)
-                t[i] = (T) (random32());
-        else
-            for(unsigned i = 0; i < size; i++)
-                t[i] = (T) (random64());
+        for(unsigned i = 0; i < size; i++)
+            t[i] = randomA<T>();
         printf("\tFull random: ");
         checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
         usleep(1000);

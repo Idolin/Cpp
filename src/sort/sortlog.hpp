@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../other/defdef.h"
 #include "../other/commonmethods.hpp"
 #include "../other/rand.h"
 #include "sortsquare.hpp"
@@ -8,19 +9,16 @@
 #include <math.h>
 
 template<typename T>
-inline void mergeblocks(T *destination, T *block1, T *block2, unsigned blockLen);
-
-template<typename T>
 //TODO
-void merge(T *start, unsigned partLen)
+void merge_in_place(T *start, unsigned part_len1, unsigned part_len2)
 {
-    if(partLen < 6)
+    if(part_len1 < 6)
     {
-        insertionsort(start, start + partLen * 2);
+        insertionsort(start, start + part_len1 + part_len2);
         return;
     }
-    T *p2 = start + partLen;
-    unsigned blockLen = (unsigned) sqrt(partLen * 2);
+    T *p2 = start + part_len1;
+    unsigned blockLen = (unsigned) sqrt(part_len1 + part_len2);
     for(T *p = start + blockLen; p > start; p--);
     for(; p2 != 0; p2--);
     //mergeblocks(start, p2 - blockLen, p2 + partLen - blockLen, blockLen);
@@ -41,28 +39,79 @@ void merge(T *start, unsigned partLen)
     // ???
 }
 
-template<typename T>
-void mergesort(T *start, T *end)
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+void
+merge_seq_two(T *const __restrict__ start, unsigned part_len1, unsigned part_len2, T *const __restrict__ destination)
 {
-    unsigned dif = (unsigned) (end - start);
-    if(dif > 3)
+    unsigned i = 0, i1 = 0, i2 = part_len1;
+    while((part_len1) && (part_len2))
     {
-        mergesort(start, start + dif / 2);
-        mergesort(start + dif / 2, end);
-        merge(start, dif / 2);
-    } else if(dif > 1)
-    {
-        end--;
-        if(_more(*start, *end))
-            _swap(start, end);
-        if(dif == 3)
+        if(compare(start[i1], start[i2]))
         {
-            if(_more(*start, *(start + 1)))
-                _swap(start, start + 1);
-            else if(_more(*++start, *end))
-                _swap(start, end);
+            destination[i++] = start[i1++];
+            part_len1--;
+        } else
+        {
+            destination[i++] = start[i2++];
+            part_len2--;
         }
     }
+    while(part_len1--)
+        destination[i++] = start[i1++];
+    while(part_len2--)
+        destination[i++] = start[i2++];
+};
+
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>, bool second_in_place = false>
+void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len2, T *destination)
+{
+    while((part_len1) && (part_len2))
+    {
+        if(compare(*first, *second))
+        {
+            *(destination++) = *(first++);
+            part_len1--;
+        } else
+        {
+            *(destination++) = *(second++);
+            part_len2--;
+        }
+    }
+    while(part_len1--)
+        *(destination++) = *(first++);
+    if(!second_in_place)
+        while(part_len2--)
+            *(destination++) = *(second++);
+};
+
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+void mergesort(T *start, T *end)
+{
+    unsigned dif = end - start;
+    T *swap_array = new T[dif];
+    for(unsigned i = 1; i < dif; i += 2)
+        if(compare(start[i], start[i - 1]))
+            std::swap(start[i - 1], start[i]);
+    unsigned block_size = 2;
+    while(block_size < dif)
+    {
+        unsigned i = 0, next = block_size * 2;
+        while(next <= dif)
+        {
+            _copy(swap_array, block_size, start + i);
+            merge_two_arrays<T, compare, true>(swap_array, block_size, start + i + block_size, block_size, start + i);
+            i = next;
+            next += block_size * 2;
+        }
+        if(i + block_size < dif)
+        {
+            _copy(swap_array, block_size, start + i);
+            merge_two_arrays<T, compare, true>(swap_array, block_size, start + i + block_size, dif - i - block_size,
+                                               start + i);
+        }
+        block_size *= 2;
+    }
+    delete[] swap_array;
 }
 
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>

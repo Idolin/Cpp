@@ -55,7 +55,7 @@ T *partition(T *start, T *end, T df)
             while(compare(df, *--ep))
                 if(start == ep)
                     return start;
-            _swap(start, ep);
+            std::swap(start, ep);
         }
     return start;
 }

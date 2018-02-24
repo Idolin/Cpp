@@ -1,61 +1,112 @@
 #pragma once
 
 #include <stdint.h>
+#include <type_traits>
+#include <typeinfo>
+#include <unitypes.h>
 
 class randomizer
 {
     union
     {
-        uint8_t rand8;
-        uint16_t rand16;
-        uint32_t rand32;
-        uint64_t rand64;
-        unsigned char randC;
-        unsigned short randS;
+        uint8_t randU8;
+        int8_t rand8;
+        uint16_t randU16;
+        int16_t rand16;
+        uint32_t randU32;
+        int32_t rand32;
+        uint64_t randU64;
+        int64_t rand64;
+        unsigned char randUC;
+        char randC;
+        unsigned short randUS;
+        short randS;
         unsigned randU;
-        unsigned long randL;
-        unsigned long long randLL;
+        int randI;
+        unsigned long randUL;
+        long randL;
+        unsigned long long randULL;
+        long long randLL;
     };
 public:
     randomizer();
-
     bool randomB();
 
-    unsigned char randomC();
+    unsigned char randomUC();
 
-    unsigned short randomS();
+    char randomC();
 
+    unsigned short randomUS();
+
+    short randomS();
     unsigned randomU();
 
-    unsigned long randomL();
+    int randomI();
 
-    unsigned long long randomLL();
+    unsigned long randomUL();
 
-    uint8_t random8();
+    long randomL();
 
-    uint16_t random16();
+    unsigned long long randomULL();
 
-    uint32_t random32();
+    long long randomLL();
 
-    uint64_t random64();
+    uint8_t randomU8();
+
+    int8_t random8();
+
+    uint16_t randomU16();
+
+    int16_t random16();
+
+    uint32_t randomU32();
+
+    int32_t random32();
+
+    uint64_t randomU64();
+
+    int64_t random64();
+
+    template<typename T>
+    T random();
 };
 
 bool randomB();
 
-unsigned char randomC();
+unsigned char randomUC();
 
-unsigned short randomS();
+char randomC();
 
+unsigned short randomUS();
+
+short randomS();
 unsigned randomU();
 
-unsigned long randomL();
+int randomI();
 
-unsigned long long randomLL();
+unsigned long randomUL();
 
-uint8_t random8();
+long randomL();
 
-uint16_t random16();
+unsigned long long randomULL();
 
-uint32_t random32();
+long long randomLL();
 
-uint64_t random64();
+uint8_t randomU8();
+
+int8_t random8();
+
+uint16_t randomU16();
+
+int16_t random16();
+
+uint32_t randomU32();
+
+int32_t random32();
+
+uint64_t randomU64();
+
+int64_t random64();
+
+template<typename T>
+T randomA();
