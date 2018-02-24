@@ -9,15 +9,15 @@ inline void _tshow(T x)
 }
 
 template<typename T>
-inline bool _more(T x1, T x2)
-{
-    return x1 > x2;
-}
-
-template<typename T>
 inline bool _less(const T &x1, const T &x2)
 {
     return x1 < x2;
+}
+
+template<typename T>
+inline bool _more(const T &x1, const T &x2)
+{
+    return _less(x2, x1);
 }
 
 #define _notmore(x, y) (not(_more(x, y)))
