@@ -11,24 +11,21 @@ struct Hashable
 
 template<class Self, bool lazy = true>
 class HashableStored : Hashable
-{
-};
+{};
 
 template<class Self>
-class HashableStored<Self, true> : Hashable
+class HashableStored<Self, true>: Hashable
 {
 private:
     mutable uint64_t hash_value;
 protected:
     mutable bool changed;
 public:
-    HashableStored(uint64_t hash_value) : hash_value(hash_value), changed(false)
+    HashableStored(uint64_t hash_value): hash_value(hash_value), changed(false)
     {}
 
-    HashableStored() : HashableStored(0)
-    {
-        changed = true;
-    }
+    HashableStored(): changed(true)
+    {}
 
 private:
     bool equals(const Self &) const = 0;
@@ -56,12 +53,12 @@ public:
 };
 
 template<class Self>
-class HashableStored<Self, false> : Hashable
+class HashableStored<Self, false>: Hashable
 {
 private:
     uint64_t hash_value;
 public:
-    HashableStored(uint64_t hash_value) : hash_value(hash_value)
+    HashableStored(uint64_t hash_value): hash_value(hash_value)
     {}
 
 private:
