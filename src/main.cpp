@@ -3,5 +3,5 @@
 
 int main()
 {
-    run_test("linkedlist_bidirectional");
+    run_test("str");
 }
