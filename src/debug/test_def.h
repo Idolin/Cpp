@@ -92,6 +92,16 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 #define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF("Check(not equals) failed", ## __VA_ARGS__))
 #define EXPECT_NEAR(a, b, d, ...) EXPECT_TRUE((((a) - (b)) < (d)) && (((b) - (a)) < (d)), GET_ARG_DEF("Check(not near) failed", ## __VA_ARGS__))
 #define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, 0.000000000000001L, GET_ARG_DEF("Check(equals double) failed", ## __VA_ARGS__))
+#define EXPECT_STRING_EQ(a, b, ...) \
+    { \
+        unsigned long i = 0; \
+        while(a[i] == b[i]) \
+            if(a[i] == '\0') \
+                break; \
+            else \
+                i++; \
+        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check(string equals) failed", ## __VA_ARGS__)); \
+    }
 #define EXPECT_EXCEPTION(a, ...) \
     { \
         this -> test_ok = false; \
