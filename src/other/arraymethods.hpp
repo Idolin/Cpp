@@ -54,15 +54,15 @@ inline void _read(T *start, T *end, const char *scf = "%u")
         scanf(scf, i);
 }
 
-template<typename T = unsigned>
-inline void _read(T *start, unsigned len, const char *scf = "%u")
+template<typename T = unsigned, typename SizeType=unsigned>
+inline void _read(T *start, SizeType len, const char *scf = "%u")
 {
     for(unsigned i = 0; i < len; i++)
         scanf(scf, start++);
 }
 
-template<typename T = unsigned>
-inline T *_read(unsigned len, const char *scf = "%u")
+template<typename T = unsigned, typename SizeType=unsigned>
+inline T *_read(SizeType len, const char *scf = "%u")
 {
     T *r = new T[len];
     for(unsigned i = 0; i < len; i++)
@@ -76,8 +76,8 @@ inline void _copy(T *const __restrict__ start, T *end, const T *const __restrict
     memcpy(start, source, (end - start) * sizeof(*start));
 }
 
-template<typename T>
-inline void _copy(T *const __restrict__ start, unsigned len, const T *const __restrict__ source)
+template<typename T, typename SizeType=unsigned>
+inline void _copy(T *const __restrict__ start, SizeType len, const T *const __restrict__ source)
 {
     memcpy(start, source, len * sizeof(*start));
 }
@@ -85,13 +85,29 @@ inline void _copy(T *const __restrict__ start, unsigned len, const T *const __re
 template<typename T>
 inline void _copy_a(T *const start, T *end, T *const source)
 {
-    memccpy(start, source, (end - start) * sizeof(*start));
+    memmove(start, source, (end - start) * sizeof(*start));
 }
 
-template<typename T>
-inline void _copy_a(T *const start, unsigned len, T *const source)
+template<typename T, typename SizeType=unsigned>
+inline void _copy_a(T *const start, SizeType len, T *const source)
 {
-    memccpy(start, source, len * sizeof(*start));
+    memmove(start, source, len * sizeof(*start));
+}
+
+template<typename T, typename SizeType=unsigned>
+inline void _mult_array(T *const start, SizeType len, unsigned times)
+{
+    unsigned done = 1;
+    unsigned times_shift = times >> 1;
+    SizeType clen = len;
+    while(done <= times_shift)
+    {
+        _copy_a(start + clen, clen, start);
+        clen <<= 1;
+        done <<= 1;
+    }
+    if(times -= done)
+        _copy_a(start + clen, len * times, start);
 }
 
 template<typename T>
