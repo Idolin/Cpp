@@ -38,7 +38,8 @@ struct dsu
             if(s[t].first != t)
                 s[p] = make_pair(this->get(t), 1);
             return s[s[p].first].first;
-        } else
+        }
+        else
         {
             this->add(p - s.maxs + 1);
             return p;
@@ -56,7 +57,8 @@ struct dsu
                 if(s[fr].second == s[sr].second)
                     s[fr] = make_pair(fr, s[fr].second + 1);
                 s[sr] = make_pair(fr, 0);
-            } else
+            }
+            else
                 s[fr] = make_pair(sr, 0);
         }
     }
