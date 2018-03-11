@@ -18,11 +18,11 @@ add_subdirectory(src/tree)
 
 set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
-add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}" ./src/other/rand.cpp)
+add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 
-target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib)
+target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib str_lib)
 
-add_executable(main "${MAIN_FILE}")
+add_executable(only_main "${MAIN_FILE}")
 
 add_custom_target(valgrind
         COMMAND valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes $<TARGET_FILE:AADS>
