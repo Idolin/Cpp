@@ -12,60 +12,120 @@ struct str
 protected:
     struct str_info
     {
-        unsigned len, links;
+        union
+        {
+            char *block;
+            str_info *lpart;
+        };
+        unsigned long len, links;
 
-        explicit str_info(unsigned = 0);
+        str_info(char *s, unsigned long len) noexcept;
+        str_info(str_info *lpart, unsigned long len);
+        virtual ~str_info();
+
+        virtual char operator[](unsigned long) const;
+        virtual void copy_to_array(char *dst) const;
+    };
+
+    struct str_info_subs: str_info
+    {
+        str_info *parent;
+
+        str_info_subs(str_info *parent, unsigned long offset, unsigned long len);
+        ~str_info_subs();
+
+        char operator[](unsigned long) const override;
+    };
+
+    struct str_info_cnct: str_info //for faster +=
+    {
+        str_info *rpart;
+
+        str_info_cnct(str_info*, str_info*);
+        ~str_info_cnct();
+
+        char operator[](unsigned long) const override;
+        void copy_to_array(char *dst) const override;
     };
 
     char *s;
     str_info *info;
-    unsigned char zero_end;
+
+    static str_info empty;
 public:
     str();
 
-    str(const char *const);
+    str(const char*);
 
-    str(const char *const, unsigned);
+    str(const char*, unsigned long);
 
-    str(char *const);
+    str(char*);
 
-    str(char *const, unsigned);
+    str(char*, unsigned long);
 
-    str(std::string &);
+    str(const std::string&);
 
-    str(str const &);
+    str(const str&);
+
+    str(std::string&&); // NOLINT
+
+    str(str&&);
+
+protected:
+
+    str(str_info *parent, unsigned long from, unsigned long to);
+
+public:
 
     ~str();
 
-    str &operator=(const str &);
+    str& operator=(const str&);
 
-    char operator[](unsigned) const;
+    str& operator=(str&&);
 
-    char operator[](unsigned);
+    const char operator[](unsigned long) const;
 
-    str operator+=(const str &);
+    str& operator+=(const str &);
+
+    str& operator*=(unsigned times);
 
     bool operator==(const str &) const;
 
-    unsigned length() const;
+    bool operator!=(const str &) const;
 
-    char *&c_str();
+    unsigned long length() const;
+
+    const char *const c_str() const;
+
+    const char *const c_str();
+
+    operator char*() const; // NOLINT
+
+    operator std::string() const; // NOLINT
 
     str copy() const;
 
     str invert() const;
 
-    const str subStr(unsigned, unsigned) const;
+    template<bool copy_sub = false>
+    str& compact();
 
-    operator const char *() const;
+    str operator()(unsigned long, unsigned long) const;
 
-    operator char *() const;
+    str operator()(unsigned long) const;
+
+    str subStr(unsigned long, unsigned long) const;
+
+    str subStr(unsigned long) const;
 
 protected:
+
     void unlink() const;
 };
 
-str operator+(str a, str const &b);
+str operator+(str a, const str &b);
+str operator*(str a, unsigned times);
+
 str read_str();
 
 inline bool operator==(const str &a, const char *const b)
@@ -79,4 +139,39 @@ inline bool operator==(const str &a, const char *const b)
 inline bool operator==(const char *const a, const str &b)
 {
     return (b == a);
+}
+
+inline bool operator!=(const str &a, const char *const b)
+{
+    return not(a == b);
+}
+
+inline bool operator!=(const char *const a, const str &b)
+{
+    return not(b == a);
+}
+
+inline bool operator==(const str &a, const std::string &b)
+{
+    if(a.length() != b.length())
+        return false;
+    for(unsigned i = 0; i < a.length(); i++)
+        if(a[i] != b[i])
+            return false;
+    return true;
+}
+
+inline bool operator==(const std::string &a, const str &b)
+{
+    return (b == a);
+}
+
+inline bool operator!=(const str &a, const std::string &b)
+{
+    return not(a == b);
+}
+
+inline bool operator!=(const std::string &a, const str &b)
+{
+    return not(b == a);
 }
