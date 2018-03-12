@@ -7,7 +7,7 @@ static inline void _fputcs(FILE *SOUT, bool s)
     fputc(' ', SOUT);
 }
 
-void ftimeprint(FILE *SOUT, unsigned long long time, bool is_ms)
+void fprinttime(FILE *SOUT, unsigned long long time, bool is_ms)
 {
     fputc('[', SOUT);
     if(is_ms)
@@ -78,7 +78,8 @@ namespace _test_abstract_class_
         if(count_ms_not_clocks)
         {
             gettimeofday(&_time, nullptr);
-            test_time_ms_or_clks = static_cast<unsigned long long>(_time.tv_sec * 1000000 + _time.tv_usec);
+            test_time_ms_or_clks = static_cast<unsigned long long>(_time.tv_sec * 1000000 +
+                                                                   _time.tv_usec); // NOLINT (always casting non-negative value)
         }
         else
             test_time_ms_or_clks = static_cast<unsigned long long>(clock());
@@ -112,12 +113,12 @@ namespace _test_abstract_class_
             test_time_ms_or_clks = _time.tv_sec * 1000000 + _time.tv_usec - test_time_ms_or_clks;
         }
         else
-            test_time_ms_or_clks = (unsigned long long) clock() - test_time_ms_or_clks;
+            test_time_ms_or_clks = static_cast<unsigned long long>(clock()) - test_time_ms_or_clks;
         if(exception_occured)
             test_ok = test_ok && exception_expected;
         color_fprintf((test_ok ? term_color::GREEN : term_color::RED), DEBUG_OUTPUT_STREAM, "> Test %s ",
                       (test_ok ? "successed" : "failed!"));
-        ftimeprint(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
+        fprinttime(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
         return test_ok;
     }
 
