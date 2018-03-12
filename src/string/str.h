@@ -32,7 +32,8 @@ protected:
         str_info *parent;
 
         str_info_subs(str_info *parent, unsigned long offset, unsigned long len);
-        ~str_info_subs();
+
+        ~str_info_subs() override;
 
         char operator[](unsigned long) const override;
     };
@@ -42,7 +43,8 @@ protected:
         str_info *rpart;
 
         str_info_cnct(str_info*, str_info*);
-        ~str_info_cnct();
+
+        ~str_info_cnct() override;
 
         char operator[](unsigned long) const override;
         void copy_to_array(char *dst) const override;
@@ -55,21 +57,21 @@ protected:
 public:
     str();
 
-    str(const char*);
+    str(const char *); // NOLINT
 
     str(const char*, unsigned long);
 
-    str(char*);
+    str(char *); // NOLINT
 
     str(char*, unsigned long);
 
-    str(const std::string&);
+    str(const std::string &); // NOLINT
 
     str(const str&);
 
     str(std::string&&); // NOLINT
 
-    str(str&&);
+    str(str &&) noexcept;
 
 protected:
 
@@ -81,7 +83,7 @@ public:
 
     str& operator=(const str&);
 
-    str& operator=(str&&);
+    str &operator=(str &&) noexcept;
 
     const char operator[](unsigned long) const;
 
@@ -120,7 +122,8 @@ public:
 
 protected:
 
-    void unlink() const;
+    void unlink() const noexcept;
+
 };
 
 str operator+(str a, const str &b);

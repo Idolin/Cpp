@@ -121,7 +121,7 @@ str::str(std::string &&s): str(s.c_str(), static_cast<unsigned>(s.length()))
     s.clear();
 }
 
-str::str(str &&s): s(s.s), info(s.info)
+str::str(str &&s) noexcept: s(s.s), info(s.info)
 {
     s.s = empty.block;
     s.info = &empty;
@@ -149,7 +149,7 @@ str& str::operator=(const str &b)
     return *this;
 }
 
-str &str::operator=(str &&b)
+str &str::operator=(str &&b) noexcept
 {
     unlink();
     info = b.info;
@@ -188,7 +188,7 @@ str& str::operator*=(unsigned times)
         return *this;
     }
     unsigned long new_len = info->len * times;
-    char *new_block = new char[new_len + 1];
+    auto *new_block = new char[new_len + 1];
     info->copy_to_array(new_block);
     new_block[new_len] = '\0';
     _mult_array(new_block, info->len, times);
@@ -210,7 +210,7 @@ bool str::operator==(const str &b) const
     else
     {
         for(unsigned i = 0; i < info->len; i++)
-            if((*static_cast<str_info_cnct*>(info))[i] != b[i])
+            if((*static_cast<str_info_cnct *>(info))[i] != b[i]) // NOLINT (we are sure about info type)
                 return false;
     }
     return true;
@@ -242,7 +242,7 @@ const char *const str::c_str()
 
 str::operator char*() const
 {
-    char *block = new char[info->len + 1];
+    auto *block = new char[info->len + 1];
     info->copy_to_array(block);
     block[info->len] = '\0';
     return block;
@@ -255,7 +255,7 @@ str::operator std::string() const
 
 str str::copy() const
 {
-    char *s_new = new char[info->len + 1];
+    auto *s_new = new char[info->len + 1];
     info->copy_to_array(s_new);
     s_new[info->len] = '\0';
     return str(s_new, info->len);
@@ -263,7 +263,7 @@ str str::copy() const
 
 str str::invert() const
 {
-    char *s_inv = new char[info->len + 1];
+    auto *s_inv = new char[info->len + 1];
     for(unsigned i = 0; i < info->len; i++)
         s_inv[i] = s[info->len - i - 1];
     s_inv[info->len] = '\0';
@@ -302,13 +302,14 @@ str str::subStr(unsigned long from) const
     return (*this)(from);
 }
 
-void str::unlink() const
+void str::unlink() const noexcept
 {
     if(--info->links == 0)
         delete info;
 }
 
-str::str_info str::empty = str::str_info(new char[1](), 0);
+str::str_info str::empty = str::str_info(new char[1](),
+                                         0); // NOLINT (well, yes it can throw an exception... and it cannot be caught... very sad)
 
 str operator+(str a, const str &b)
 {
