@@ -306,7 +306,6 @@ str str::subStr(unsigned long from) const
 
 void str::unlink() const noexcept
 {
-    ASSERT(info->links);
     if(--info->links == 0)
         delete info;
 }
