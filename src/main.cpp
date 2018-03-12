@@ -3,5 +3,5 @@
 
 int main()
 {
-    run_test("str");
+    run_test("queue");
 }
