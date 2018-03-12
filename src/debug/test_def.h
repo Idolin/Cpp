@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../container/vector.hpp"
-#include "../other/global_static.hpp"
+#include "../other/singleton.hpp"
 #include "tests_abstract.h"
 #include "../other/defdef.h"
 
@@ -12,7 +12,7 @@
  * Nested tests
  * Time limit, memory limit, testing n times
  * Expected exception test
- * Summary statistics(How many 0-level test failed/succed, memory peak, which tests failed)
+ * Summary statistics(How many 0-level test failed/succeeded, memory peak, which tests failed)
  * Regular expression for test chooser
 */
 
@@ -29,7 +29,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     { \
         _test_pack_ ## pack_name(): _test_pack_class_abstract((char*)#pack_name) \
         { \
-                global_static_var<vect<_test_pack_class_abstract*>, test_global_static_id>() -> push(this); \
+                g_static::global_static_var<vect<_test_pack_class_abstract*>, g_static::test_global_static_id>().push(this); \
                 __VA_ARGS__; \
                 _test_classes_main_sequence = &(this -> test_classes); \
         } \

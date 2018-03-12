@@ -78,9 +78,10 @@ namespace _test_abstract_class_
         if(count_ms_not_clocks)
         {
             gettimeofday(&_time, nullptr);
-            test_time_ms_or_clks = static_cast<unsigned long long int>(_time.tv_sec * 1000000 + _time.tv_usec);
-        } else
-            test_time_ms_or_clks = static_cast<unsigned long long int>(clock());
+            test_time_ms_or_clks = static_cast<unsigned long long>(_time.tv_sec * 1000000 + _time.tv_usec);
+        }
+        else
+            test_time_ms_or_clks = static_cast<unsigned long long>(clock());
         try
         {
             try
@@ -109,7 +110,8 @@ namespace _test_abstract_class_
         {
             gettimeofday(&_time, nullptr);
             test_time_ms_or_clks = _time.tv_sec * 1000000 + _time.tv_usec - test_time_ms_or_clks;
-        } else
+        }
+        else
             test_time_ms_or_clks = (unsigned long long) clock() - test_time_ms_or_clks;
         if(exception_occured)
             test_ok = test_ok && exception_expected;
