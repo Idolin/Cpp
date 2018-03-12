@@ -157,4 +157,14 @@ TEST_PACK(str)
         q *= 2;
         EXPECT_NE(a, q);
     }
+
+    TEST(invert)
+    {
+        str a = "12323410";
+        str b = a.subStr(2).subStr(1, 5);
+        EXPECT_EQ(b, "2341");
+        b = b.invert();
+        EXPECT_EQ(b, "1432");
+        EXPECT_EQ(a.invert(), "01432321");
+    }
 }
