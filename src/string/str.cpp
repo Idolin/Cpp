@@ -14,7 +14,7 @@ char str::str_info::operator[](unsigned long i) const
 
 void str::str_info::copy_to_array(char *dst) const
 {
-    _copy(dst, len, block); //caller need to care about null char in the end
+    _copy(dst, len, block); //caller needs to care about null char in the end
 }
 
 str::str_info::~str_info()
@@ -47,7 +47,7 @@ str::str_info_subs::~str_info_subs()
 str::str_info_cnct::str_info_cnct(str::str_info *lpart, str::str_info *rpart):
         str_info(lpart, lpart->len + rpart->len), rpart(rpart)
 {
-    rpart->links++; //lpart->links incremented by str_info constuctor
+    rpart->links++; //lpart->links incremented by str_info constructor
 }
 
 str::str_info_cnct::~str_info_cnct()
@@ -284,6 +284,8 @@ template str& str::compact<true>();
 
 str str::operator()(unsigned long from, unsigned long to) const
 {
+    ASSERT(from <= to);
+    ASSERT(to <= info->len);
     return str(info, from, to);
 }
 
@@ -304,12 +306,13 @@ str str::subStr(unsigned long from) const
 
 void str::unlink() const noexcept
 {
+    ASSERT(info->links);
     if(--info->links == 0)
         delete info;
 }
 
-str::str_info str::empty = str::str_info(new char[1](),
-                                         0); // NOLINT (well, yes it can throw an exception... and it cannot be caught... very sad)
+str::str_info str::empty = str::str_info(new char[1](), 0); // NOLINT (well, yes it can throw an exception... and it
+// cannot be caught... very sad)
 
 str operator+(str a, const str &b)
 {
