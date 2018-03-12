@@ -159,7 +159,7 @@ bool _test_pack_class_abstract::test()
     color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM, "Test pack %s: successed ", this->test_pack_name)
     else
     color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM, "Test pack %s: failed! ", this->test_pack_name);
-    ftimeprint(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
+    fprinttime(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
     if(!test_ok)
     {
         fprintf(DEBUG_OUTPUT_STREAM, "%d test%s failed:\n", this->errors_occured,
