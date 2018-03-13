@@ -13,91 +13,99 @@ using std::pair;
 template<typename T>
 struct queue
 {
+    struct block
+    {
+        T *array;
+        block *next;
+
+        explicit block(unsigned blocksize): array(new T[blocksize]), next(nullptr)
+        {}
+    };
+
     //blocksize - amount of elements in one block, len - current len of the queue
     //block = [element * blocksize, pointer to next block]
-    unsigned blocksize, len;
-    //pointer to (head - first element, tail - last element, headlast - last element of first block,
-    //  taillast - last element of last block)
-    char *head, *tail, *headlast, *taillast;
+    const unsigned blocksize;
+    unsigned len;
 
-    queue(unsigned blocksize = 300) : blocksize((blocksize > 0) ? blocksize : 1), len(0),
-                                      head(0), tail(0), headlast(0), taillast(0)
+    //pointer to (head - first element, tail - last element, headlast - last element of first block,
+    //taillast - last element of last block)
+    block *head, *tail;
+    unsigned headlast, taillast;
+
+    explicit queue(unsigned blocksize = 300): blocksize((blocksize > 0) ? blocksize : 1), len(0),
+                                              head(nullptr), tail(nullptr), headlast(0), taillast(0)
     {}
 
     ~queue()
     {
-        char *pointer = headlast, *next;
-        if(pointer != 0)
+        while(head)
         {
-            //pointer to next block
-            pointer = (char *) (*(char **) headlast);
-            delete[] (headlast - blocksize * sizeof(T));
-        }
-        while(pointer)
-        {
-            //pointer to next block
-            next = (char *) (*(char **) (pointer + blocksize * sizeof(T)));
-            delete[] pointer;
-            pointer = next;
+            block *to_del = head;
+            head = head->next;
+            delete to_del;
         }
     }
 
     void push(T x)
     {
-        if(head == nullptr)
+        if(taillast == 0)
         {
-            head = tail = new char[blocksize * sizeof(T) + sizeof(tail)];
-            headlast = taillast = tail + blocksize * sizeof(T);
-        } elif(tail == taillast)
-        {
-            tail = *(char **) taillast = new char[blocksize * sizeof(T) + sizeof(tail)];
-            taillast = tail + blocksize * sizeof(T);
+            auto *new_last = new block(blocksize);
+            if(tail)
+                tail->next = new_last;
+            tail = new_last;
+            if(!head)
+                head = tail;
         }
-        *(T *) tail = x;
-        tail += sizeof(T);
+        tail->array[taillast++] = x;
+        if(taillast == blocksize)
+            taillast = 0;
         len++;
     }
 
-    T pop()
+    T &pop()
     {
-        if(len == 0)
-            return -1;
-        T *y = (T *) head;
-        head += sizeof(T);
-        if(head == headlast)
+        ASSERT(len > 0);
+        ASSERT(head);
+        if(headlast == blocksize)
         {
-            head = *(char **) head;
-            delete[] (headlast - blocksize * sizeof(T));
-            headlast = head + blocksize * sizeof(T);
+            auto *new_head = head->next;
+            delete head;
+            head = new_head;
+            ASSERT(head);
+            headlast = 0;
         }
         len--;
-        return *y;
+        return head->array[headlast++];
     }
 
-    void display()
-    {
-        if(len == 0)
-            puts("Queue is empty");
-        else
-        {
-            char *pointer = head;
-            char *pointer_last = headlast;
-            _tshow(*(T *) pointer);
-            pointer += sizeof(T);
-            while(pointer != tail)
-            {
-                if(pointer == pointer_last)
-                {
-                    pointer = *((char **) pointer_last);
-                    pointer_last = pointer + blocksize * sizeof(T);
-                }
-                fputs("->", stdout);
-                _tshow(*(T *) pointer);
-                pointer += sizeof(T);
-            }
-            putchar('\n');
-        }
-    }
+//    void display()
+//    {
+//        if(len == 0)
+//            puts("Queue is empty");
+//        else
+//        {
+//            block *b_ptr = head;
+//            while(b_ptr->next)
+//
+//            char *pointer = head;
+//            char *pointer_last = headlast;
+//            _tshow(*(T *) pointer);
+//            pointer += sizeof(T);
+//            while(pointer != tail)
+//            {
+//                if(pointer == pointer_last)
+//                {
+//                    pointer = *((char **) pointer_last);
+//                    pointer_last = pointer + blocksize * sizeof(T);
+//                }
+//                fputs("->", stdout);
+//                _tshow(*(T *) pointer);
+//                pointer += sizeof(T);
+//            }
+//            putchar('\n');
+//        }
+//    }
 };
 
 template<typename T>

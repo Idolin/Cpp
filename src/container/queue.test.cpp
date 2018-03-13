@@ -41,7 +41,8 @@ TEST_PACK(queue)
             if((k < c.maxs) && (randomC() < 19))
             {
                 EXPECT_EQ(q.pop(), c[k++]);
-            } else
+            }
+            else
             {
                 c.push(static_cast<signed char>(randomC()));
                 q.push(c.back());
