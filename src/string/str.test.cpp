@@ -98,7 +98,7 @@ TEST_PACK(str)
         str _1000 = "0";
         _1000 *= 1000;
         EXPECT_EQ(_1000.length(), 1000);
-        EXPECT_EQ(_1000[999], '0');
+        EXPECT_EQ(_1000.at(999), '0');
     }
 
     TEST(concatenation_memory)
@@ -111,7 +111,7 @@ TEST_PACK(str)
             else
                 b += a;
         EXPECT_EQ(b.length(), 165580141); //41th fibonacci number
-        EXPECT_EQ(b[312], '2');
+        EXPECT_EQ(b.at(312), '2');
     }
 
     TEST(concatenation_speed)
@@ -128,8 +128,8 @@ TEST_PACK(str)
             else
                 a += three;
         EXPECT_EQ(a.length(), 10000);
-        EXPECT_EQ(a[0], '3');
-        EXPECT_EQ(a[797], '1');
+        EXPECT_EQ(a.at(0), '3');
+        EXPECT_EQ(a.at(797), '1');
     }
 
     TEST(substr)
@@ -144,6 +144,8 @@ TEST_PACK(str)
         EXPECT_EQ(a.subStr(1, 2), a(1, 2));
         EXPECT_EQ(d(2), "");
         EXPECT_EQ(a(7), a(7, 10));
+        EXPECT_EQ(a(1, 7)(1, 2), "3");
+        EXPECT_EQ(a(2)(1, 5), "4567");
     }
 
     TEST(not_equals)
@@ -166,5 +168,32 @@ TEST_PACK(str)
         b = b.invert();
         EXPECT_EQ(b, "1432");
         EXPECT_EQ(a.invert(), "01432321");
+    }
+
+    TEST(write_access)
+    {
+        str a = "12345";
+        a[2] = '0';
+        EXPECT_EQ(a, "12045");
+        str b = a;
+        a[4] = '0';
+        EXPECT_EQ(a, "12040");
+        EXPECT_EQ(b, "12045");
+        str c = a(2, 3);
+        EXPECT_EQ(c, "0");
+        c[0] = '5';
+        EXPECT_EQ(c, "5");
+        EXPECT_EQ(a, "12040");
+    }
+
+    TEST(write_aceess_through)
+    {
+        str a = str("1") * 10000;
+        str p = a;
+        for(int i = 0; i < 9992; i++)
+            p = p(1);
+        a = "some other string";
+        p[0] = '2';
+        EXPECT_EQ(p, "21111111");
     }
 }

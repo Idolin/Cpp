@@ -6,6 +6,11 @@ str::str_info::str_info(char *s, unsigned long len) noexcept: block(s), len(len)
 str::str_info::str_info(str::str_info *lpart, unsigned long len): lpart(lpart), len(len), links(1)
 {}
 
+str::str_info::~str_info()
+{
+    delete[] block;
+}
+
 char str::str_info::operator[](unsigned long i) const
 {
     ASSERT(i <= len);
@@ -17,16 +22,25 @@ void str::str_info::copy_to_array(char *dst) const
     _copy(dst, len, block); //caller needs to care about null char in the end
 }
 
-str::str_info::~str_info()
+bool str::str_info::is_owner() const
 {
-    delete [] block;
+    return (links == 1);
 }
 
 str::str_info_subs::str_info_subs(str::str_info *parent, unsigned long offset, unsigned long len):
         str_info(parent->block + offset, len), parent(parent)
 {
     ASSERT(offset + len <= parent->len);
-    parent->links++;
+    if(typeid(*parent) == typeid(str_info_subs))
+        this->parent = static_cast<str_info_subs *>(parent)->parent;
+    this->parent->links++;
+}
+
+str::str_info_subs::~str_info_subs()
+{
+    block = nullptr;
+    if(--parent->links == 0)
+        delete parent;
 }
 
 char str::str_info_subs::operator[](unsigned long i) const
@@ -37,11 +51,9 @@ char str::str_info_subs::operator[](unsigned long i) const
     return '\0';
 }
 
-str::str_info_subs::~str_info_subs()
+bool str::str_info_subs::is_owner() const
 {
-    block = nullptr;
-    if(--parent->links == 0)
-        delete parent;
+    return ((links | parent->links) == 1);
 }
 
 str::str_info_cnct::str_info_cnct(str::str_info *lpart, str::str_info *rpart):
@@ -70,6 +82,11 @@ void str::str_info_cnct::copy_to_array(char *dst) const
 {
     lpart->copy_to_array(dst);
     rpart->copy_to_array(dst + lpart->len);
+}
+
+bool str::str_info_cnct::is_owner() const
+{
+    return false;
 }
 
 str::str(): s(empty.block), info(&empty)
@@ -160,12 +177,25 @@ str &str::operator=(str &&b) noexcept
     return *this;
 }
 
-const char str::operator[](unsigned long i) const
+const char str::at(unsigned long i) const
 {
     ASSERT(i <= info->len);
     if(s)
         return (i == info->len) ? static_cast<const char>('\0') : s[i];
-    return (*static_cast<str_info_cnct*>(info))[i]; // NOLINT (we are sure about info type)
+    return (*static_cast<str_info_cnct *>(info))[i]; // NOLINT (we are sure about info type)
+}
+
+const char str::operator[](unsigned long i) const
+{
+    return at(i);
+}
+
+char &str::operator[](unsigned long i)
+{
+    ASSERT(i < info->len);
+    if(!info->is_owner())
+        *this = copy();
+    return s[i];
 }
 
 str& str::operator+=(const str &b)

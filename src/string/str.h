@@ -21,10 +21,13 @@ protected:
 
         str_info(char *s, unsigned long len) noexcept;
         str_info(str_info *lpart, unsigned long len);
+
         virtual ~str_info();
 
         virtual char operator[](unsigned long) const;
         virtual void copy_to_array(char *dst) const;
+
+        virtual bool is_owner() const;
     };
 
     struct str_info_subs: str_info
@@ -36,6 +39,8 @@ protected:
         ~str_info_subs() override;
 
         char operator[](unsigned long) const override;
+
+        bool is_owner() const override;
     };
 
     struct str_info_cnct: str_info //for faster +=
@@ -48,6 +53,8 @@ protected:
 
         char operator[](unsigned long) const override;
         void copy_to_array(char *dst) const override;
+
+        bool is_owner() const override;
     };
 
     char *s;
@@ -85,7 +92,12 @@ public:
 
     str &operator=(str &&) noexcept;
 
+    const char at(unsigned long) const; //use this for fast access(otherwise if you call [] operator from
+    // non-const context non-const [] will be executed what may lead to slowdowns and increased memory usage
+
     const char operator[](unsigned long) const;
+
+    char &operator[](unsigned long);
 
     str& operator+=(const str &);
 
