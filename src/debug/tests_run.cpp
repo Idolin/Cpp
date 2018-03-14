@@ -10,7 +10,7 @@ bool run_test(str test_name)
     vect<_test_pack_class_abstract *> _test_class_packs_defined = \
         g_static::global_static_var<vect<_test_pack_class_abstract *>, g_static::test_global_static_id>();
     for(unsigned i = 0; i < _test_class_packs_defined.maxs; i++)
-        if(equals(_test_class_packs_defined[i]->test_pack_name, test_name.c_str()) || (test_name == "*"))
+        if((test_name == _test_class_packs_defined[i]->test_pack_name) || (test_name == "*"))
         {
             exists = true;
             bool run_local_test_ok = _test_class_packs_defined[i]->test();
