@@ -26,7 +26,7 @@ protected:
 
         virtual char operator[](unsigned long) const;
         virtual void copy_to_array(char *dst) const;
-
+        virtual void copy_to_array(char *dst, unsigned long from, unsigned long to) const;
         virtual bool is_owner() const;
     };
 
@@ -39,7 +39,6 @@ protected:
         ~str_info_subs() override;
 
         char operator[](unsigned long) const override;
-
         bool is_owner() const override;
     };
 
@@ -53,7 +52,7 @@ protected:
 
         char operator[](unsigned long) const override;
         void copy_to_array(char *dst) const override;
-
+        void copy_to_array(char *dst, unsigned long from, unsigned long to) const override;
         bool is_owner() const override;
     };
 

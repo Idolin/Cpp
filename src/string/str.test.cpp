@@ -136,7 +136,9 @@ TEST_PACK(str)
     {
         str a = "1234567890";
         str b = a.subStr(0, 5);
+        EXPECT_EQ(b, "12345");
         str c = a.subStr(5);
+        EXPECT_EQ(c, "67890");
         EXPECT_EQ(a, b + c);
         str d = b.subStr(3);
         EXPECT_EQ(d, "45");
@@ -146,6 +148,8 @@ TEST_PACK(str)
         EXPECT_EQ(a(7), a(7, 10));
         EXPECT_EQ(a(1, 7)(1, 2), "3");
         EXPECT_EQ(a(2)(1, 5), "4567");
+        str e = a + b + c + d;
+        EXPECT_EQ(e(4, 16), "567890123456");
     }
 
     TEST(not_equals)

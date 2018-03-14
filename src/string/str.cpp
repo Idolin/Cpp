@@ -22,6 +22,14 @@ void str::str_info::copy_to_array(char *dst) const
     _copy(dst, len, block); //caller needs to care about null char in the end
 }
 
+void str::str_info::copy_to_array(char *dst, unsigned long from, unsigned long to) const
+{
+    ASSERT(from < to);
+    ASSERT(to <= len);
+    _copy(dst, to - from, block + from);
+}
+
+
 bool str::str_info::is_owner() const
 {
     return (links == 1);
@@ -82,6 +90,21 @@ void str::str_info_cnct::copy_to_array(char *dst) const
 {
     lpart->copy_to_array(dst);
     rpart->copy_to_array(dst + lpart->len);
+}
+
+void str::str_info_cnct::copy_to_array(char *dst, unsigned long from, unsigned long to) const
+{
+    ASSERT(from < to);
+    ASSERT(to <= len);
+    if(to <= lpart->len)
+        lpart->copy_to_array(dst, from, to);
+    elif(from < lpart->len)
+    {
+        lpart->copy_to_array(dst, from, lpart->len);
+        rpart->copy_to_array(dst + lpart->len - from, 0, to - lpart->len);
+    }
+    else
+        rpart->copy_to_array(dst, from - lpart->len, to - lpart->len);
 }
 
 bool str::str_info_cnct::is_owner() const
@@ -316,7 +339,15 @@ str str::operator()(unsigned long from, unsigned long to) const
 {
     ASSERT(from <= to);
     ASSERT(to <= info->len);
-    return str(info, from, to);
+    if(s)
+        return str(info, from, to);
+    else
+    {
+        char *new_array = new char[to - from + 1];
+        new_array[to - from] = '\0';
+        info->copy_to_array(new_array, from, to);
+        return str(new_array, to - from);
+    }
 }
 
 str str::operator()(unsigned long from) const
