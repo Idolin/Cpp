@@ -1,13 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-
-template<typename T>
-inline void _tshow(T x)
-{
-    puts("Method of displaying not set");
-}
-
 template<typename T>
 inline bool _less(const T &x1, const T &x2)
 {
