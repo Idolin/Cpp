@@ -1,9 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <type_traits>
-#include <typeinfo>
-#include <unitypes.h>
+#include <cstdint>
 
 class randomizer
 {
