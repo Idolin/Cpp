@@ -155,6 +155,16 @@ inline bool operator==(const char *const a, const str &b)
     return (b == a);
 }
 
+inline bool operator==(const str &a, char *const b)
+{
+    return (a == static_cast<const char* const>(b));
+}
+
+inline bool operator==(char *const a, const str &b)
+{
+    return (b == a);
+}
+
 inline bool operator!=(const str &a, const char *const b)
 {
     return not(a == b);
@@ -163,6 +173,16 @@ inline bool operator!=(const str &a, const char *const b)
 inline bool operator!=(const char *const a, const str &b)
 {
     return not(b == a);
+}
+
+inline bool operator!=(const str &a, char *const b)
+{
+    return not(a != static_cast<const char* const>(b));
+}
+
+inline bool operator!=(char *const a, const str &b)
+{
+    return (b != a);
 }
 
 inline bool operator==(const str &a, const std::string &b)
