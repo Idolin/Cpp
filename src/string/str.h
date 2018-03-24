@@ -59,7 +59,7 @@ protected:
     char *s;
     str_info *info;
 
-    static str_info empty;
+    static str_info& empty();
 public:
     str();
 

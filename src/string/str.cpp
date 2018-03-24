@@ -1,4 +1,5 @@
 #include "str.h"
+#include "../other/singleton.hpp"
 
 str::str_info::str_info(char *s, unsigned long len) noexcept: block(s), len(len), links(1)
 {}
@@ -40,7 +41,7 @@ str::str_info_subs::str_info_subs(str::str_info *parent, unsigned long offset, u
 {
     ASSERT(offset + len <= parent->len);
     if(typeid(*parent) == typeid(str_info_subs))
-        this->parent = static_cast<str_info_subs *>(parent)->parent;
+        this->parent = static_cast<str_info_subs*>(parent)->parent;
     this->parent->links++;
 }
 
@@ -112,9 +113,9 @@ bool str::str_info_cnct::is_owner() const
     return false;
 }
 
-str::str(): s(empty.block), info(&empty)
+str::str(): s(empty().block), info(&empty())
 {
-    empty.links++;
+    empty().links++;
 }
 
 str::str(const char *const s)
@@ -163,8 +164,8 @@ str::str(std::string &&s): str(s.c_str(), static_cast<unsigned>(s.length()))
 
 str::str(str &&s) noexcept: s(s.s), info(s.info)
 {
-    s.s = empty.block;
-    s.info = &empty;
+    s.s = empty().block;
+    s.info = &empty();
     s.info->links++;
 }
 
@@ -194,8 +195,8 @@ str &str::operator=(str &&b) noexcept
     unlink();
     info = b.info;
     s = b.s;
-    b.info = &empty;
-    b.s = empty.block;
+    b.info = &empty();
+    b.s = empty().block;
     b.info->links++;
     return *this;
 }
@@ -205,7 +206,7 @@ const char str::at(unsigned long i) const
     ASSERT(i <= info->len);
     if(s)
         return (i == info->len) ? static_cast<const char>('\0') : s[i];
-    return (*static_cast<str_info_cnct *>(info))[i]; // NOLINT (we are sure about info type)
+    return (*static_cast<str_info_cnct*>(info))[i]; // NOLINT (we are sure about info type)
 }
 
 const char str::operator[](unsigned long i) const
@@ -234,9 +235,9 @@ str& str::operator*=(unsigned times)
         return *this;
     if(times == 0)
     {
-        s = empty.block;
+        s = empty().block;
         unlink();
-        info = &empty;
+        info = &empty();
         info->links++;
         return *this;
     }
@@ -263,7 +264,7 @@ bool str::operator==(const str &b) const
     else
     {
         for(unsigned i = 0; i < info->len; i++)
-            if((*static_cast<str_info_cnct *>(info))[i] != b[i]) // NOLINT (we are sure about info type)
+            if((*static_cast<str_info_cnct*>(info))[i] != b[i]) // NOLINT (we are sure about info type)
                 return false;
     }
     return true;
@@ -371,8 +372,7 @@ void str::unlink() const noexcept
         delete info;
 }
 
-str::str_info str::empty = str::str_info(new char[1](), 0); // NOLINT (well, yes it can throw an exception... and it
-// cannot be caught... very sad)
+STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0);
 
 str operator+(str a, const str &b)
 {
