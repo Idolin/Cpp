@@ -1,93 +1,119 @@
 #pragma once
 
 #include <stdio.h>
+#include "defdef.h"
 
 template<typename T>
-inline typename std::enable_if<!std::is_same<T, size_t>::value>::type _tshow(T& x)
+inline void _tshow(const T& x)
 {
-    puts("Method of displaying not set");
-}
-
-inline void _tshow(char x)
-{
-    putchar(x);
-}
-
-inline void _tshow(signed char x)
-{
-    printf("%hhd", x);
-}
-
-inline void _tshow(unsigned char x)
-{
-    printf("%hhu", x);
-}
-
-inline void _tshow(short x)
-{
-    printf("%hd", x);
-}
-
-inline void _tshow(unsigned short x)
-{
-    printf("%hu", x);
-}
-
-inline void _tshow(int x)
-{
-    printf("%d", x);
-}
-
-inline void _tshow(unsigned x)
-{
-    printf("%u", x);
-}
-
-inline void _tshow(long x)
-{
-    printf("%ld", x);
-}
-
-using size_t2 = int**;
-
-inline void _tshow(unsigned long x)
-{
-    printf("%lu", x);
-}
-
-inline void _tshow(long long x)
-{
-    printf("%lld", x);
-}
-
-inline void _tshow(unsigned long long x)
-{
-    printf("%llu", x);
+    if(std::is_pointer<T>::value)
+    {
+        if(std::is_same<typename std::remove_cv<typename std::remove_pointer<
+                typename std::remove_reference<T>::type>::type>::type, char>::value)
+            printf("%s", x);
+        else
+            printf("%p", x);
+    }
+    else
+        puts("Method of displaying not set");
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_same<T, size_t>::value && !std::is_integral<size_t>::value>::type _tshow(T x)
+inline typename std::enable_if<std::is_same<std::remove_reference<T>, const size_t>::value &&
+                               !std::is_integral<size_t>::value>::type _tshow(T& x)
 {
     printf("%z", x);
 }
 
-inline void _tshow(char *const x)
+template<>
+inline void _tshow(const char& x)
 {
-    printf("%s", x);
+    putchar(x);
 }
 
-inline void _tshow(const char *const x)
+template<>
+inline void _tshow(const signed char& x)
 {
-    printf("%s", x);
+    printf("%hhd", x);
 }
 
-inline void _tshow(bool x)
+template<>
+inline void _tshow(const unsigned char& x)
+{
+    printf("%hhu", x);
+}
+
+template<>
+inline void _tshow(const short& x)
+{
+    printf("%hd", x);
+}
+
+template<>
+inline void _tshow(const unsigned short& x)
+{
+    printf("%hu", x);
+}
+
+template<>
+inline void _tshow(const int& x)
+{
+    printf("%d", x);
+}
+
+template<>
+inline void _tshow(const unsigned& x)
+{
+    printf(":%u", x);
+}
+
+template<>
+inline void _tshow(const long& x)
+{
+    printf("%ld", x);
+}
+
+template<>
+inline void _tshow(const unsigned long& x)
+{
+    printf("%lu", x);
+}
+
+template<>
+inline void _tshow(const long long& x)
+{
+    printf("%lld", x);
+}
+
+template<>
+inline void _tshow(const unsigned long long& x)
+{
+    printf("%llu", x);
+}
+
+template<>
+inline void _tshow(const bool& x)
 {
     x ? fputs("true", stdout) : fputs("false", stdout);
 }
 
-template<typename P>
-inline void _tshow(P *x)
+template<typename T, void (*show)(const T&) = &_tshow>
+inline void _tdisplay(T *a, unsigned long len, const char *del = ", ")
 {
-    printf("%p", x);
+    if(len--)
+    {
+        show(a[0]);
+        while(len--)
+        {
+            fputs(del, stdout);
+            show(*++a);
+        }
+    }
+    putchar('\n');
+}
+
+template<typename T, void (*show)(const T&) = &_tshow>
+inline void _tdisplay(T *a, unsigned long start, unsigned long end, const char* del = ", ")
+{
+    _tdisplay<T, show>(a + start, end - start, del);
 }
