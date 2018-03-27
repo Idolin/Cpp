@@ -4,6 +4,7 @@
 #include "../other/defdef.h"
 #include "../other/arraymethods.hpp"
 #include "../container/vector.hpp"
+#include "../other/displaymethods.hpp"
 
 #include <string>
 
@@ -208,4 +209,10 @@ inline bool operator!=(const str &a, const std::string &b)
 inline bool operator!=(const std::string &a, const str &b)
 {
     return not(b == a);
+}
+
+template<>
+inline void _tshow(const str& x)
+{
+    printf("%s", static_cast<const char*>(x));
 }
