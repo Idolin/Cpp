@@ -283,7 +283,7 @@ unsigned long str::length() const
 const char *const str::c_str() const
 {
     ASSERT(s);
-    ASSERT(s[info->len] == '\0');
+    ASSERT(s[info->len] == '\0', "s must be substr(not ends with nul, but '%c')", s[info->len]);
     return s;
 }
 
