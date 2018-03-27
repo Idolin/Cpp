@@ -71,27 +71,128 @@ inline T *_read(SizeType len, const char *scf = "%u")
 }
 
 template<typename T>
-inline void _copy(T *const __restrict__ start, T *end, const T *const __restrict__ source)
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
 {
     memcpy(start, source, (end - start) * sizeof(*start));
 }
 
+template<typename T>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
+{
+    while(start < end)
+        *start++ = *source++;
+}
+
 template<typename T, typename SizeType=unsigned>
-inline void _copy(T *const __restrict__ start, SizeType len, const T *const __restrict__ source)
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
 {
     memcpy(start, source, len * sizeof(*start));
 }
 
+template<typename T, typename SizeType=unsigned>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
+{
+    while(len--)
+        *start++ = *source++;
+}
+
 template<typename T>
-inline void _copy_a(T *const start, T *end, T *const source)
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _copy_a(T *start, T *end, const T *source)
 {
     memmove(start, source, (end - start) * sizeof(*start));
 }
 
+template<typename T>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _copy_a(T *start, T *end, const T *source)
+{
+    if(start < source)
+        while(start < end)
+            *start++ = *source++;
+    else
+    {
+        source += end - start;
+        while(start < end)
+            *--end = *--source;
+    }
+}
+
 template<typename T, typename SizeType=unsigned>
-inline void _copy_a(T *const start, SizeType len, T *const source)
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _copy_a(T *start, SizeType len, const T *source)
 {
     memmove(start, source, len * sizeof(*start));
+}
+
+template<typename T, typename SizeType=unsigned>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _copy_a(T *start, SizeType len, const T *source)
+{
+    if(start < source)
+        while(len--)
+            *start++ = *source++;
+    else
+    {
+        source += len;
+        start += len;
+        while(len--)
+            *--start = *--source;
+    }
+}
+
+template<typename T>
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _move(T *__restrict__ start, T *end, T *__restrict__ source)
+{
+    memcpy(start, source, (end - start) * sizeof(*start));
+}
+
+template<typename T>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _move(T *__restrict__ start, T *end, T *__restrict__ source)
+{
+    while(start < end)
+        *start++ = std::move(*source++);
+}
+
+template<typename T, typename SizeType=unsigned>
+inline typename std::enable_if<std::is_pod<T>::value>::type
+    _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
+{
+    memcpy(start, source, len * sizeof(*start));
+}
+
+template<typename T, typename SizeType=unsigned>
+inline typename std::enable_if<!std::is_pod<T>::value>::type
+    _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
+{
+    while(len--)
+        *start++ = std::move(*source++);
+}
+
+template<typename T, typename SizeType=unsigned>
+inline T* _resize(T *start, T *end, SizeType new_length)
+{
+    ASSERT(new_length >= (end - start));
+    T* new_array = new T[new_length];
+    _move(new_array, end - start, start);
+    delete [] start;
+    return new_array;
+}
+
+template<typename T, typename SizeType=unsigned>
+inline T* _resize(T *start, SizeType now_length, SizeType new_length)
+{
+    ASSERT(new_length >= now_length);
+    T* new_array = new T[new_length];
+    _move(new_array, now_length, start);
+    delete [] start;
+    return new_array;
 }
 
 template<typename T, typename SizeType=unsigned>
@@ -108,120 +209,6 @@ inline void _mult_array(T *const start, SizeType len, unsigned times)
     }
     if(times -= done)
         _copy_a(start + clen, len * times, start);
-}
-
-template<typename T>
-struct _format
-{
-};
-
-template<>
-struct _format<unsigned char>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<char>
-{
-    constexpr static const char *const specifier = "%c";
-};
-
-template<>
-struct _format<unsigned short>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<short>
-{
-    constexpr static const char *const specifier = "%d";
-};
-
-template<>
-struct _format<unsigned>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<int>
-{
-    constexpr static const char *const specifier = "%d";
-};
-
-template<>
-struct _format<unsigned long>
-{
-    constexpr static const char *const specifier = "%lu";
-};
-
-template<>
-struct _format<long>
-{
-    constexpr static const char *const specifier = "%ld";
-};
-
-template<>
-struct _format<unsigned long long>
-{
-    constexpr static const char *const specifier = "%llu";
-};
-
-template<>
-struct _format<long long>
-{
-    constexpr static const char *const specifier = "%lld";
-};
-
-template<typename T>
-inline void _display(const T *const start, const T *const end, const char *const prf = _format<T>::specifier,
-                     const char *const del = " ")
-{
-    ASSERT(start <= end);
-    if(start == end)
-        return;
-    printf(prf, *start);
-    while(++start < end)
-    {
-        fputs(del, stdout);
-        printf(prf, *start);
-    }
-    putchar('\n');
-}
-
-template<typename T>
-inline void _display(T *start, unsigned len, const char *prf = _format<T>::specifier, const char *del = " ")
-{
-    if(len == 0)
-        return;
-    printf(prf, *start);
-    while(len-- > 1)
-    {
-        fputs(del, stdout);
-        printf(prf, *++start);
-    }
-    putchar('\n');
-}
-
-template<typename T>
-inline void
-_display2D(T **array, unsigned length, unsigned height, const char *prf = _format<T>::specifier, const char *del = " ",
-           const char *ldel = "\n")
-{
-    if((height == 0) or (length == 0))
-        return;
-    for(unsigned y = 0; y < height; y++)
-    {
-        printf(prf, array[y][0]);
-        for(unsigned x = 1; x < length; x++)
-        {
-            fputs(del, stdout);
-            printf(prf, array[y][x]);
-        }
-        printf(ldel, stdout);
-    }
 }
 
 template<typename T>
