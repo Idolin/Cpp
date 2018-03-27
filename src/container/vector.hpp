@@ -3,13 +3,10 @@
 #include "../other/arraymethods.hpp"
 #include "../other/defdef.h"
 #include "../debug/def_debug.h"
+#include "../other/displaymethods.hpp"
 
 #include <algorithm>
 #include <stdio.h>
-
-#ifdef COUNTSWAPS
-extern unsigned long long swapscounter;
-#endif // COUNTSWAPS
 
 template<typename T>
 struct vect
@@ -19,22 +16,46 @@ protected:
 public:
     unsigned size, maxs;
 
-    vect(unsigned size = 4) : m(new T[size]), size(size), maxs(0)
+    vect(unsigned size = 4): m(new T[size]), size(size), maxs(0)
     {}
 
-    vect(vect const &f) : m(new T[f.size]), size(f.size), maxs(f.maxs)
+    vect(vect const &f): m(new T[f.size]), size(f.size), maxs(f.maxs)
     {
         _copy(m, size, f.m);
     }
 
-    vect &operator=(vect const &f)
+    vect(vect&& f): m(f.m), size(f.size), maxs(f.maxs)
+    {
+        f.m = nullptr;
+        f.size = 0;
+        f.maxs = 0;
+    }
+
+    vect& operator=(vect const &f)
     {
         if(this != &f)
+        {
             delete[] m;
-        maxs = f.maxs;
-        size = f.size;
-        m = new T[size];
-        _copy(m, size, f.m);
+            maxs = f.maxs;
+            size = f.size;
+            m = new T[size];
+            _copy(m, size, f.m);
+        }
+        return *this;
+    }
+
+    vect& operator=(vect&& f)
+    {
+        if(this != &f)
+        {
+            delete[] m;
+            m = f.m;
+            size = f.size;
+            maxs = f.maxs;
+            f.m = nullptr;
+            f.size = 0;
+            f.maxs = 0;
+        }
         return *this;
     }
 
@@ -43,18 +64,18 @@ public:
         delete[] m;
     }
 
-    operator T *()
+    operator T*()
     {
         T *r = new T[maxs];
         _copy(r, maxs, m);
         return r;
     }
 
-    T &operator[](unsigned index)
+    T& operator[](unsigned index)
     {
         if(index >= size)
         {
-            if(size == 0)
+            if(maxs == 0)
                 this->resizeTo(index + 1);
             else
             {
@@ -70,27 +91,22 @@ public:
 
     const T &operator[](unsigned index) const
     {
-        ASSERT(index < size, "Vector: index out of range");
+        ASSERT(index < size, "Vector: index %u out of range(size: %u)", index, size);
+        DEBUGIFMSG(index >= maxs, "Vector: value at index %u not set", index);
         return m[index];
     }
 
     void resizeTo(unsigned k)
     {
-        T *m2 = new T[k];
-        _copy(m2, size, m);
-        delete[] m;
-        m = m2;
+        DEBUGLVLIFMSG(3, k < maxs, "new size smaller than index of last element, some elements will be deleted!");
+        _resize(m, size, k);
         size = k;
     }
 
     void resizeUp(unsigned k = 1)
     {
-        unsigned newsize = (size + (size == 0)) * (1 << k);
-        T *m2 = new T[newsize];
-        _copy(m2, size, m);
-        delete[] m;
-        m = m2;
-        size = newsize;
+        unsigned oldsize = size;;
+        m = _resize(m, oldsize, size = (oldsize + (oldsize == 0)) * (1 << k));
     }
 
     T back()
@@ -108,98 +124,32 @@ public:
 
     void swap(unsigned first, unsigned second)
     {
-        ASSERT((first < size) && (second < size));
-#ifdef COUNTSWAPS
-        swapscounter++;
-#endif // COUNTSWAPS
+        ASSERT((first < size) && (second < size), "Vector: attempt to swap values "
+                "out of range(size: %u, first index: %u, second index: %u)", size, first, second);
         std::swap(m + first, m + second);
-    }
-
-    void display(unsigned start = 0, unsigned end = (unsigned) -1, const char *prf = "%u", const char *del = " ")
-    {
-        if(maxs == 0)
-            fputs("Vector is empty\n", stdout);
-        else
-        {
-            smin_(end, maxs);
-            _display(m + start, end - start, prf, del);
-        }
-    }
-};
-
-template<typename T>    //error code = 2
-struct cvect : vect<T>
-{
-    T *m;
-    unsigned maxs, size, resizekf;
-
-    cvect(unsigned size = 20, unsigned resizekf = 3) : m(new T[size]), maxs(0), size(size), resizekf(resizekf)
-    {}
-
-    cvect(cvect const &f) : m(new T[f.size]), maxs(f.maxs), size(f.size), resizekf(f.resizekf)
-    {
-        _copy(m, size, f.m);
-    }
-
-    cvect &operator=(cvect const &f)
-    {
-        if(this != &f)
-            delete[] m;
-        maxs = f.maxs;
-        size = f.size;
-        resizekf = f.resizekf;
-        m = new T[size];
-        _copy(m, size, f.m);
-        return *this;
-    }
-
-    ~cvect()
-    {
-        delete[] m;
-    }
-
-    void resizeUp(unsigned k)
-    {
-        T *m2 = new T[size *= k];
-        _copy(m2, size, m);
-        delete[] m;
-        m = m2;
-    }
-
-    void resizeTo(unsigned k)
-    {
-        T *m2 = new T[k];
-        _copy(m2, size < k ? size : k, m);
-        delete[] m;
-        m = m2;
-        size = k;
     }
 
     T getMax()
     {
-        if(maxs == 0)
-            throw 2;
+        ASSERT(maxs > 0);
         return _max(m, maxs);
     }
 
     T getMin()
     {
-        if(maxs == 0)
-            throw 2;
+        ASSERT(maxs > 0);
         return _min(m, maxs);
     }
 
     unsigned getMinPos()
     {
-        if(maxs == 0)
-            throw 2;
+        ASSERT(maxs > 0);
         return _minInd(m, maxs);
     }
 
     unsigned getMaxPos()
     {
-        if(maxs == 0)
-            throw 2;
+        ASSERT(maxs > 0);
         return _maxInd(m, maxs);
     }
 
@@ -209,51 +159,27 @@ struct cvect : vect<T>
         return _sum<T, T2>(m, maxs);
     }
 
-    void set(unsigned p, T x)
+    template<bool (*compare)(const T &, const T &) = _less<T>>
+    bool checksorted(unsigned start = 0, unsigned end = std::numeric_limits<unsigned>::max())
     {
-        if(p >= size)
-        {
-            if(resizekf > 1 and size > 0)
-            {
-                unsigned k = resizekf;
-                while(p >= size * k)
-                    k *= resizekf;
-                this->resizeUp(k);
-            } else
-                this->resizeTo(p + 1);
-        }
-        if(p >= maxs)
-            maxs = p + 1;
-        m[p] = x;
+        smin_(end, maxs);
+        return _checksorted<T, compare>(m + start, m + end);
     }
 
-    void putLast(T x)
-    {
-        if(maxs == size)
-        {
-            if(resizekf > 1 and size > 0)
-                this->resizeUp(resizekf);
-            else
-                this->resizeTo(size + 1);
-        }
-        m[maxs++] = x;
-    }
-
-    bool checksorted(bool smallToBig = true, unsigned start = 0, unsigned end = -1)
+    template<void (*show)(const T&) = &_tshow>
+    void display(unsigned start = 0, unsigned end = std::numeric_limits<unsigned>::max(), const char* del = ", ")
     {
         if(maxs == 0)
-            return true;
-        if(end >= maxs)
-            end = maxs - 1;
-        for(unsigned t = start; t < end; t++)
-            if(m[t] != m[t + 1] and (smallToBig xor _more(m[t + 1], m[t])))
-                return false;
-        return true;
+            puts("Vector is empty");
+        else
+        {
+            smin_(end, maxs);
+            _tdisplay<T, show>(m + start, end - start, del);
+        }
     }
 };
 
 //TODO
 template<typename T>
 struct pvect
-{
-};
+{};
