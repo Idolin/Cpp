@@ -326,14 +326,15 @@ inline bool _checksorted(T *start, T *end)
     return true;
 }
 
-template<typename T>
+template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
 inline bool _checksorted(T *start, unsigned len)
 {
-    if(len == 0)
-        return true;
-    while(--len > 0)
-        if(_more(*start++, *(start + 1)))
+    while(len-- > 0)
+    {
+        if(compare(*(start + 1), *start))
             return false;
+        start++;
+    }
     return true;
 }
 
