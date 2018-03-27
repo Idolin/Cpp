@@ -4,6 +4,7 @@
 #include "defdef.h"
 #include "../debug/def_debug.h"
 
+#include <algorithm>
 #include <cstring>
 
 template<typename T>
@@ -178,9 +179,9 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 template<typename T, typename SizeType=unsigned>
 inline T* _resize(T *start, T *end, SizeType new_length)
 {
-    ASSERT(new_length >= (end - start));
-    T* new_array = new T[new_length];
-    _move(new_array, end - start, start);
+    DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements will be deleted!");
+    T *new_array = new T[new_length];
+    _move(new_array, std::min(end - start, new_length), start);
     delete [] start;
     return new_array;
 }
@@ -188,9 +189,9 @@ inline T* _resize(T *start, T *end, SizeType new_length)
 template<typename T, typename SizeType=unsigned>
 inline T* _resize(T *start, SizeType now_length, SizeType new_length)
 {
-    ASSERT(new_length >= now_length);
-    T* new_array = new T[new_length];
-    _move(new_array, now_length, start);
+    DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
+    T *new_array = new T[new_length];
+    _move(new_array, std::min(now_length, new_length), start);
     delete [] start;
     return new_array;
 }
