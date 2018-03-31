@@ -4,7 +4,6 @@
 #include "defdef.h"
 #include "../debug/def_debug.h"
 
-#include <algorithm>
 #include <cstring>
 
 template<typename T>
@@ -102,6 +101,22 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 }
 
 template<typename T>
+inline T *_new_copy(T *start, T *end)
+{
+    T *new_array = new T[end - start];
+    _copy(new_array, end - start, start);
+    return new_array;
+}
+
+template<typename T, typename SizeType=unsigned>
+inline T *_new_copy(T *start, SizeType len)
+{
+    T *new_array = new T[len];
+    _copy(new_array, len, start);
+    return new_array;
+}
+
+template<typename T>
 inline typename std::enable_if<std::is_pod<T>::value>::type
     _copy_a(T *start, T *end, const T *source)
 {
@@ -181,17 +196,17 @@ inline T* _resize(T *start, T *end, SizeType new_length)
 {
     DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
-    _move(new_array, std::min(end - start, new_length), start);
+    _move(new_array, _min(end - start, new_length), start);
     delete [] start;
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned>
-inline T* _resize(T *start, SizeType now_length, SizeType new_length)
+template<typename T, typename SizeType=unsigned, typename SizeType2=unsigned>
+inline T* _resize(T *start, SizeType now_length, SizeType2 new_length)
 {
     DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
-    _move(new_array, std::min(now_length, new_length), start);
+    _move(new_array, _min(now_length, new_length), start);
     delete [] start;
     return new_array;
 }
@@ -213,7 +228,7 @@ inline void _mult_array(T *const start, SizeType len, unsigned times)
 }
 
 template<typename T>
-inline T _min(T *start, T *end)
+inline T& _min(T *start, T *end)
 {
     T emin = *start;
     while(++start < end)
@@ -223,7 +238,7 @@ inline T _min(T *start, T *end)
 }
 
 template<typename T>
-inline T _min(T *start, unsigned len)
+inline T& _min(T *start, unsigned long len)
 {
     T emin = *start;
     while(len-- > 1)
@@ -233,7 +248,7 @@ inline T _min(T *start, unsigned len)
 }
 
 template<typename T>
-inline T _max(T *start, T *end)
+inline T& _max(T *start, T *end)
 {
     T emax = *start;
     while(++start < end)
@@ -243,7 +258,7 @@ inline T _max(T *start, T *end)
 }
 
 template<typename T>
-inline T _max(T *start, unsigned len)
+inline T& _max(T *start, unsigned long len)
 {
     T emax = *start;
     while(len-- > 1)
@@ -265,7 +280,7 @@ inline unsigned _minInd(T *start, T *end)
 }
 
 template<typename T>
-inline unsigned _minInd(T *start, unsigned len)
+inline unsigned long _minInd(T *start, unsigned long len)
 {
     T vmin = *start;
     unsigned ind = 0;
@@ -288,7 +303,7 @@ inline unsigned _maxInd(T *start, T *end)
 }
 
 template<typename T>
-inline unsigned _maxInd(T *start, unsigned len)
+inline unsigned long _maxInd(T *start, unsigned long len)
 {
     T vmax = *start;
     unsigned ind = 0;
@@ -299,7 +314,7 @@ inline unsigned _maxInd(T *start, unsigned len)
 }
 
 template<typename Ta, typename Ts>
-inline Ts _sum(Ta *start, unsigned len)
+inline Ts& _sum(Ta *start, unsigned long len)
 {
     Ts sum = 0;
     while(len-- > 0)
@@ -308,7 +323,7 @@ inline Ts _sum(Ta *start, unsigned len)
 }
 
 template<typename Ta, typename Ts>
-inline Ts _sum(Ta *start, Ta *end)
+inline Ts& _sum(Ta *start, Ta *end)
 {
     Ts sum = 0;
     unsigned len = end - start;
@@ -327,7 +342,7 @@ inline bool _checksorted(T *start, T *end)
 }
 
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
-inline bool _checksorted(T *start, unsigned len)
+inline bool _checksorted(T *start, unsigned long len)
 {
     while(len-- > 0)
     {
