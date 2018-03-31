@@ -9,7 +9,6 @@
 #include "../other/term.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <exception>
 
@@ -24,12 +23,12 @@
 
 #ifdef DEBUG
 
-class assert_failed : public std::exception
+class assert_failed: public std::exception
 {
 public:
     explicit assert_failed(const std::string &s);
 
-    const char *what() const throw() override;
+    const char *what() const noexcept override;
 
 private:
     std::string message;
