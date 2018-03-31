@@ -268,7 +268,7 @@ inline T& _max(T *start, unsigned long len)
 }
 
 template<typename T>
-inline unsigned _minInd(T *start, T *end)
+inline unsigned long _minInd(T *start, T *end)
 {
     T vmin = *start;
     unsigned ind = 0;
@@ -291,7 +291,7 @@ inline unsigned long _minInd(T *start, unsigned long len)
 }
 
 template<typename T>
-inline unsigned _maxInd(T *start, T *end)
+inline unsigned long _maxInd(T *start, T *end)
 {
     T vmax = *start;
     unsigned ind = 0;
@@ -354,7 +354,7 @@ inline bool _checksorted(T *start, unsigned long len)
 }
 
 template<typename T>
-inline T **_newArray2d(unsigned height, unsigned lenght)
+inline T **_newArray2d(unsigned long height, unsigned long lenght)
 {
     T **array = new T *[height];
     while(height > 0)
@@ -363,7 +363,7 @@ inline T **_newArray2d(unsigned height, unsigned lenght)
 }
 
 template<typename T>
-inline void _deleteArray2d(T **array, unsigned height)
+inline void _deleteArray2d(T **array, unsigned long height)
 {
     while(height > 0)
         delete[] array[--height];
