@@ -20,7 +20,7 @@ set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
 add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 
-target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib str_lib)
+target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib str_lib term_lib)
 
 add_executable(only_main "${MAIN_FILE}")
 
@@ -34,5 +34,5 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} MATCHES
             WORKING_DIRECTORY "/home/cynder/trash"
             COMMAND ${CMAKE_CXX_COMPILER} -O2 -fverbose-asm -S "${CMAKE_SOURCE_DIR}/${MAIN_FILE}" -o main.asm
             COMMAND cat main.asm
-            COMMENT "getting assembler listing of main")
+            COMMENT "getting assembler listing of main.cpp")
 endif ()
