@@ -2,73 +2,10 @@
 
 #include <stdio.h>
 #include "defdef.h"
+#include "typemethods.hpp"
 
 template<typename T>
-struct _format
-{};
-
-template<>
-struct _format<unsigned char>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<char>
-{
-    constexpr static const char *const specifier = "%c";
-};
-
-template<>
-struct _format<unsigned short>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<short>
-{
-    constexpr static const char *const specifier = "%d";
-};
-
-template<>
-struct _format<unsigned>
-{
-    constexpr static const char *const specifier = "%u";
-};
-
-template<>
-struct _format<int>
-{
-    constexpr static const char *const specifier = "%d";
-};
-
-template<>
-struct _format<unsigned long>
-{
-    constexpr static const char *const specifier = "%lu";
-};
-
-template<>
-struct _format<long>
-{
-    constexpr static const char *const specifier = "%ld";
-};
-
-template<>
-struct _format<unsigned long long>
-{
-    constexpr static const char *const specifier = "%llu";
-};
-
-template<>
-struct _format<long long>
-{
-    constexpr static const char *const specifier = "%lld";
-};
-
-template<typename T>
-inline void _display(const T *const start, const T *const end, const char *const prf = _format<T>::specifier,
+inline void _display(const T *const start, const T *const end, const char *const prf = _typeSeq<T>::specifier,
                      const char *const del = " ")
 {
     ASSERT(start <= end);
@@ -84,7 +21,7 @@ inline void _display(const T *const start, const T *const end, const char *const
 }
 
 template<typename T>
-inline void _display(T *start, unsigned len, const char *prf = _format<T>::specifier, const char *del = " ")
+inline void _display(T *start, unsigned len, const char *prf = _typeSeq<T>::specifier, const char *del = " ")
 {
     if(len == 0)
         return;
@@ -99,7 +36,7 @@ inline void _display(T *start, unsigned len, const char *prf = _format<T>::speci
 
 template<typename T>
 inline void
-_display2D(T **array, unsigned length, unsigned height, const char *prf = _format<T>::specifier, const char *del = " ",
+_display2D(T **array, unsigned length, unsigned height, const char *prf = _typeSeq<T>::specifier, const char *del = " ",
            const char *ldel = "\n")
 {
     if((height == 0) or (length == 0))
@@ -177,7 +114,7 @@ inline void _tshow(const int& x)
 template<>
 inline void _tshow(const unsigned& x)
 {
-    printf(":%u", x);
+    printf("%u", x);
 }
 
 template<>
