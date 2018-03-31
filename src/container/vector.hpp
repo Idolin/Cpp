@@ -14,7 +14,7 @@ struct vect
 protected:
     T *m;
 public:
-    unsigned size, maxs;
+    unsigned long size, maxs;
 
     vect(unsigned size = 4): m(new T[size]), size(size), maxs(0)
     {}
@@ -38,13 +38,12 @@ public:
             delete[] m;
             maxs = f.maxs;
             size = f.size;
-            m = new T[size];
-            _copy(m, size, f.m);
+            m = _new_copy(f.m, size);
         }
         return *this;
     }
 
-    vect& operator=(vect&& f)
+    vect& operator=(vect&& f) noexcept
     {
         if(this != &f)
         {
@@ -66,12 +65,10 @@ public:
 
     operator T*()
     {
-        T *r = new T[maxs];
-        _copy(r, maxs, m);
-        return r;
+        return _new_copy(m, maxs);
     }
 
-    T& operator[](unsigned index)
+    T& operator[](unsigned long index)
     {
         if(index >= size)
         {
@@ -79,7 +76,7 @@ public:
                 this->resizeTo(index + 1);
             else
             {
-                int k = 0;
+                unsigned k = 0;
                 while(index >= size << ++k);
                 this->resizeUp(k);
             }
@@ -89,23 +86,24 @@ public:
         return m[index];
     }
 
-    const T &operator[](unsigned index) const
+    const T& operator[](unsigned long index) const
     {
-        ASSERT(index < size, "Vector: index %u out of range(size: %u)", index, size);
-        DEBUGIFMSG(index >= maxs, "Vector: value at index %u not set", index);
+        ASSERT(index < size, "Vector: index %lu out of range(size: %lu)", index, size);
+        DEBUGIFMSG(index >= maxs, "Vector: value at index %lu not set", index);
         return m[index];
     }
 
-    void resizeTo(unsigned k)
+    void resizeTo(unsigned long k)
     {
-        DEBUGLVLIFMSG(3, k < maxs, "new size smaller than index of last element, some elements will be deleted!");
+        DEBUGLVLIFMSG(3, k < maxs, "new size smaller than index of last element, "
+                                   "some elements will be deleted!");
         _resize(m, size, k);
         size = k;
     }
 
     void resizeUp(unsigned k = 1)
     {
-        unsigned oldsize = size;;
+        unsigned oldsize = size;
         m = _resize(m, oldsize, size = (oldsize + (oldsize == 0)) * (1 << k));
     }
 
@@ -122,61 +120,86 @@ public:
         m[maxs++] = x;
     }
 
-    void swap(unsigned first, unsigned second)
+    void swap(unsigned long first, unsigned long second)
     {
         ASSERT((first < size) && (second < size), "Vector: attempt to swap values "
-                "out of range(size: %u, first index: %u, second index: %u)", size, first, second);
+                "out of range(size: %lu, first index: "
+                "%lu, second index: %lu)", size, first, second);
         std::swap(m + first, m + second);
     }
 
-    T getMax()
+    T& max()
     {
         ASSERT(maxs > 0);
         return _max(m, maxs);
     }
 
-    T getMin()
+    T& min()
     {
         ASSERT(maxs > 0);
         return _min(m, maxs);
     }
 
-    unsigned getMinPos()
+    unsigned long minIndex()
     {
         ASSERT(maxs > 0);
         return _minInd(m, maxs);
     }
 
-    unsigned getMaxPos()
+    unsigned long maxIndex()
     {
         ASSERT(maxs > 0);
         return _maxInd(m, maxs);
     }
 
     template<typename T2>
-    T2 sum()
+    T2& sum(unsigned long from = 0, unsigned long to = vect::end)
     {
-        return _sum<T, T2>(m, maxs);
+        if(to == vect::end)
+            to = maxs;
+        ASSERT(from <= to);
+        ASSERT(to <= size);
+        DEBUGLVLIFMSG(3, to > maxs, "Vector: value after index %lu not set, but trying "
+                                     "to get sum up to %lu", maxs, to);
+        return _sum<T, T2>(m + from, m + to);
     }
 
-    template<bool (*compare)(const T &, const T &) = _less<T>>
-    bool checksorted(unsigned start = 0, unsigned end = std::numeric_limits<unsigned>::max())
+    template<bool (*compare)(const T&, const T&) = _less<T>>
+    bool checksorted()
     {
-        smin_(end, maxs);
-        return _checksorted<T, compare>(m + start, m + end);
+        return _checksorted<T, compare>(m, m + maxs);
+    }
+
+    template<bool (*compare)(const T&, const T&) = _less<T>>
+    bool checksorted(unsigned long from = 0, unsigned long to =
+        vect::end)
+    {
+        ASSERT(from <= to);
+        if(to == vect::end)
+            to = maxs;
+        ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
+                           "to check if is sorted up to %lu", maxs, to);
+        return _checksorted<T, compare>(m + from, m + to);
     }
 
     template<void (*show)(const T&) = &_tshow>
-    void display(unsigned start = 0, unsigned end = std::numeric_limits<unsigned>::max(), const char* del = ", ")
+    void display(unsigned long from = 0, unsigned long to =
+        vect::end, const char* del = ", ")
     {
+        ASSERT(from <= to);
+        if(to == vect::end)
+            to = maxs;
+        ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
+                           "to print elements up to %lu", maxs, to);
         if(maxs == 0)
             puts("Vector is empty");
         else
         {
-            smin_(end, maxs);
-            _tdisplay<T, show>(m + start, end - start, del);
+            _tdisplay<T, show>(m + from, to - from, del);
         }
     }
+
+    static const unsigned long end = std::numeric_limits<unsigned long>::max();
 };
 
 //TODO
