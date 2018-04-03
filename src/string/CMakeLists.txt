@@ -5,5 +5,5 @@ add_test(str_test str.test.cpp)
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/str.test.cpp)
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
 
-set(SOURCE_LIB str.cpp)
+set(SOURCE_LIB str.cpp str_func.cpp)
 add_library(str_lib STATIC "${SOURCE_LIB}")
