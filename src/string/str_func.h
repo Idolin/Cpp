@@ -37,7 +37,7 @@ vect<unsigned> findAllClose(const str &, const str &, unsigned);
 
 inline unsigned getPeriod(const unsigned *const pi, unsigned len)
 {
-    return pi[len - 1];
+    return len - pi[len - 1];
 }
 
 inline unsigned getPeriod(const str &s)

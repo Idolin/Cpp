@@ -32,7 +32,7 @@ unsigned *z(const str &a)
         {
             while((i + k < a.length()) && (a[k] == a[i + k]))
                 k++;
-            left = i, right = k + 1;
+            left = i, right = k + i;
         }
         z[i] = k;
     }
