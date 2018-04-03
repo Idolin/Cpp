@@ -149,7 +149,7 @@ str::str(char *const s, unsigned long len): s(s)
     info = new str_info(s, len);
 }
 
-str::str(const std::string &s): str(s.c_str(), s.length())
+str::str(const std::string &s): str(s.c_str(), static_cast<unsigned long>(s.length()))
 {}
 
 str::str(const str &s): s(s.s), info(s.info)
@@ -157,7 +157,7 @@ str::str(const str &s): s(s.s), info(s.info)
     info->links++;
 }
 
-str::str(std::string &&s): str(s.c_str(), static_cast<unsigned>(s.length()))
+str::str(std::string &&s): str(s.c_str(), static_cast<unsigned long>(s.length()))
 {
     s.clear();
 }
@@ -201,7 +201,7 @@ str &str::operator=(str &&b) noexcept
     return *this;
 }
 
-const char str::at(unsigned long i) const
+char str::at(unsigned long i) const
 {
     ASSERT(i <= info->len);
     if(s)
@@ -209,7 +209,7 @@ const char str::at(unsigned long i) const
     return (*static_cast<str_info_cnct*>(info))[i]; // NOLINT (we are sure about info type)
 }
 
-const char str::operator[](unsigned long i) const
+char str::operator[](unsigned long i) const
 {
     return at(i);
 }
@@ -249,6 +249,7 @@ str& str::operator*=(unsigned times)
     unlink();
     info = new str_info(new_block, new_len);
     s = new_block;
+    return *this;
 }
 
 bool str::operator==(const str &b) const
@@ -280,14 +281,14 @@ unsigned long str::length() const
     return info->len;
 }
 
-const char *const str::c_str() const
+const char *str::c_str() const
 {
     ASSERT(s);
     ASSERT(s[info->len] == '\0', "s must be substr(not ends with nul, but '%c')", s[info->len]);
     return s;
 }
 
-const char *const str::c_str()
+const char *str::c_str()
 {
     if((!s) || (s[info->len] != '\0'))
         *this = copy();

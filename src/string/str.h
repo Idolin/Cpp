@@ -92,10 +92,10 @@ public:
 
     str &operator=(str &&) noexcept;
 
-    const char at(unsigned long) const; //use this for fast access(otherwise if you call [] operator from
+    char at(unsigned long) const; //use this for fast access(otherwise if you call [] operator from
     // non-const context non-const [] will be executed what may lead to slowdowns and increased memory usage
 
-    const char operator[](unsigned long) const;
+    char operator[](unsigned long) const;
 
     char &operator[](unsigned long);
 
@@ -109,9 +109,9 @@ public:
 
     unsigned long length() const;
 
-    const char *const c_str() const;
+    const char *c_str() const;
 
-    const char *const c_str();
+    const char *c_str();
 
     operator char*() const; // NOLINT
 
