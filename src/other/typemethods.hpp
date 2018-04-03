@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <type_traits>
 
 #include "../template/t_useful.hpp"
@@ -191,5 +190,3 @@ struct _changeSigned
     typedef typename std::conditional<sign, typename std::make_signed<T>::type,
             typename std::make_unsigned<T>::type>::type type;
 };
-
-//the deadlock empire

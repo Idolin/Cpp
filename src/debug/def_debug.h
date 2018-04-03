@@ -83,6 +83,6 @@ private:
 #define DEBUGMSG(...)
 #define DEBUGLVLIFMSG(...)
 #define DEBUGIFMSG(...)
-#define ASSERT(cond, ...)
+#define ASSERT(...)
 #endif
 

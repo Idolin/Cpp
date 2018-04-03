@@ -52,25 +52,25 @@ template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _min(const T& a, const T& b)
 {
     return compare(a, b) ? b : a;
-};
+}
 
 template<typename T, bool(*compare)(T, T) = _less<T>>
 inline T& _min(T a, T b)
 {
     return compare(a, b) ? b : a;
-};
+}
 
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _max(const T& a, const T& b)
 {
     return compare(a, b) ? a : b;
-};
+}
 
 template<typename T, bool(*compare)(T, T) = _less<T>>
 inline T& _max(T a, T b)
 {
     return compare(a, b) ? a : b;
-};
+}
 
 template<typename T, typename T2, typename Enable = void>
 struct _getMMinType;
@@ -140,7 +140,7 @@ inline typename _getMMinType<T, T2>::type _min(T a, T2 b)
     }
     return static_cast<maxType>(a) < static_cast<maxType>(b) ?
            static_cast<minType>(a) : static_cast<minType>(b);
-};
+}
 
 template<typename T, typename T2, typename =
     typename std::enable_if<!std::is_same<T, T2>::value>::type>
@@ -159,7 +159,7 @@ inline typename _getMMaxType<T, T2>::type _max(T a, T2 b)
     }
     return static_cast<maxType>(a) < static_cast<maxType>(b) ?
            static_cast<maxType>(b) : static_cast<maxType>(a);
-};
+}
 
 template<typename T>
 T to2(T k)
