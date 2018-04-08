@@ -1,32 +1,26 @@
 #pragma once
 
 #include "commonmethods.hpp"
-#include "defdef.h"
+#include "valuemethods.hpp"
+#include "../other/defdef.h"
 #include "../debug/def_debug.h"
 
 #include <cstring>
 
 template<typename T>
-inline void _fill(T *start, T *end, int x = '\0')
-{
-    memset(start, x, (end - start) * sizeof(*start));
-}
-
-template<typename T>
-inline void _fill(T *start, unsigned len, int x = '\0')
-{
-    memset(start, x, len * sizeof(*start));
-}
-
-template<typename T>
 inline void _vfill(T *start, T *end, T x)
 {
-    if(start < end)
-    {
-        unsigned dif = end - start;
-        while(dif-- > 0)
-            *start++ = x;
-    }
+    while(start < end)
+        *start++ = x;
+}
+
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+inline void _fill(T *start, T *end, T x = '\0')
+{
+    if(_valueBytesEquals<T>::check(x))
+        memset(start, x, (end - start) * sizeof(*start));
+    else
+        _vfill(start, end, x);
 }
 
 template<typename T>
@@ -34,6 +28,15 @@ inline void _vfill(T *start, unsigned len, T x)
 {
     while(len-- > 0)
         *start++ = x;
+}
+
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+inline void _fill(T *start, unsigned len, T x = '\0')
+{
+    if(_valueBytesEquals<T>::check(x))
+        memset(start, x, len * sizeof(*start));
+    else
+        _vfill(start, len, x);
 }
 
 inline char *_readstr(unsigned &len)
