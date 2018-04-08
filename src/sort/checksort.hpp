@@ -3,7 +3,7 @@
 #define COUNTSWAPS
 
 #include "../other/rand.h"
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 
 #include <time.h>
 #include <unistd.h>

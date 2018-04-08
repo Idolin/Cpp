@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/displaymethods.hpp"
+#include "../template/displaymethods.hpp"
 #include "../other/defdef.h"
 #include "persistancequeue.hpp"
 #include "stack.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/commonmethods.hpp"
+#include "../template/commonmethods.hpp"
 
 template<typename T>
 void bubblesort(T *start, T *end)

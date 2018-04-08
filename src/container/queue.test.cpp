@@ -5,7 +5,6 @@
 
 TEST_PACK(queue)
 {
-
     TEST(int_1)
     {
         queue<int> q;

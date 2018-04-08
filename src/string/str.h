@@ -2,9 +2,9 @@
 
 #include "../debug/def_debug.h"
 #include "../other/defdef.h"
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 #include "../container/vector.hpp"
-#include "../other/displaymethods.hpp"
+#include "../template/displaymethods.hpp"
 
 #include <string>
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdio.h>
-#include "defdef.h"
+#include "../other/defdef.h"
 #include "typemethods.hpp"
 
 template<typename T>

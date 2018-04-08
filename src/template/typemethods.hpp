@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include "../template/t_useful.hpp"
+#include "t_useful.hpp"
 
 template<typename T, typename T2>
 struct _typeLower

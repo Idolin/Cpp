@@ -1,4 +1,4 @@
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 #include "../other/singleton.hpp"
 #include "tests_abstract.h"
 #include "tests_run.h"

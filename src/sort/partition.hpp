@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/commonmethods.hpp"
+#include "../template/commonmethods.hpp"
 #include <functional>
 
 template<typename T, bool (*compare)(const T &, const T &) = _less<T>>

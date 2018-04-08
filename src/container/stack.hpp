@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 #include "persistancestack.hpp"
 
 template<typename T>

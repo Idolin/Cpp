@@ -35,8 +35,6 @@ public:
         iterator(node *ptr = nullptr): ptr(ptr)
         {}
 
-        ~iterator() = default;
-
         iterator(const iterator &otr): ptr(otr.ptr)
         {}
 
@@ -214,8 +212,6 @@ public:
         iterator(node *ptr): ptr(ptr), end(false)
         {}
 
-        ~iterator() = default;
-
         iterator(const iterator &otr): ptr(otr.ptr), end(otr.end)
         {}
 
@@ -237,7 +233,7 @@ public:
             return !(*this == otr);
         }
 
-        iterator &operator++()
+        iterator& operator++()
         {
             if(ptr->next)
                 ptr = ptr->next;

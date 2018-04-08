@@ -10,7 +10,7 @@ struct Hashable
 };
 
 template<class Self, bool lazy = true>
-class HashableStored : Hashable
+class HashableStored: Hashable
 {};
 
 template<class Self>
@@ -28,7 +28,7 @@ public:
     {}
 
 private:
-    bool equals(const Self &) const = 0;
+    bool equals(const Self&) const = 0;
 
 protected:
     virtual uint64_t hash_recalc() const = 0;

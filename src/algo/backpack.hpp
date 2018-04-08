@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 
 unsigned *backpackW(unsigned backpackCapacity, unsigned *weights, unsigned *values, unsigned &amountOfItems)
 {

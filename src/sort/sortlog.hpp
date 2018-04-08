@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../other/defdef.h"
-#include "../other/commonmethods.hpp"
+#include "../template/commonmethods.hpp"
 #include "../other/rand.h"
 #include "sortsquare.hpp"
 #include "partition.hpp"
