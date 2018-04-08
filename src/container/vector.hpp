@@ -1,16 +1,134 @@
 #pragma once
 
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 #include "../other/defdef.h"
 #include "../debug/def_debug.h"
-#include "../other/displaymethods.hpp"
+#include "../template/displaymethods.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <stdio.h>
 
 template<typename T>
 struct vect
 {
+    struct iterator: public std::iterator<std::random_access_iterator_tag, T>
+    {
+        friend struct vect<T>;
+
+    private:
+        T *ptr;
+
+    public:
+        iterator(T *ptr): ptr(ptr)
+        {}
+
+        iterator(const iterator& otr): ptr(otr.ptr)
+        {}
+
+        iterator (iterator&& otr): ptr(otr.ptr)
+        {
+            otr.ptr = nullptr;
+        }
+
+        iterator& operator=(const iterator& otr)
+        {
+            ptr = otr.ptr;
+        }
+
+        iterator& operator=(iterator&& otr)
+        {
+            if(this != &otr)
+            {
+                ptr = otr.ptr;
+                otr.ptr = nullptr;
+            }
+        }
+
+        bool operator==(const iterator& otr) const
+        {
+            return (ptr == otr.ptr);
+        }
+
+        bool operator!=(const iterator& otr) const
+        {
+            return !(*this == otr);
+        }
+
+        bool operator<(const iterator& otr) const
+        {
+            return ptr < otr.ptr;
+        }
+
+        bool operator<=(const iterator& otr) const
+        {
+            return ptr <= otr.ptr;
+        }
+
+        bool operator>(const iterator& otr) const
+        {
+            return ptr > otr.ptr;
+        }
+
+        bool operator>=(const iterator& otr) const
+        {
+            return ptr >= otr.ptr;
+        }
+
+        iterator& operator++()
+        {
+            ptr++;
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator copy = *this;
+            ++*this;
+            return copy;
+        }
+
+        iterator& operator--()
+        {
+            ptr--;
+            return *this;
+        }
+
+        iterator operator--(int)
+        {
+            iterator copy = *this;
+            --*this;
+            return copy;
+        }
+
+        iterator& operator+=(unsigned long p)
+        {
+            ptr += p;
+            return *this;
+        }
+
+        iterator& operator-=(unsigned long p)
+        {
+            ptr -= p;
+            return *this;
+        }
+
+        T& operator[](unsigned long index)
+        {
+            return ptr[index];
+        }
+
+        T& operator*()
+        {
+            return *ptr;
+        }
+
+        T *operator->()
+        {
+            return ptr;
+        }
+    };
+
 protected:
     T *m;
 public:
@@ -81,8 +199,7 @@ public:
                 this->resizeUp(k);
             }
         }
-        if(index >= maxs)
-            maxs = index + 1;
+        smax_(maxs, index + 1);
         return m[index];
     }
 
@@ -103,8 +220,8 @@ public:
 
     void resizeUp(unsigned k = 1)
     {
-        unsigned oldsize = size;
-        m = _resize(m, oldsize, size = (oldsize + (oldsize == 0)) * (1 << k));
+        unsigned old_size = size;
+        m = _resize(m, old_size, size = (old_size + (old_size == 0)) * (1 << k));
     }
 
     T back()
@@ -118,6 +235,22 @@ public:
         if(maxs == size)
             this->resizeUp();
         m[maxs++] = x;
+    }
+
+    iterator begin()
+    {
+        return new iterator(m);
+    }
+
+    iterator at(unsigned long index)
+    {
+        ASSERT(index <= maxs);
+        return new iterator(m + index);
+    }
+
+    iterator end()
+    {
+        return new iterator(m + maxs);
     }
 
     void swap(unsigned long first, unsigned long second)
@@ -153,9 +286,9 @@ public:
     }
 
     template<typename T2>
-    T2& sum(unsigned long from = 0, unsigned long to = vect::end)
+    T2& sum(unsigned long from = 0, unsigned long to = vect::last)
     {
-        if(to == vect::end)
+        if(to == vect::last)
             to = maxs;
         ASSERT(from <= to);
         ASSERT(to <= size);
@@ -172,10 +305,10 @@ public:
 
     template<bool (*compare)(const T&, const T&) = _less<T>>
     bool checksorted(unsigned long from = 0, unsigned long to =
-        vect::end)
+        vect::last)
     {
         ASSERT(from <= to);
-        if(to == vect::end)
+        if(to == vect::last)
             to = maxs;
         ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
                            "to check if is sorted up to %lu", maxs, to);
@@ -184,10 +317,10 @@ public:
 
     template<void (*show)(const T&) = &_tshow>
     void display(unsigned long from = 0, unsigned long to =
-        vect::end, const char* del = ", ")
+        vect::last, const char* del = ", ")
     {
         ASSERT(from <= to);
-        if(to == vect::end)
+        if(to == vect::last)
             to = maxs;
         ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
                            "to print elements up to %lu", maxs, to);
@@ -199,7 +332,7 @@ public:
         }
     }
 
-    static const unsigned long end = std::numeric_limits<unsigned long>::max();
+    static const unsigned long last = std::numeric_limits<unsigned long>::max();
 };
 
 //TODO
