@@ -8,7 +8,7 @@
 #include <climits>
 #include <exception>
 
-#include "../other/arraymethods.hpp"
+#include "../template/arraymethods.hpp"
 #include "../other/defdef.h"
 
 class big_integer_exception : public std::exception
@@ -47,7 +47,7 @@ private:
         unsigned get_size() const;
         // setting right max_set
         void getms();
-        void fill(unsigned from_index, unsigned length, int value = '\0');
+        void fill(unsigned from_index, unsigned length, unsigned value = '\0');
 
         void copy(unsigned from_index, unsigned length, const big_integer_container &c, unsigned c_index_from);
 

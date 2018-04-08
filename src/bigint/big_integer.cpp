@@ -109,7 +109,7 @@ void big_integer::big_integer_container::getms()
     sign = 0;
 }
 
-void big_integer::big_integer_container::fill(unsigned from, unsigned length, int value)
+void big_integer::big_integer_container::fill(unsigned from, unsigned length, unsigned value)
 {
     _fill(number + from, length, value);
 }
