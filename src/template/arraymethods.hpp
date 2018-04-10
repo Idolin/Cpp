@@ -17,7 +17,7 @@ inline void _vfill(T *start, T *end, T x)
 template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
 inline void _fill(T *start, T *end, T x = '\0')
 {
-    if(_valueBytesEquals<T>::check(x))
+    if(_valueMethods<T>::bytesEqual(x))
         memset(start, x, (end - start) * sizeof(*start));
     else
         _vfill(start, end, x);
@@ -33,7 +33,7 @@ inline void _vfill(T *start, unsigned len, T x)
 template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
 inline void _fill(T *start, unsigned len, T x = '\0')
 {
-    if(_valueBytesEquals<T>::check(x))
+    if(_valueMethods<T>::bytesEqual(x))
         memset(start, x, len * sizeof(*start));
     else
         _vfill(start, len, x);
