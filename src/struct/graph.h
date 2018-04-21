@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../debug/def_debug.h"
 #include "../template/arraymethods.hpp"
 #include "../tree/heap.hpp"
 #include "../container/vector.hpp"
