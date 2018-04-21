@@ -9,7 +9,6 @@
 #include "../other/term.h"
 
 #include <stdio.h>
-#include <string>
 #include <exception>
 
 /*
@@ -26,12 +25,15 @@
 class assert_failed: public std::exception
 {
 public:
-    explicit assert_failed(const std::string &s);
+    explicit assert_failed(const char *s, int err_code = -1);
 
     const char *what() const noexcept override;
 
+    int err_code() const noexcept;
+
 private:
-    std::string message;
+    const char *message;
+    int error_code;
 };
 
 #ifndef DEBUG_LVL
@@ -42,14 +44,14 @@ private:
         if(level <= DEBUG_LVL) \
         { \
             if(level <= 1) \
-                fprintf(stderr, __VA_ARGS__); \
+                fprintf(stderr, ## __VA_ARGS__); \
             else \
-                fprintf(DEBUG_OUTPUT_STREAM, __VA_ARGS__); \
+                fprintf(DEBUG_OUTPUT_STREAM, ## __VA_ARGS__); \
         } \
     }
 #define DEBUGLVLMSG(level, ...) \
     { \
-        DEBUGLVLMSG_N(level, __VA_ARGS__); \
+        DEBUGLVLMSG_N(level, ## __VA_ARGS__); \
         if(level <= DEBUG_LVL) \
         { \
             if(level <= 1) \
@@ -58,14 +60,14 @@ private:
                 fputc('\n', DEBUG_OUTPUT_STREAM); \
         } \
     }
-#define DEBUGMSG(...) DEBUGLVLMSG(5, __VA_ARGS__)
+#define DEBUGMSG(...) DEBUGLVLMSG(5, ## __VA_ARGS__)
 #define DEBUGLVLIFMSG(level, cond, ...) \
     { \
         if(cond) \
-            DEBUGLVLMSG(level, __VA_ARGS__); \
+            DEBUGLVLMSG(level, ## __VA_ARGS__); \
     }
-#define DEBUGIFMSG(cond, ...) DEBUGLVLIFMSG(4, cond, __VA_ARGS__)
-#define ASSERT(cond, ...) \
+#define DEBUGIFMSG(cond, ...) DEBUGLVLIFMSG(4, cond, ## __VA_ARGS__)
+#define ASSERT_ERR(cond, err_code, ...) \
     { \
         if(!(cond)) \
         { \
@@ -73,9 +75,10 @@ private:
             DEBUGLVLMSG(1, "%s %d in file %s!", "Assertion failed at line", __LINE__, __FILE__); \
             set_term_color(term_color::DEFAULT, stderr); \
             START_IF_ARGS_NDEF(DEBUGLVLMSG, 1, 1, ## __VA_ARGS__); \
-            throw assert_failed("Assertion failed!"); \
+            throw assert_failed("Assertion failed!", err_code); \
         } \
     }
+#define ASSERT(cond, ...) ASSERT_ERR(cond, -1, ## __VA_ARGS__)
 
 #else
 #define DEBUGLVLMSG_N(...)
@@ -83,6 +86,7 @@ private:
 #define DEBUGMSG(...)
 #define DEBUGLVLIFMSG(...)
 #define DEBUGIFMSG(...)
+#define ASSERT_ERR(...)
 #define ASSERT(...)
 #endif
 
