@@ -414,7 +414,7 @@ inline void _aswap(T *array, unsigned f, unsigned s)
 #endif // INDEXARRAY
 }
 
-inline bool equals(const char *const a, const char *const b)
+inline bool c_str_equals(const char *const a, const char *const b)
 {
     for(unsigned i = 0;; i++)
         if(a[i] != b[i])
