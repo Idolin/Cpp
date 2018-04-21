@@ -15,15 +15,23 @@ enum term_color
 
 void set_term_color(char color = term_color::DEFAULT, FILE *ostream = stdout);
 
+#define color_printf(color, ...) \
+{ \
+    set_term_color(color); \
+    printf(__VA_ARGS__); \
+    set_term_color(); \
+}
+
 #define color_fprintf(color, ostream, ...) \
 { \
     set_term_color(color, ostream); \
     fprintf(ostream, __VA_ARGS__); \
     set_term_color(term_color::DEFAULT, ostream); \
 }
-#define color_fputs(color, str, ostream) \
-{ \
-    set_term_color(color, ostream); \
-    fputs(str, ostream); \
-    set_term_color(term_color::DEFAULT, ostream); \
+
+inline void color_fputs(term_color color, const char *str, FILE *ostream = stdout)
+{
+    set_term_color(color, ostream);
+    fputs(str, ostream);
+    set_term_color(term_color::DEFAULT, ostream);
 }
