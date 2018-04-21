@@ -1,6 +1,97 @@
 #include "str.h"
 #include "../other/singleton.hpp"
 
+str::const_iterator::const_iterator(const str& s, unsigned long i) : s(s), i(i)
+{}
+
+str::const_iterator::const_iterator(const str::const_iterator& otr) : s(otr.s), i(otr.i)
+{}
+
+bool str::const_iterator::operator==(const str::const_iterator& otr) const
+{
+    return (&s == &otr.s &&
+            ((i < s.length() && i == otr.i) ||
+             (i >= s.length() && otr.i >= s.length())));
+}
+
+bool str::const_iterator::operator!=(const str::const_iterator& otr) const
+{
+    return !(*this == otr);
+}
+
+bool str::const_iterator::operator<(const str::const_iterator& otr) const
+{
+    return i < otr.i;
+}
+
+bool str::const_iterator::operator<=(const str::const_iterator& otr) const
+{
+    return i <= otr.i;
+}
+
+bool str::const_iterator::operator>(const str::const_iterator& otr) const
+{
+    return i > otr.i;
+}
+
+bool str::const_iterator::operator>=(const str::const_iterator& otr) const
+{
+    return i >= otr.i;
+}
+
+str::const_iterator& str::const_iterator::operator++()
+{
+    i++;
+    return *this;
+}
+
+str::const_iterator str::const_iterator::operator++(int)
+{
+    const_iterator copy = *this;
+    ++*this;
+    return copy;
+}
+
+str::const_iterator& str::const_iterator::operator--()
+{
+    i--;
+    return *this;
+}
+
+str::const_iterator str::const_iterator::operator--(int)
+{
+    const_iterator copy = *this;
+    --*this;
+    return copy;
+}
+
+str::const_iterator& str::const_iterator::operator+=(unsigned long p)
+{
+    i += p;
+    return *this;
+}
+
+str::const_iterator& str::const_iterator::operator-=(unsigned long p)
+{
+    i -= p;
+    return *this;
+}
+
+const char str::const_iterator::operator[](unsigned long index) const
+{
+    return s[index];
+}
+
+const char str::const_iterator::operator*() const
+{
+    return s[i];
+}
+
+const str& str::const_iterator::operator->() const
+{
+    return s;
+}
+
 str::str_info::str_info(char *s, unsigned long len) noexcept: block(s), len(len), links(1)
 {}
 
@@ -229,6 +320,13 @@ str& str::operator+=(const str &b)
     return *this;
 }
 
+str& str::operator+=(char c)
+{
+    s = nullptr;
+    info = new str_info_cnct(info, new str_info(new char[1]{c}, 1));
+    return *this;
+}
+
 str& str::operator*=(unsigned times)
 {
     if((times == 1) || (info->len == 0))
@@ -281,11 +379,15 @@ unsigned long str::length() const
     return info->len;
 }
 
-const char *str::c_str() const
+const_array<char> str::c_str() const
 {
-    ASSERT(s);
-    ASSERT(s[info->len] == '\0', "s must be substr(not ends with nul, but '%c')", s[info->len]);
-    return s;
+    if((!s) || (s[info->len] != '\0'))
+    {
+        char *array = new char[info -> len + 1];
+        info->copy_to_array(array);
+        return const_array<char>(array);
+    }
+    return const_array<char>(s, false);
 }
 
 const char *str::c_str()
@@ -367,13 +469,37 @@ str str::subStr(unsigned long from) const
     return (*this)(from);
 }
 
+bool str::startswith(const str& prefix) const
+{
+    if(prefix.length() > length())
+        return false;
+    return (prefix == subStr(0, prefix.length()));
+}
+
+bool str::endswith(const str& suffix) const
+{
+    if(suffix.length() > length())
+        return false;
+    return (suffix == subStr(length() - suffix.length()));
+}
+
+str::const_iterator str::begin() const
+{
+    return const_iterator(*this);
+}
+
+str::const_iterator str::end() const
+{
+    return const_iterator(*this, length());
+}
+
 void str::unlink() const noexcept
 {
     if(--info->links == 0)
         delete info;
 }
 
-STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0);
+STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
 
 str operator+(str a, const str &b)
 {
@@ -385,6 +511,13 @@ str operator*(str a, unsigned times)
     return a *= times;
 }
 
+static bool eof = false;
+
+bool check_eof()
+{
+    return eof;
+}
+
 str read_str()
 {
     vect<char> s(101);
@@ -392,6 +525,8 @@ str read_str()
     unsigned i = 0;
     while(((c = getchar()) != -1) && (c != '\n'))
         s[i++] = (char) c;
+    if(c == -1)
+        eof = true;
     s[i] = '\0';
-    return str(s, i);
+    return str(s.toArray(), i);
 }
