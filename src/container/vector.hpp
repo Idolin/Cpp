@@ -186,6 +186,13 @@ public:
         return _new_copy(m, maxs);
     }
 
+    T *toArray(unsigned long from = 0, unsigned long to = vect::last)
+    {
+        if(to == vect::last)
+            to = maxs;
+        return _new_copy(m + from, m + to);
+    }
+
     T& operator[](unsigned long index)
     {
         if(index >= size)
