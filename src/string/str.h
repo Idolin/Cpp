@@ -44,6 +44,15 @@ protected:
         bool is_owner() const override;
     };
 
+    struct str_info_cnct_char: str_info
+    {
+        unsigned long size;
+
+        str_info_cnct_char(str_info*);
+
+        void operator+=(char c);
+    };
+
     struct str_info_cnct: str_info //for faster +=
     {
         str_info *rpart;

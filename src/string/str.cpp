@@ -156,6 +156,23 @@ bool str::str_info_subs::is_owner() const
     return ((links | parent->links) == 1);
 }
 
+str::str_info_cnct_char::str_info_cnct_char(str::str_info *s):
+        str_info(new char[s->len + 1], s->len), size(s->len + 1)
+{
+    _copy(block, len + 1, s->block);
+}
+
+void str::str_info_cnct_char::operator+=(char c)
+{
+    block[len++] = c;
+    if(len == size)
+    {
+        block = _resize(block, size, size * 2);
+        _fill(block + size, size);
+        size *= 2;
+    }
+}
+
 str::str_info_cnct::str_info_cnct(str::str_info *lpart, str::str_info *rpart):
         str_info(lpart, lpart->len + rpart->len), rpart(rpart)
 {
@@ -168,7 +185,7 @@ str::str_info_cnct::~str_info_cnct()
         delete lpart;
     if(--rpart->links == 0)
         delete rpart;
-    block = nullptr;
+    block = nullptr; //for ~str_info to not to try to delete str_info *lpart as char*
 }
 
 char str::str_info_cnct::operator[](unsigned long i) const
@@ -269,7 +286,7 @@ str::~str()
     unlink();
 }
 
-str& str::operator=(const str &b)
+str& str::operator=(const str& b)
 {
     if(info != b.info)
     {
@@ -281,7 +298,7 @@ str& str::operator=(const str &b)
     return *this;
 }
 
-str &str::operator=(str &&b) noexcept
+str& str::operator=(str&& b) noexcept
 {
     unlink();
     info = b.info;
@@ -313,7 +330,7 @@ char &str::operator[](unsigned long i)
     return s[i];
 }
 
-str& str::operator+=(const str &b)
+str& str::operator+=(const str& b)
 {
     s = nullptr;
     info = new str_info_cnct(info, b.info);
@@ -322,8 +339,15 @@ str& str::operator+=(const str &b)
 
 str& str::operator+=(char c)
 {
-    s = nullptr;
-    info = new str_info_cnct(info, new str_info(new char[1]{c}, 1));
+    if(!s)
+        info = new str_info_cnct(info, new str_info(new char[1]{c}, 1));
+    else
+    {
+        if((info->links > 1) || (typeid(info) != typeid(str_info_cnct_char)))
+            info = new str_info_cnct_char(info);
+        static_cast<str_info_cnct_char*>(info)->operator+=(c); //NOLINT
+        s = info->block;
+    }
     return *this;
 }
 
