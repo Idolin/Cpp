@@ -14,27 +14,30 @@ inline void _vfill(T *start, T *end, T x)
         *start++ = x;
 }
 
-template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-inline void _fill(T *start, T *end, T x = '\0')
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
+        std::is_pointer<T>::value>::type>
+inline void _fill(T *start, T *end, T x = 0)
 {
     if(_valueMethods<T>::bytesEqual(x))
-        memset(start, x, (end - start) * sizeof(*start));
+        memset(start, _valueMethods<T>::getFirstByte(x), (end - start) * sizeof(*start));
     else
         _vfill(start, end, x);
 }
 
-template<typename T>
-inline void _vfill(T *start, unsigned len, T x)
+template<typename T, typename SizeType=unsigned>
+inline void _vfill(T *start, SizeType len, T x)
 {
     while(len-- > 0)
         *start++ = x;
 }
 
-template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-inline void _fill(T *start, unsigned len, T x = '\0')
+template<typename T, typename SizeType=unsigned,
+        typename = typename std::enable_if<std::is_integral<T>::value ||
+        std::is_pointer<T>::value>::type>
+inline void _fill(T *start, SizeType len, T x = 0)
 {
     if(_valueMethods<T>::bytesEqual(x))
-        memset(start, x, len * sizeof(*start));
+        memset(start, _valueMethods<T>::getFirstByte(x), len * sizeof(*start));
     else
         _vfill(start, len, x);
 }
@@ -116,6 +119,24 @@ inline T *_new_copy(T *start, SizeType len)
 {
     T *new_array = new T[len];
     _copy(new_array, len, start);
+    return new_array;
+}
+
+template<typename T, typename SizeType=unsigned>
+inline T *_new_copy(T *start, T *end, SizeType new_length)
+{
+    DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements won't be copied!");
+    T *new_array = new T[new_length];
+    _copy(new_array, _min(end - start, new_length), start);
+    return new_array;
+}
+
+template<typename T, typename SizeType=unsigned, typename SizeType2=unsigned>
+inline T *_new_copy(T *start, SizeType len, SizeType2 new_length)
+{
+    DEBUGLVLIFMSG(3, new_length < len, "new size lesser than old, some elements won't be copied!");
+    T *new_array = new T[new_length];
+    _copy(new_array, _min(len, new_length), start);
     return new_array;
 }
 
