@@ -1,140 +1,296 @@
 #pragma once
 
-#include "avl.hxx"
+#include <limits>
+#include "../struct/optional.hpp"
+#include "../template/valuemethods.hpp"
+#include "../template/arraymethods.hpp"
 
-template<typename T = char>
+template<typename TKey = char, typename TData = none,
+        typename = typename std::enable_if<(sizeof(TKey) <= 2)>::type,
+        typename = typename std::enable_if<std::is_integral<TKey>::value>::type>
 struct trie
 {
     struct node
     {
-        avl_tree<node *, T> c; //childrens
-        bool f; //end-flag
-        node() : f(false)
+        node *arr[1u << (sizeof(TKey) * 8)];
+        TData data;
+        bool term;
+
+        node(): arr(), term(false)
         {}
 
         ~node()
         {
-            for(auto l: c)
-                delete l;
+            for(unsigned i = 0;i < (1u << (sizeof(TKey) * 8));i++)
+                delete arr[i];
+        }
+
+        node*& operator[](unsigned index)
+        {
+            return arr[index];
+        }
+
+        const node *operator[](unsigned index) const
+        {
+            return arr[index];
         }
     };
 
-    node t; //root
-    trie() : t(node())
+    node root;
+
+    trie(): root(node())
     {}
 
-    ~trie()
-    {}
+    ~trie() = default;
 
-    void insert(const T *const s, unsigned len)
+    bool insert(const TKey *s, unsigned len, const TData data = 0, bool rewrite = false)
     {
-        node *n = &t;
-        unsigned i = 0;
-        while(i < len)
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
         {
-            auto it = n->c.findKey(s[i]);
-            if(it == n->c.end())
+            auto index = _valueMethods<TKey>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                (*n)[index] = new node();
+            n = (*n)[index];
+        }
+        if(!n->term || rewrite)
+        {
+            rewrite = n->term;
+            n->term = true;
+            n->data = data;
+            return rewrite;
+        }
+        return false;
+    }
+
+    optional<TData> findKey(const TKey *s, unsigned len) const
+    {
+        const node *n = &root;
+        for(unsigned i = 0;i < len;i++)
+        {
+            auto index = _valueMethods<TKey>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                return optional<TData>();
+            n = (*n)[index];
+        }
+        if(!n->term)
+            return optional<TData>();
+        return optional<TData>(n->data);
+    }
+
+    optional<TData> erase(const TKey *s, unsigned len)
+    {
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
+        {
+            auto index = _valueMethods<TKey>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                return optional<TData>();
+            n = (*n)[index];
+        }
+        if(n->term)
+        {
+            n->term = false;
+            TData data = std::move(n->data);
+            n->data = TData();
+            return optional<TData>(std::move(data));
+        }
+        return optional<TData>();
+    }
+};
+
+template<typename TData>
+struct trie<char, TData>
+{
+    struct node
+    {
+        node *arr[1u << (sizeof(char) * 8)];
+        TData data;
+        bool term;
+
+        node(): arr(), term(false)
+        {}
+
+        ~node()
+        {
+            for(unsigned i = 0;i < (1u << (sizeof(char) * 8));i++)
+                delete arr[i];
+        }
+
+        node*& operator[](unsigned index)
+        {
+            return arr[index];
+        }
+
+        const node *operator[](unsigned index) const
+        {
+            return arr[index];
+        }
+    };
+
+    node root;
+
+    trie(): root(node())
+    {}
+
+    ~trie() = default;
+
+    bool insert(const char *s, const TData data = 0, bool rewrite = false,
+                unsigned len = std::numeric_limits<unsigned>::max())
+    {
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
+        {
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
                 break;
-            i++;
-            n = *it;
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                (*n)[index] = new node();
+            n = (*n)[index];
         }
-        while(i < len)
-            n = *n->c.insert(s[i++], node()).first;
-        n->f = true;
+        if(!n->term || rewrite)
+        {
+            rewrite = n->term;
+            n->term = true;
+            n->data = data;
+            return rewrite;
+        }
+        return false;
     }
 
-    bool check(const T *const s, unsigned len) const
+    optional<TData> findKey(const char *s,
+                            unsigned len  = std::numeric_limits<unsigned>::max()) const
     {
-        const node *n = &t;
-        for(unsigned i = 0; i < len; i++)
+        const node *n = &root;
+        for(unsigned i = 0;i < len;i++)
         {
-            auto it = n->c.findKey(s[i]);
-            if(it == n->c.end())
-                return false;
-            n = *it;
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
+                break;
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                return optional<TData>();
+            n = (*n)[index];
         }
-        return n->f;
+        if(!n->term)
+            return optional<TData>();
+        return optional<TData>(n->data);
     }
 
-    void remove(const T *const s, unsigned len)
+    optional<TData> erase(const char *s,
+                          unsigned len = std::numeric_limits<unsigned>::max())
     {
-        node *n = &t;
-        for(unsigned i = 0; i < len; i++)
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
         {
-            auto it = n->c.findKey(s[i]);
-            if(it == n->c.end())
-                return;
-            n = *it;
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
+                break;
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                return optional<TData>();
+            n = (*n)[index];
         }
-        n->f = false;
+        if(n->term)
+        {
+            n->term = false;
+            TData data = std::move(n->data);
+            n->data = TData();
+            return optional<TData>(std::move(data));
+        }
+        return optional<TData>();
     }
 };
 
 template<>
-struct trie<char>
+struct trie<char, none>
 {
     struct node
     {
-        node **c; //childrens
-        bool f; //end-flag
-        node() : c(new node *[256]), f(false)
+        node *arr[1u << (sizeof(char) * 8)];
+        bool term;
+
+        node(): arr(), term(false)
         {}
 
         ~node()
         {
-            for(unsigned i = 1; i < 256; i++)
-                delete c[i];
-            delete[] c;
+            for(unsigned i = 0;i < (1u << (sizeof(char) * 8));i++)
+                delete arr[i];
+        }
+
+        node*& operator[](unsigned index)
+        {
+            return arr[index];
+        }
+
+        const node *operator[](unsigned index) const
+        {
+            return arr[index];
         }
     };
 
-    node t; //root
-    trie() : t(node())
+    node root;
+
+    trie(): root(node())
     {}
 
-    ~trie()
-    {}
+    ~trie() = default;
 
-    void insert(const char *const s)
+    bool insert(const char *s, bool rewrite = false,
+                unsigned len = std::numeric_limits<unsigned>::max())
     {
-        node *n = &t;
-        unsigned i = 0;
-        while(s[i] != '\0')
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
         {
-            if(n->c[(unsigned char) s[i]] == 0)
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
                 break;
-            n = n->c[(unsigned char) s[i++]];
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                (*n)[index] = new node();
+            n = (*n)[index];
         }
-        while(s[i] != '\0')
+        if(!n->term || rewrite)
         {
-            n->c[(unsigned char) s[i]] = new node();
-            n = n->c[(unsigned char) s[i]];
+            rewrite = n->term;
+            n->term = true;
+            return rewrite;
         }
-        n->f = true;
+        return false;
     }
 
-    bool check(const char *const s) const
+    bool findKey(const char *s,
+                            unsigned len  = std::numeric_limits<unsigned>::max()) const
     {
-        const node *n = &t;
-        unsigned i = 0;
-        while(s[i] != '\0')
-            if((n = n->c[(unsigned char) s[i++]]) == 0)
+        const node *n = &root;
+        for(unsigned i = 0;i < len;i++)
+        {
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
+                break;
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
                 return false;
-        return n->f;
+            n = (*n)[index];
+        }
+        return n->term;
     }
 
-    void remove(const char *const s)
+    bool erase(const char *s,
+                          unsigned len = std::numeric_limits<unsigned>::max())
     {
-        node *n = &t;
-        unsigned i = 0;
-        while(s[i] != '\0')
-            if((n = n->c[(unsigned char) s[i++]]) == 0)
-                return;
-        n->f = false;
-    }
-
-    void make_fsm()
-    {
-
+        node *n = &root;
+        for(unsigned i = 0;i < len;i++)
+        {
+            if(len == std::numeric_limits<unsigned>::max() && s[i] == '\0')
+                break;
+            auto index = _valueMethods<char>::to_unsigned(s[i]);
+            if(!(*n)[index])
+                return false;
+            n = (*n)[index];
+        }
+        if(n->term)
+        {
+            n->term = false;
+            return true;
+        }
+        return false;
     }
 };
