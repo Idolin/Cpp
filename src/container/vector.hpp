@@ -246,18 +246,18 @@ public:
 
     iterator begin()
     {
-        return new iterator(m);
+        return iterator(m);
     }
 
     iterator at(unsigned long index)
     {
         ASSERT(index <= maxs);
-        return new iterator(m + index);
+        return iterator(m + index);
     }
 
     iterator end()
     {
-        return new iterator(m + maxs);
+        return iterator(m + maxs);
     }
 
     void swap(unsigned long first, unsigned long second)
