@@ -12,8 +12,7 @@ using std::max;
 using std::swap;
 
 struct avl_node_tag
-{
-};
+{};
 
 template<typename TData, typename TKey, class S>
 struct avl_node_crtp: search_tree_node_crtp<TData, TKey, S>, avl_node_tag
