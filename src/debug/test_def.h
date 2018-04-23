@@ -63,24 +63,51 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 #define STOP_AFTER_ERRORS(n)
 
 #define EXPECT_TRUE(a, ...) \
-    if(!(a)) \
     { \
-        if(++this -> errors_occured <= this -> max_error_amount_show) \
+        try \
         { \
-            set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-            DEBUGLVLMSG_N(5, "> "); \
-            DEBUGLVLMSG_N(5, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
-            DEBUGLVLMSG(5, " at line %d", __LINE__); \
-            set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+            if(!(a)) \
+            { \
+                if(++this -> errors_occured <= this -> max_error_amount_show) \
+                { \
+                    set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
+                    DEBUGLVLMSG_N(5, "> "); \
+                    DEBUGLVLMSG_N(5, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
+                    DEBUGLVLMSG(5, " at line %d", __LINE__); \
+                    set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+                } \
+                this -> test_ok = false; \
+                if(this -> errors_occured == this -> errors_to_stop) \
+                { \
+                    set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
+                    DEBUGLVLMSG(4, "> Failed test limit reached(%d)!", this -> errors_to_stop); \
+                    set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+                    DEBUGLVLMSG(4, "> Stopping test execution"); \
+                    return; \
+                } \
+            } \
         } \
-        this -> test_ok = false; \
-        if(this -> errors_occured == this -> errors_to_stop) \
+        catch(...) \
         { \
-            set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-            DEBUGLVLMSG(4, "> Failed test limit reached(%d)!", this -> errors_to_stop); \
-            set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
-            DEBUGLVLMSG(4, "> Stopping test execution"); \
-            return; \
+            this -> test_ok = false; \
+            if(++this -> errors_occured <= this -> max_error_amount_show) \
+            { \
+                set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
+                DEBUGLVLMSG_N(3, "> "); \
+                DEBUGLVLMSG_N(3, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
+                DEBUGLVLMSG(3, " at line %d", __LINE__); \
+                set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+            } \
+            this -> test_ok = false; \
+            if(this -> errors_occured == this -> errors_to_stop) \
+            { \
+                set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
+                DEBUGLVLMSG(4, "> Failed test limit reached(%d)!", this -> errors_to_stop); \
+                set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+                DEBUGLVLMSG(4, "> Stopping test execution"); \
+                return; \
+            } \
+            throw; \
         } \
     }
 #define EXPECT_FALSE(a, ...) EXPECT_TRUE(!(a), GET_ARG_DEF("Check(false) failed", ## __VA_ARGS__))
