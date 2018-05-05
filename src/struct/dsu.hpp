@@ -1,7 +1,10 @@
 #pragma once
 
 #include "../other/rand.h"
-#include "../container/vector.hxx"
+#include "../container/vector.hpp"
+#include "../template/struct_tags.hpp"
+#include "../template/t_useful.hpp"
+#include "../template/valuemethods.hpp"
 
 #include <algorithm>
 
@@ -10,14 +13,240 @@ using std::max;
 using std::pair;
 using std::make_pair;
 
+namespace internal
+{
+    template<bool balanced>
+    struct element_balance
+    {};
+
+    template<>
+    struct element_balance<true>
+    {
+        unsigned char balance;
+
+        element_balance(): balance(0)
+        {}
+    };
+
+    template<bool fast_range_update>
+    struct element_range
+    {
+        element_range(unsigned i = 0)
+        {}
+    };
+
+    template<>
+    struct element_range<true>
+    {
+        unsigned right_border;
+
+        element_range(unsigned i = 0): right_border(i)
+        {}
+    };
+
+    template<bool balanced, bool fast_range_update>
+    struct element_base: element_balance<balanced>, element_range<fast_range_update>
+    {
+        unsigned pointer;
+
+        element_base()
+        {}
+
+        element_base(unsigned index): element_balance<balanced>(),
+                                       element_range<fast_range_update>(index),
+                                       pointer(index)
+        {}
+
+        void merge(element_base& otr)
+        {
+            pointer = otr.pointer;
+        }
+    };
+}
+
+template<typename TData = void, bool balanced = false,
+        bool fast_range_update = false, typename = typename std::enable_if<
+                std::is_same<TData, void>::value ||
+                is_mergeable<TData>::value>::type>
 struct dsu
 {
-    vect <pair<unsigned, unsigned>> s;
-
-    dsu(unsigned count = 0) : s(vect<pair<unsigned, unsigned>>(count))
+private:
+    struct element: internal::element_base<balanced, fast_range_update>
     {
-        for(unsigned i = 0; i < count; i++)
-            s[i] = make_pair(i, 1);
+        TData data;
+
+        element()
+        {}
+
+        element(unsigned index, TData& data):
+                internal::element_base<balanced, fast_range_update>(index), data(data)
+        {}
+
+        void merge(element&& otr)
+        {
+            data.merge(otr.data);
+            internal::element_base<balanced, fast_range_update>::merge(otr);
+        }
+    };
+
+    unsigned setsAmount;
+    vect<element> s;
+
+public:
+    dsu(): setsAmount(0), s()
+    {}
+
+    template<TData def = TData()>
+    dsu(unsigned count): setsAmount(count), s(count)
+    {
+        this->add<def>(count);
+    }
+
+    dsu(TData *array, unsigned len): setsAmount(len), s(len)
+    {
+        this->add(array, len);
+    }
+
+    ~dsu()
+    {}
+
+    template<TData def = TData()>
+    void add(unsigned count = 1)
+    {
+        this->setsAmount += count;
+        this->s.capacityEnsure(this->s.size() + count);
+        for(unsigned i = this->s.size();count > 0;i++,count--)
+            this->s[i] = element(i, def);
+    }
+
+    void add(TData *array, unsigned len)
+    {
+        this->setsAmount += len;
+        this->s.capacityEnsure(this->s.size() + len);
+        for(unsigned i = this->s.size();len > 0;i++,len--)
+            this->s[i] = element(i, array[i]);
+    }
+
+    unsigned size()
+    {
+        return setsAmount;
+    }
+
+    unsigned getSetID(unsigned p)
+    {
+        if(p < s.size())
+        {
+            unsigned t = s[p].pointer;
+            if(s[t].pointer != t)
+            {
+                s[p].pointer = this->getSetID(t);
+                s[p].merge(s[s[p].pointer]);
+            }
+            return s[s[p].pointer].pointer;
+        }
+        else
+        {
+            add(p - s.size() + 1);
+            return p;
+        }
+    }
+
+    TData& getElement(unsigned setID)
+    {
+        return this->s[setID].data;
+    }
+
+    void unite(unsigned first, unsigned second)
+    {
+        unsigned firstSetID = this->getSetID(first);
+        unsigned secondSetID = this->getSetID(second);
+        if(firstSetID != secondSetID)
+            uniteImpl<_rank<_valueMethods<bool>::to_unsigned(
+                    balanced)>::value>(firstSetID, secondSetID);
+    }
+
+    template<_rank<1>::valueType ignored>
+    void uniteImpl(unsigned firstID, unsigned secondID)
+    {
+        if(s[firstID].balance >= s[secondID].balance)
+        {
+            if(s[firstID].balance == s[secondID].balance)
+                s[firstID].balance++;
+            s[secondID].pointer = firstID;
+            s[secondID].merge(s[firstID]);
+        }
+        else
+        {
+            s[firstID].pointer = secondID;
+            s[firstID].merge(s[secondID]);
+        }
+    }
+
+    template<_rank<0>::valueType ignored>
+    void uniteImpl(unsigned firstID, unsigned secondID)
+    {
+        if(randomB())
+        {
+            s[secondID].pointer = firstID;
+            s[secondID].merge(s[firstID]);
+        }
+        else
+        {
+            s[firstID].pointer = secondID;
+            s[firstID].merge(s[secondID]);
+        }
+    }
+
+    void uniteRange(unsigned from, unsigned to)
+    {
+        ASSERT(from <= to);
+        if(to > s.size())
+            this->add(to - s.size());
+        uniteRangeImpl<_rank<_valueMethods<bool>::to_unsigned(
+                fast_range_update)>::value>(from, to);
+    }
+
+    template<_rank<1>::valueType ignored>
+    void uniteRangeImpl(unsigned from, unsigned to)
+    {
+        to--;
+        unsigned right_border = s[to].right_border;
+        while(s[from].right_border != right_border)
+        {
+            unite(from, to);
+            unsigned next = s[from].right_border + 1;
+            s[from].right_border = right_border;
+            from = next;
+        }
+    }
+
+    template<_rank<0>::valueType ignored>
+    void uniteRangeImpl(unsigned from, unsigned to)
+    {
+        for(;from < to;from++)
+            this->unite(from, from + 1);
+    }
+
+    bool sameSet(unsigned first, unsigned second)
+    {
+        return getSetID(first) == getSetID(second);
+    }
+};
+
+template<bool balanced,
+        bool fast_range_update>
+struct dsu<void, balanced, fast_range_update>
+{
+private:
+    using element = internal::element_base<balanced, fast_range_update>;
+
+    unsigned setsAmount;
+    vect<element> s;
+
+public:
+    dsu(unsigned count = 0): setsAmount(count), s(count)
+    {
+        this->add(count);
     }
 
     ~dsu()
@@ -25,260 +254,108 @@ struct dsu
 
     void add(unsigned count = 1)
     {
-        unsigned endc = s.maxs + count;
-        for(unsigned i = s.maxs; i < endc; i++)
-            s[i] = make_pair(i, 1);
+        this->s.capacityEnsure(this->s.size() + count);
+        for(unsigned i = static_cast<unsigned>(this -> s.size());count > 0;i++, count--)
+            this->s[i] = element(i);
     }
 
-    unsigned get(unsigned p)
+    unsigned size()
     {
-        if(p < s.maxs)
+        return setsAmount;
+    }
+
+    unsigned getSetID(unsigned p)
+    {
+        if(p < s.size())
         {
-            unsigned t = s[p].first;
-            if(s[t].first != t)
-                s[p] = make_pair(this->get(t), 1);
-            return s[s[p].first].first;
+            unsigned t = s[p].pointer;
+            if(s[p].pointer != t)
+            {
+                s[p].pointer = this->getSetID(t);
+                s[p].merge(s[s[p].pointer]);
+            }
+            return s[s[p].pointer].pointer;
         }
         else
         {
-            this->add(p - s.maxs + 1);
+            this -> add(p - s.size() + 1);
             return p;
         }
     }
 
-    void unite(unsigned f, unsigned sc)
+    void unite(unsigned first, unsigned second)
     {
-        unsigned fr = this->get(f);
-        unsigned sr = this->get(sc);
-        if(fr != sr)
+        unsigned firstSetID = this->getSetID(first);
+        unsigned secondSetID = this->getSetID(second);
+        if(firstSetID != secondSetID)
+            uniteImpl<_rank<_valueMethods<bool>::to_unsigned(
+                    balanced)>::value>(firstSetID, secondSetID);
+    }
+
+    template<_rank<1>::valueType ignored>
+    void uniteImpl(unsigned firstID, unsigned secondID)
+    {
+        if(s[firstID].balance >= s[secondID].balance)
         {
-            if(s[fr].second >= s[sr].second)
-            {
-                if(s[fr].second == s[sr].second)
-                    s[fr] = make_pair(fr, s[fr].second + 1);
-                s[sr] = make_pair(fr, 0);
-            }
-            else
-                s[fr] = make_pair(sr, 0);
+            if(s[firstID].balance == s[secondID].balance)
+                s[firstID].balance++;
+            s[secondID].pointer = firstID;
+            s[secondID].merge(s[firstID]);
+        }
+        else
+        {
+            s[firstID].pointer = secondID;
+            s[firstID].merge(s[secondID]);
         }
     }
 
-    bool sameSet(unsigned f, unsigned s)
+    template<_rank<0>::valueType ignored>
+    void uniteImpl(unsigned firstID, unsigned secondID)
     {
-        return this->get(f) == this->get(s);
+        if(randomB())
+        {
+            s[secondID].pointer = firstID;
+            s[secondID].merge(s[firstID]);
+        }
+        else
+        {
+            s[firstID].pointer = secondID;
+            s[firstID].merge(s[secondID]);
+        }
+    }
+
+    void uniteRange(unsigned from, unsigned to)
+    {
+        ASSERT(from <= to);
+        if(to > s.size())
+            this->add(to - s.size());
+        uniteRangeImpl<_rank<_valueMethods<bool>::to_unsigned(
+                fast_range_update)>::value>(from, to);
+    }
+
+    template<_rank<1>::valueType ignored>
+    void uniteRangeImpl(unsigned from, unsigned to)
+    {
+        to--;
+        unsigned right_border = s[to].right_border;
+        while(s[from].right_border != right_border)
+        {
+            unite(from, to);
+            unsigned next = s[from].right_border + 1;
+            s[from].right_border = right_border;
+            from = next;
+        }
+    }
+
+    template<_rank<0>::valueType ignored>
+    void uniteRangeImpl(unsigned from, unsigned to)
+    {
+        for(;from < to;from++)
+            this->unite(from, from + 1);
+    }
+
+    bool sameSet(unsigned first, unsigned second)
+    {
+        return getSetID(first) == getSetID(second);
     }
 };
-
-struct dsur
-{
-    vect<unsigned> s;
-
-    dsur(unsigned count = 0) : s(vect<unsigned>(count))
-    {
-        for(unsigned i = 0; i < count; i++)
-            s[i] = i;
-    }
-
-    ~dsur()
-    {}
-
-    void add(unsigned count = 1)
-    {
-        unsigned endc = s.maxs + count;
-        for(unsigned i = s.maxs; i < endc; i++)
-            s[i] = i;
-    }
-
-    unsigned get(unsigned p)
-    {
-        if(p < s.maxs)
-        {
-            unsigned t = s[p];
-            if(s[t] != t)
-                s[p] = this->get(t);
-            return s[s[p]];
-        } else
-        {
-            this->add(p - s.maxs + 1);
-            return p;
-        }
-    }
-
-    void unite(unsigned f, unsigned sc)
-    {
-        unsigned fr = this->get(f);
-        unsigned sr = this->get(sc);
-        if(fr != sr)
-        {
-            if(randomB())
-                s[sr] = fr;
-            else
-                s[fr] = sr;
-        }
-    }
-
-    bool sameSet(int f, int s)
-    {
-        return this->get(f) == this->get(s);
-    }
-};
-
-struct dsus
-{
-    vect <pair<unsigned, unsigned>> s;
-
-    dsus(unsigned count = 0) : s(vect<pair<unsigned, unsigned>>(count))
-    {
-        if(count-- > 0)
-        {
-            s[count] = make_pair(count, count);
-            for(unsigned i = 0; i < count; i++)
-                s[i] = make_pair(i, i);
-        }
-    }
-
-    ~dsus()
-    {}
-
-    void add(unsigned count = 1)
-    {
-        if(count-- > 0)
-        {
-            unsigned endc = s.maxs + count;
-            s[endc] = make_pair(endc, endc);
-            for(unsigned i = s.maxs; i < endc; i++)
-                s[i] = make_pair(i, i);
-        }
-    }
-
-    unsigned get(unsigned p)
-    {
-        if(p < s.maxs)
-        {
-            unsigned t = s[p].first;
-            if(s[t].first != t)
-                s[p] = make_pair(this->get(t), s[p].second);
-            return s[s[p].first].first;
-        } else
-        {
-            this->add(p - s.maxs + 1);
-            return p;
-        }
-    }
-
-    void unite(unsigned f, unsigned sc)
-    {
-        unsigned fr = this->get(f);
-        unsigned sr = this->get(sc);
-        if(fr != sr)
-        {
-            if(randomB())
-                fr = sr;
-            s[fr] = make_pair(sr, s[fr].second);
-        }
-    }
-
-    void uniterange(unsigned f, unsigned sc)
-    {
-        if(sc >= s.maxs)
-            this->add(sc - s.maxs + 1);
-        unsigned tr = f, tr2;
-        while(s[s[tr].first].second != s[s[sc].first].second)
-        {
-            this->unite(tr, sc);
-            tr2 = s[s[tr].first].second + 1;
-            s[s[tr].first] = make_pair(s[s[tr].first].first, sc);
-            tr = tr2;
-            if(tr >= s.maxs)
-                break;
-        }
-    }
-
-    bool sameSet(unsigned f, unsigned s)
-    {
-        return this->get(f) == this->get(s);
-    }
-};
-
-struct dsumma
-{
-    vect<unsigned *> s;
-
-    dsumma(unsigned count = 0) : s(vect<unsigned *>(count))
-    {
-        for(unsigned i = 0; i < count; i++)
-        {
-            s[i] = (unsigned *) malloc(sizeof(unsigned) * 5);
-            s[i][0] = i; //pointer
-            s[i][1] = 0; //maxpossiblelength
-            s[i][2] = i; //min
-            s[i][3] = i; //max
-            s[i][4] = 1; //counter
-        }
-    }
-
-    ~dsumma()
-    {
-        for(unsigned i = 0; i < s.maxs; i++)
-            free(s[i]);
-    }
-
-    void add(unsigned count = 1)
-    {
-        unsigned endc = s.maxs + count;
-        for(unsigned i = s.maxs; i < endc; i++)
-        {
-            s[i] = (unsigned *) malloc(sizeof(unsigned) * 5);
-            s[i][0] = i; //pointer
-            s[i][1] = 0; //maxpossiblelength
-            s[i][2] = i; //min
-            s[i][3] = i; //max
-            s[i][4] = 1; //counter
-        }
-    }
-
-    unsigned *get(unsigned p)
-    {
-        if(p < s.maxs)
-        {
-            unsigned b = s[p][0];
-            if(s[b][0] != b)
-                s[p][0] = (this->get(b))[0];
-            return s[s[p][0]];
-        } else
-        {
-            this->add(p - s.maxs + 1);
-            return s[p];
-        }
-    }
-
-    void unite(unsigned f, unsigned sc)
-    {
-        unsigned fr = (this->get(f))[0];
-        unsigned sr = (this->get(sc))[0];
-        if(fr != sr)
-        {
-            if(s[fr][1] >= s[sr][1])
-            {
-                s[fr][2] = min(s[fr][2], s[sr][2]);
-                s[fr][3] = max(s[fr][3], s[sr][3]);
-                s[fr][4] = s[fr][4] + s[sr][4];
-                s[sr][0] = s[fr][0];
-                if(s[fr][1] == s[sr][1])
-                    s[fr][1]++;
-            } else
-            {
-                s[sr][2] = min(s[fr][2], s[sr][2]);
-                s[sr][3] = max(s[fr][3], s[sr][3]);
-                s[sr][4] = s[fr][4] + s[sr][4];
-                s[fr][0] = s[sr][0];
-            }
-        }
-    }
-
-    bool sameSet(unsigned f, unsigned s)
-    {
-        return (this->get(f))[0] == (this->get(s))[0];
-    }
-};
-
