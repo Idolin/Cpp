@@ -49,4 +49,17 @@ TEST_PACK(queue)
         while(k < c.size())
             EXPECT_EQ(q.pop(), c[k++]);
     }
+
+    TEST(speed_10000000)
+    {
+        queue<unsigned long long> q;
+        unsigned long k = 0;
+        for(unsigned long i = 0;i < 10000000;)
+            if(k < i && randomUC() < 79)
+                EXPECT_EQ(k++, q.pop())
+            else
+                q.push(i++);
+        for(;k < 10000000;k++)
+            EXPECT_EQ(q.pop(), k);
+    }
 };
