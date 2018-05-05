@@ -92,7 +92,8 @@ const str& str::const_iterator::operator->() const
     return s;
 }
 
-str::str_info::str_info(char *s, unsigned long len) noexcept: block(s), len(len), links(1)
+str::str_info::str_info(char *s, unsigned long len) noexcept:
+        block(s), len(len), links(1)
 {}
 
 str::str_info::str_info(str::str_info *lpart, unsigned long len): lpart(lpart), len(len), links(1)
@@ -257,20 +258,20 @@ str::str(char *const s, unsigned long len): s(s)
     info = new str_info(s, len);
 }
 
-str::str(const std::string &s): str(s.c_str(), static_cast<unsigned long>(s.length()))
+str::str(const std::string& s): str(s.c_str(), static_cast<unsigned long>(s.length()))
 {}
 
-str::str(const str &s): s(s.s), info(s.info)
+str::str(const str& s): s(s.s), info(s.info)
 {
     info->links++;
 }
 
-str::str(std::string &&s): str(s.c_str(), static_cast<unsigned long>(s.length()))
+str::str(std::string&& s): str(s.c_str(), static_cast<unsigned long>(s.length()))
 {
     s.clear();
 }
 
-str::str(str &&s) noexcept: s(s.s), info(s.info)
+str::str(str&& s) noexcept: s(s.s), info(s.info)
 {
     s.s = empty().block;
     s.info = &empty();
@@ -339,15 +340,23 @@ str& str::operator+=(const str& b)
 
 str& str::operator+=(char c)
 {
-    if(!s)
-        info = new str_info_cnct(info, new str_info(new char[1]{c}, 1));
-    else
+    if(s || (typeid(static_cast<str_info_cnct*>(info)->rpart) == //NOLINT
+            typeid(str_info_cnct_char*)))
     {
-        if((info->links > 1) || (typeid(info) != typeid(str_info_cnct_char)))
-            info = new str_info_cnct_char(info);
-        static_cast<str_info_cnct_char*>(info)->operator+=(c); //NOLINT
+        if(typeid(info) == typeid(str_info_cnct_char*) && info->links == 1)
+            static_cast<str_info_cnct_char*>(info)->operator+=(c); //NOLINT
+        else
+        {
+            auto new_info = new str_info_cnct_char(info);
+            new_info->operator+=(c); //NOLINT
+            if(--info->links == 0)
+                delete info;
+            info = new_info;
+        }
         s = info->block;
     }
+    else
+        info = new str_info_cnct(info, new str_info(new char[2]{c}, 1));
     return *this;
 }
 
@@ -374,7 +383,7 @@ str& str::operator*=(unsigned times)
     return *this;
 }
 
-bool str::operator==(const str &b) const
+bool str::operator==(const str& b) const
 {
     if(info->len != b.length())
         return false;
