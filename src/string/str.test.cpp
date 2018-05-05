@@ -1,5 +1,6 @@
 #include "../debug/test_def.h"
 #include "str.h"
+#include "../other/rand.h"
 
 TEST_PACK(str)
 {
@@ -199,5 +200,34 @@ TEST_PACK(str)
         a = "some other string";
         p[0] = '2';
         EXPECT_EQ(p, "21111111");
+    }
+
+    TEST(char_append)
+    {
+        str d = ">";
+        for(int i = 0;i < 9;i++)
+            d += '^';
+        str h;
+        h += '>';
+        EXPECT_EQ(h, ">", "\"%s\" != \">\"", h.c_str());
+        h += "^^^^^^^^^";
+        EXPECT_EQ(d, h, "\"%s\" != \"%s\" (expected == \">^^^^^^^^^\" for both)",
+            d.c_str(), h.c_str());
+        str s = "str";
+        str c;
+        c += 'c';
+        str u;
+        unsigned str_count = 0;
+        for(unsigned i = 0;i < 100000;i++)
+            if(randomUC() < 5)
+            {
+                u += s;
+                str_count++;
+            }
+            else
+                u += c;
+        EXPECT_EQ(u.length(), str_count * 2 + 100000,
+                  "Expected length of str: %lu, but length is %lu",
+                  str_count * 2 + 100000, u.length());
     }
 }
