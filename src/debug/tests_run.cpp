@@ -9,7 +9,7 @@ bool run_test(str test_name)
     bool exists = false;
     vect<_test_pack_class_abstract *> _test_class_packs_defined = \
         g_static::global_static_var<vect<_test_pack_class_abstract *>, g_static::test_global_static_id>();
-    for(unsigned i = 0; i < _test_class_packs_defined.maxs; i++)
+    for(unsigned i = 0; i < _test_class_packs_defined.size(); i++)
         if((test_name == _test_class_packs_defined[i]->test_pack_name) || (test_name == "*"))
         {
             exists = true;

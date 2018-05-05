@@ -37,7 +37,7 @@ TEST_PACK(queue)
         queue<signed char> q(1);
         unsigned k = 0;
         for(int i = 0; i < 11000; i++)
-            if((k < c.maxs) && (randomC() < 19))
+            if((k < c.size()) && (randomC() < 19))
             {
                 EXPECT_EQ(q.pop(), c[k++]);
             }
@@ -46,7 +46,7 @@ TEST_PACK(queue)
                 c.push(static_cast<signed char>(randomC()));
                 q.push(c.back());
             }
-        while(k < c.maxs)
+        while(k < c.size())
             EXPECT_EQ(q.pop(), c[k++]);
     }
 };
