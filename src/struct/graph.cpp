@@ -28,10 +28,11 @@ void graph::addWay(unsigned from, unsigned to, int weight)
     waysFrom[from].push(gTransition(to, weight));
     if(!oriented)
     {
-        waysFrom[from][waysFrom[from].maxs - 1].reversed = waysFrom[to].maxs;
+        waysFrom[from][waysFrom[from].size() - 1].reversed = waysFrom[to].size();
         waysFrom[to].push(gTransition(from, weight));
-        waysFrom[to][waysFrom[to].maxs - 1].reversed = waysFrom[from].maxs - 1;
-    } else if(reversed)
+        waysFrom[to][waysFrom[to].size() - 1].reversed = waysFrom[from].size() - 1;
+    }
+    elif(reversed)
         waysTo[to].push(gTransition(from, weight));
 }
 
@@ -43,7 +44,7 @@ void graph::saveReversed(bool save)
     {
         waysTo = new vect<gTransition>[gLen];
         for(unsigned i = 0; i < gLen; i++)
-            for(unsigned k = 0; k < waysFrom[i].maxs; k++)
+            for(unsigned k = 0; k < waysFrom[i].size(); k++)
                 waysTo[waysFrom[i][k].node].push(gTransition(i, waysFrom[i][k].weight));
     }
     reversed = save;
@@ -54,10 +55,10 @@ void graph::dfs(unsigned node, void(onEnter)(graph *g, unsigned node), void(onEx
     _tmp[node] = 1;
     if(onEnter)
         onEnter(this, node);
-    for(unsigned i = 0; i < waysGo[node].maxs; i++)
+    for(unsigned i = 0; i < waysGo[node].size(); i++)
         if(_tmp[waysGo[node][i].node] == 1)
             cycles = true;
-        else if(!_tmp[waysGo[node][i].node])
+        elif(!_tmp[waysGo[node][i].node])
             dfs(waysGo[node][i].node, onEnter, onExit);
     if(onExit)
         onExit(this, node);
@@ -82,7 +83,7 @@ long *graph::dijkstra(unsigned node)
     while(nextmin->heap_size)
     {
         unsigned v = nextmin->get_min();
-        for(unsigned i = 0; i < waysGo[v].maxs; i++)
+        for(unsigned i = 0; i < waysGo[v].size(); i++)
             if(distance[waysGo[v][i].node] > distance[v] + waysGo[v][i].weight)
             {
                 distance[waysGo[v][i].node] = distance[v] + waysGo[v][i].weight;
@@ -153,7 +154,7 @@ int *graph::bellman_ford(unsigned node)
     {
         bool changes = false;
         for(unsigned i = 0; i < gLen; i++)
-            for(unsigned k = 0; k < waysGo[i].maxs; k++)
+            for(unsigned k = 0; k < waysGo[i].size(); k++)
                 if((distance[waysGo[i][k].node] == INT_MAX) ||
                    (distance[waysGo[i][k].node] > distance[k] + waysGo[i][k].weight))
                 {
@@ -178,7 +179,7 @@ long *graph::shortestWay(unsigned node)
         _vfill(distance, gLen, LONG_MAX);
         distance[node] = 0;
         for(unsigned i = _utmp; i < gLen; i++)
-            for(unsigned k = 0; k < waysGo[_uatmp[i]].maxs; k++)
+            for(unsigned k = 0; k < waysGo[_uatmp[i]].size(); k++)
                 distance[waysGo[_uatmp[i]][k].node] = _min(distance[waysGo[_uatmp[i]][k].node],
                                                            distance[_uatmp[i]] + waysGo[_uatmp[i]][k].weight);
         delete[] _uatmp;
@@ -232,7 +233,7 @@ unsigned *graph::strongcc()
 
 bool graph::transition(unsigned node1, unsigned node2)
 {
-    for(unsigned i = 0; i < waysFrom[node1].maxs; i++)
+    for(unsigned i = 0; i < waysFrom[node1].size(); i++)
         if(waysFrom[node1][i].node == node2)
             return true;
     return false;
@@ -251,7 +252,7 @@ void graph::_cutDfs(unsigned node, unsigned p)
     _tmp[node] = 1;
     _uatmp[node] = _uatmp[node + gLen] = _utmp++;
     unsigned c = 0;
-    for(unsigned i = 0; i < waysFrom[node].maxs; i++)
+    for(unsigned i = 0; i < waysFrom[node].size(); i++)
         if(waysFrom[node][i].node != p)
         {
             if(_tmp[waysFrom[node][i].node])
@@ -299,7 +300,7 @@ unsigned graph::findCutBridges(bool *cutPoints)
 bool graph::_draw(unsigned node, unsigned char color)
 {
     _tmp[node] = color;
-    for(unsigned i = 0; i < waysFrom[node].maxs; i++)
+    for(unsigned i = 0; i < waysFrom[node].size(); i++)
         if(!_tmp[waysFrom[node][i].node])
         {
             if(!_draw(waysFrom[node][i].node, color ^ 3))
@@ -329,7 +330,7 @@ bool graph::isBipartite(bool *bp)
 bool graph::kuhn(unsigned node)
 {
     _tmp[node] = 1;
-    for(unsigned i = 0; i < waysGo[node].maxs; i++)
+    for(unsigned i = 0; i < waysGo[node].size(); i++)
     {
         unsigned to = waysGo[node][i].node;
         if((_uatmp[to] == gLen) || (!_tmp[_uatmp[to]] && kuhn(_uatmp[to])))
@@ -363,7 +364,7 @@ unsigned graph::min_paths_covery()
 {
     graph *dv = new graph(gLen * 2, false);
     for(unsigned i = 0; i < gLen; i++)
-        for(unsigned k = 0; k < waysGo[i].maxs; k++)
+        for(unsigned k = 0; k < waysGo[i].size(); k++)
             dv->addWay(i, gLen + waysGo[i][k].node);
     bool *c = new bool[gLen * 2];
     _fill(c, gLen);
@@ -379,12 +380,12 @@ void graph::dfsMatching(unsigned node, unsigned *mathcing, bool colored)
     _tmp[node] = 1;
     if(colored)
     {
-        for(unsigned i = 0; i < waysGo[node].maxs; i++)
+        for(unsigned i = 0; i < waysGo[node].size(); i++)
             if(!_tmp[waysGo[node][i].node] && (mathcing[node] != waysGo[node][i].node))
                 dfsMatching(waysGo[node][i].node, mathcing, false);
     } else
     {
-        for(unsigned i = 0; i < waysGo[node].maxs; i++)
+        for(unsigned i = 0; i < waysGo[node].size(); i++)
             if(!_tmp[waysGo[node][i].node] && (mathcing[waysGo[node][i].node] == node))
                 dfsMatching(waysGo[node][i].node, mathcing, true);
     }
@@ -408,7 +409,7 @@ bool *graph::min_vertex_covery(bool *color, unsigned *matching)
     } else
         matching_vc = matching;
     for(unsigned i = 0; i < gLen; i++)
-        if(color_mt[i] && (matching_vc[i] == gLen) && (waysGo[i].maxs > 0) && !_tmp[i])
+        if(color_mt[i] && (matching_vc[i] == gLen) && (waysGo[i].size() > 0) && !_tmp[i])
             dfsMatching(i, matching_vc);
     bool *color_vc;
     if(color)
@@ -431,12 +432,12 @@ unsigned *graph::getEuler(bool cycle)
     _fill(d, gLen);
     for(unsigned i = 0; i < gLen; i++)
     {
-        edges += waysGo[i].maxs;
-        for(unsigned r = 0; r < waysGo[i].maxs; r++)
+        edges += waysGo[i].size();
+        for(unsigned r = 0; r < waysGo[i].size(); r++)
             d[waysGo[i][r].node]++;
     }
     for(unsigned i = 0; i < gLen; i++)
-        if(waysGo[i].maxs > d[i])
+        if(waysGo[i].size() > d[i])
         {
             oddVertex = i;
             odd++;
@@ -458,7 +459,7 @@ unsigned *graph::getEuler(bool cycle)
     {
         unsigned v = _uatmp[_utmp2];
         bool pop = true;
-        while(p[v] < waysGo[v].maxs)
+        while(p[v] < waysGo[v].size())
         {
             if(!waysGo[v][p[v]].isOnCover)
             {
