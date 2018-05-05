@@ -20,6 +20,11 @@ struct queue
 
         explicit block(unsigned blocksize): next(nullptr), array(new T[blocksize])
         {}
+
+        ~block()
+        {
+            delete[] array;
+        }
     };
 
     //blocksize - amount of elements in one block, len - current len of the queue
