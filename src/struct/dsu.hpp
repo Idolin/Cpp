@@ -142,7 +142,7 @@ public:
                 s[p].pointer = this->getSetID(t);
                 s[p].merge(s[s[p].pointer]);
             }
-            return s[s[p].pointer].pointer;
+            return s[p].pointer;
         }
         else
         {
@@ -223,7 +223,7 @@ public:
     template<_rank<0>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
-        for(;from < to;from++)
+        for(;from < to - 1;from++)
             this->unite(from, from + 1);
     }
 
@@ -269,12 +269,12 @@ public:
         if(p < s.size())
         {
             unsigned t = s[p].pointer;
-            if(s[p].pointer != t)
+            if(s[t].pointer != t)
             {
                 s[p].pointer = this->getSetID(t);
                 s[p].merge(s[s[p].pointer]);
             }
-            return s[s[p].pointer].pointer;
+            return s[p].pointer;
         }
         else
         {
@@ -350,7 +350,7 @@ public:
     template<_rank<0>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
-        for(;from < to;from++)
+        for(;from < to - 1;from++)
             this->unite(from, from + 1);
     }
 
