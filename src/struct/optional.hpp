@@ -1,19 +1,12 @@
 #pragma once
 
 #include "../debug/def_debug.h"
-
-struct none
-{
-    none()
-    {}
-
-    none(int)
-    {}
-};
+#include "../template/t_useful.hpp"
 
 template<typename T>
 struct optional
 {
+private:
     union
     {
         T value;
@@ -21,6 +14,7 @@ struct optional
     };
     bool is_set;
 
+public:
     optional(): nothing(true), is_set(false)
     {}
 
