@@ -66,7 +66,7 @@ namespace _test_abstract_class_
 
     _test_class_abstract::_test_class_abstract(char *test_name) : test_name(test_name), test_repeat_amount(1),
                                                                   max_error_amount_show(3), errors_to_stop(0),
-                                                                  exception_expected(false)
+                                                                  exception_expected(false), test_with()
     {}
 
     bool _test_class_abstract::run(bool count_ms_not_clocks)
@@ -94,6 +94,11 @@ namespace _test_abstract_class_
             {
                 fflush(stdout);
                 color_fputs(term_color::RED, "> Exception!\n", DEBUG_OUTPUT_STREAM);
+                for(unsigned i = 0;i < this -> test_with.size();i++)
+                    if(i + 1 == this -> test_with.size())
+                        DEBUGLVLMSG(5, "with %s", this -> test_with[i])
+                    else
+                        DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]);
                 exception_occured = true;
                 throw;
             }
@@ -138,7 +143,7 @@ bool _test_pack_class_abstract::test()
     test_ok = true;
     test_time_ms_or_clks = 0;
     errors_occured = 0;
-    for(unsigned i = 0; i < test_classes.maxs; i++)
+    for(unsigned i = 0; i < test_classes.size(); i++)
     {
         bool local_test_ok = test_classes[i]->run(this->count_ms_not_clocks);
         test_ok = test_ok && local_test_ok;

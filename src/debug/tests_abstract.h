@@ -16,9 +16,11 @@ namespace _test_abstract_class_
     struct _test_class_abstract
     {
         char *test_name;
-        unsigned test_repeat_amount, max_error_amount_show, errors_to_stop, errors_occured, level;
+        unsigned test_repeat_amount, max_error_amount_show, errors_to_stop,
+                errors_occured;
         unsigned long long test_time_ms_or_clks;
         bool test_ok, exception_expected, exception_occured;
+        vect<const char*> test_with;
 
         explicit _test_class_abstract(char *test_name);
 
