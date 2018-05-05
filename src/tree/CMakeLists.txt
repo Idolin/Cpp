@@ -15,6 +15,6 @@ set(SOURCE_TGT_TRIE trie.hpp)
 add_custom_target(trie_tgt
         DEPENDS "${SOURCE_TGT_TRIE}")
 add_test(trie_test trie.test.cpp)
-
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/trie.test.cpp)
+
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
