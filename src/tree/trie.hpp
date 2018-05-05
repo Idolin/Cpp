@@ -10,6 +10,7 @@ template<typename TKey = char, typename TData = none,
         typename = typename std::enable_if<std::is_integral<TKey>::value>::type>
 struct trie
 {
+private:
     struct node
     {
         node *arr[1u << (sizeof(TKey) * 8)];
@@ -21,8 +22,8 @@ struct trie
 
         ~node()
         {
-            for(unsigned i = 0;i < (1u << (sizeof(TKey) * 8));i++)
-                delete arr[i];
+            for(auto &i: arr)
+                delete i;
         }
 
         node*& operator[](unsigned index)
@@ -38,6 +39,7 @@ struct trie
 
     node root;
 
+public:
     trie(): root(node())
     {}
 
@@ -102,6 +104,7 @@ struct trie
 template<typename TData>
 struct trie<char, TData>
 {
+private:
     struct node
     {
         node *arr[1u << (sizeof(char) * 8)];
@@ -113,8 +116,8 @@ struct trie<char, TData>
 
         ~node()
         {
-            for(unsigned i = 0;i < (1u << (sizeof(char) * 8));i++)
-                delete arr[i];
+            for(auto &i: arr)
+                delete i;
         }
 
         node*& operator[](unsigned index)
@@ -130,6 +133,7 @@ struct trie<char, TData>
 
     node root;
 
+public:
     trie(): root(node())
     {}
 
@@ -203,6 +207,7 @@ struct trie<char, TData>
 template<>
 struct trie<char, none>
 {
+private:
     struct node
     {
         node *arr[1u << (sizeof(char) * 8)];
@@ -213,8 +218,8 @@ struct trie<char, none>
 
         ~node()
         {
-            for(unsigned i = 0;i < (1u << (sizeof(char) * 8));i++)
-                delete arr[i];
+            for(auto &i: arr)
+                delete i;
         }
 
         node*& operator[](unsigned index)
@@ -230,6 +235,7 @@ struct trie<char, none>
 
     node root;
 
+public:
     trie(): root(node())
     {}
 
@@ -258,7 +264,7 @@ struct trie<char, none>
     }
 
     bool findKey(const char *s,
-                            unsigned len  = std::numeric_limits<unsigned>::max()) const
+                 unsigned len  = std::numeric_limits<unsigned>::max()) const
     {
         const node *n = &root;
         for(unsigned i = 0;i < len;i++)
@@ -274,7 +280,7 @@ struct trie<char, none>
     }
 
     bool erase(const char *s,
-                          unsigned len = std::numeric_limits<unsigned>::max())
+               unsigned len = std::numeric_limits<unsigned>::max())
     {
         node *n = &root;
         for(unsigned i = 0;i < len;i++)
