@@ -87,11 +87,6 @@ struct _valueMethods<T, typename std::enable_if<(sizeof(T) == 2)>::type>:
     {
         return (((x & 0x7f00) >> 8) | ((x & 0x8000) ? 0x80 : 0x00)) == (x & 0xff);
     }
-
-    constexpr static unsigned char to_unsigned(T x)
-    {
-        return static_cast<unsigned char>(x);
-    }
 };
 
 template<typename T>
