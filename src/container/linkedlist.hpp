@@ -212,10 +212,10 @@ public:
         iterator(node *ptr): ptr(ptr), end(false)
         {}
 
-        iterator(const iterator &otr): ptr(otr.ptr), end(otr.end)
+        iterator(const iterator& otr): ptr(otr.ptr), end(otr.end)
         {}
 
-        iterator &operator=(iterator const &otr)
+        iterator& operator=(iterator const &otr)
         {
             ptr = otr.ptr;
             end = otr.end;
@@ -265,7 +265,7 @@ public:
             return copy;
         }
 
-        T &operator*() const
+        T& operator*() const
         {
             return ptr->data;
         }
@@ -362,7 +362,7 @@ public:
         else
         {
             delete head.ptr;
-            head = tail = nullptr;
+            head = tail = iterator();
         }
         return data;
     }
@@ -381,7 +381,7 @@ public:
         else
         {
             delete tail.ptr;
-            head = tail = nullptr;
+            head = tail = iterator();
         }
         return data;
     }
