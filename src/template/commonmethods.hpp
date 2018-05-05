@@ -5,25 +5,29 @@
 #include <algorithm>
 #include <type_traits>
 
-template<typename T, typename = typename std::enable_if<!std::is_integral<T>::value>::type>
+template<typename T, typename = typename std::enable_if<
+        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
 inline bool _less(const T& x1, const T& x2)
 {
     return x1 < x2;
 }
 
-template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+template<typename T, typename = typename std::enable_if<
+        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
 inline bool _less(T x1, T x2)
 {
     return x1 < x2;
 }
 
-template<typename T, typename = typename std::enable_if<!std::is_integral<T>::value>::type>
+template<typename T, typename = typename std::enable_if<
+        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
 inline bool _more(const T& x1, const T& x2)
 {
     return _less(x2, x1);
 }
 
-template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+template<typename T, typename = typename std::enable_if<
+        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
 inline bool _more(T x1, T x2)
 {
     return _less(x2, x1);
@@ -51,25 +55,25 @@ inline void _swap(T *x, T *y)
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _min(const T& a, const T& b)
 {
-    return compare(a, b) ? b : a;
+    return compare(a, b) ? a : b;
 }
 
 template<typename T, bool(*compare)(T, T) = _less<T>>
-inline T& _min(T a, T b)
+inline T _min(T a, T b)
 {
-    return compare(a, b) ? b : a;
+    return compare(a, b) ? a : b;
 }
 
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _max(const T& a, const T& b)
 {
-    return compare(a, b) ? a : b;
+    return compare(a, b) ? b : a;
 }
 
 template<typename T, bool(*compare)(T, T) = _less<T>>
-inline T& _max(T a, T b)
+inline T _max(T a, T b)
 {
-    return compare(a, b) ? a : b;
+    return compare(a, b) ? b : a;
 }
 
 template<typename T, typename T2, typename Enable = void>
