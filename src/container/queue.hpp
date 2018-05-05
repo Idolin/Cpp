@@ -13,6 +13,7 @@ using std::pair;
 template<typename T>
 struct queue
 {
+private:
     struct block
     {
         block *next;
@@ -30,13 +31,14 @@ struct queue
     //blocksize - amount of elements in one block, len - current len of the queue
     //block = [element * blocksize, pointer to next block]
     const unsigned blocksize;
-    unsigned len;
+    unsigned long len;
 
     //pointer to (head - first element, tail - last element, headlast - last element of first block,
     //taillast - last element of last block)
     block *head, *tail;
     unsigned headlast, taillast;
 
+public:
     explicit queue(unsigned blocksize = 256):
             blocksize(blocksize), len(0), head(nullptr),
             tail(nullptr), headlast(0), taillast(blocksize)
@@ -70,7 +72,7 @@ struct queue
         len++;
     }
 
-    T &pop()
+    T&& pop()
     {
         ASSERT(len > 0);
         ASSERT(head);
@@ -83,17 +85,27 @@ struct queue
             headlast = 0;
         }
         len--;
-        return head->array[headlast++];
+        return std::move(head->array[headlast++]);
     }
 
-    void display()
+    unsigned long size() const
+    {
+        return len;
+    }
+
+    bool empty() const
+    {
+        return (size() == 0);
+    }
+
+    void display() const
     {
         if(len == 0)
             puts("Queue is empty");
         else
         {
             unsigned block_index = headlast;
-            block* b_ptr = head;
+            block *b_ptr = head;
             for(unsigned i = 0;i < len;i++)
             {
                 if(i > 0)
