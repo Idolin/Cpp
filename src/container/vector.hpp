@@ -131,22 +131,27 @@ struct vect
 
 protected:
     T *m;
-public:
-    unsigned long size, maxs;
+    unsigned long v_size, max_used;
 
-    vect(unsigned size = 4): m(new T[size]), size(size), maxs(0)
+public:
+    vect(unsigned size = 4): m(new T[size]), v_size(size), max_used(0)
     {}
 
-    vect(vect const &f): m(new T[f.size]), size(f.size), maxs(f.maxs)
+    vect(unsigned size, T def_value): m(new T[size]), v_size(size), max_used(size)
     {
-        _copy(m, size, f.m);
+        _fill(m, size, def_value);
     }
 
-    vect(vect&& f): m(f.m), size(f.size), maxs(f.maxs)
+    vect(vect const &f): m(new T[f.v_size]), v_size(f.v_size), max_used(f.max_used)
+    {
+        _copy(m, v_size, f.m);
+    }
+
+    vect(vect&& f): m(f.m), v_size(f.v_size), max_used(f.max_used)
     {
         f.m = nullptr;
-        f.size = 0;
-        f.maxs = 0;
+        f.v_size = 0;
+        f.max_used = 0;
     }
 
     vect& operator=(vect const &f)
@@ -154,9 +159,9 @@ public:
         if(this != &f)
         {
             delete[] m;
-            maxs = f.maxs;
-            size = f.size;
-            m = _new_copy(f.m, size);
+            max_used = f.max_used;
+            v_size = f.v_size;
+            m = _new_copy(f.m, v_size);
         }
         return *this;
     }
@@ -167,11 +172,11 @@ public:
         {
             delete[] m;
             m = f.m;
-            size = f.size;
-            maxs = f.maxs;
+            v_size = f.v_size;
+            max_used = f.max_used;
             f.m = nullptr;
-            f.size = 0;
-            f.maxs = 0;
+            f.v_size = 0;
+            f.max_used = 0;
         }
         return *this;
     }
@@ -183,65 +188,93 @@ public:
 
     operator T*()
     {
-        return _new_copy(m, maxs);
+        return _new_copy(m, max_used);
     }
 
     T *toArray(unsigned long from = 0, unsigned long to = vect::last)
     {
         if(to == vect::last)
-            to = maxs;
+            to = max_used;
         return _new_copy(m + from, m + to);
     }
 
     T& operator[](unsigned long index)
     {
-        if(index >= size)
+        if(index >= v_size)
         {
-            if(maxs == 0)
+            if(v_size == 0)
                 this->resizeTo(index + 1);
             else
             {
                 unsigned k = 0;
-                while(index >= size << ++k);
+                while(index >= v_size << ++k);
                 this->resizeUp(k);
             }
         }
-        smax_(maxs, index + 1);
+        smax_(max_used, index + 1);
         return m[index];
     }
 
     const T& operator[](unsigned long index) const
     {
-        ASSERT(index < size, "Vector: index %lu out of range(size: %lu)", index, size);
-        DEBUGIFMSG(index >= maxs, "Vector: value at index %lu not set", index);
+        ASSERT(index < max_used, "Vector: index %lu out of range(max set: %lu)", index, max_used);
         return m[index];
+    }
+
+    unsigned long size() const
+    {
+        return max_used;
+    }
+
+    bool empty() const
+    {
+        return (max_used == 0);
     }
 
     void resizeTo(unsigned long k)
     {
-        DEBUGLVLIFMSG(3, k < maxs, "new size smaller than index of last element, "
+        DEBUGLVLIFMSG(3, k < max_used, "new size smaller than index of last element, "
                                    "some elements will be deleted!");
-        _resize(m, size, k);
-        size = k;
+        m = _resize(m, max_used, k);
+        v_size = k;
+        smin_(max_used, v_size);
     }
 
     void resizeUp(unsigned k = 1)
     {
-        unsigned old_size = size;
-        m = _resize(m, old_size, size = (old_size + (old_size == 0)) * (1 << k));
+        v_size = (v_size + (v_size == 0)) * (1 << k);
+        m = _resize(m, max_used, v_size);
     }
 
-    T back()
+    void capacityEnsure(unsigned long k)
     {
-        ASSERT(maxs > 0);
-        return m[maxs - 1];
+        if(k > v_size)
+            resizeTo(k);
+    }
+
+    T& back()
+    {
+        ASSERT(max_used > 0);
+        return m[max_used - 1];
+    }
+
+    const T& back() const
+    {
+        ASSERT(max_used > 0);
+        return m[max_used - 1];
     }
 
     void push(T x)
     {
-        if(maxs == size)
+        if(max_used == v_size)
             this->resizeUp();
-        m[maxs++] = x;
+        m[max_used++] = x;
+    }
+
+    T&& pop()
+    {
+        ASSERT(max_used > 0);
+        return std::move(m[--max_used]);
     }
 
     iterator begin()
@@ -251,63 +284,62 @@ public:
 
     iterator at(unsigned long index)
     {
-        ASSERT(index <= maxs);
+        ASSERT(index <= max_used);
         return iterator(m + index);
     }
 
     iterator end()
     {
-        return iterator(m + maxs);
+        return iterator(m + max_used);
     }
 
     void swap(unsigned long first, unsigned long second)
     {
-        ASSERT((first < size) && (second < size), "Vector: attempt to swap values "
-                "out of range(size: %lu, first index: "
-                "%lu, second index: %lu)", size, first, second);
+        ASSERT((first < max_used) && (second < max_used), "Vector: attempt to swap values "
+                "out of range(max set: %lu, first index: "
+                "%lu, second index: %lu)", max_used, first, second);
         std::swap(m + first, m + second);
     }
 
     T& max()
     {
-        ASSERT(maxs > 0);
-        return _max(m, maxs);
+        ASSERT(max_used > 0);
+        return _max(m, max_used);
     }
 
     T& min()
     {
-        ASSERT(maxs > 0);
-        return _min(m, maxs);
+        ASSERT(max_used > 0);
+        return _min(m, max_used);
     }
 
     unsigned long minIndex()
     {
-        ASSERT(maxs > 0);
-        return _minInd(m, maxs);
+        ASSERT(max_used > 0);
+        return _minInd(m, max_used);
     }
 
     unsigned long maxIndex()
     {
-        ASSERT(maxs > 0);
-        return _maxInd(m, maxs);
+        ASSERT(max_used > 0);
+        return _maxInd(m, max_used);
     }
 
     template<typename T2>
     T2& sum(unsigned long from = 0, unsigned long to = vect::last)
     {
         if(to == vect::last)
-            to = maxs;
+            to = max_used;
         ASSERT(from <= to);
-        ASSERT(to <= size);
-        DEBUGLVLIFMSG(3, to > maxs, "Vector: value after index %lu not set, but trying "
-                                     "to get sum up to %lu", maxs, to);
+        ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
+                               "to get sum up to %lu", max_used, to);
         return _sum<T, T2>(m + from, m + to);
     }
 
     template<bool (*compare)(const T&, const T&) = _less<T>>
     bool checksorted()
     {
-        return _checksorted<T, compare>(m, m + maxs);
+        return _checksorted<T, compare>(m, m + max_used);
     }
 
     template<bool (*compare)(const T&, const T&) = _less<T>>
@@ -316,9 +348,9 @@ public:
     {
         ASSERT(from <= to);
         if(to == vect::last)
-            to = maxs;
-        ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
-                           "to check if is sorted up to %lu", maxs, to);
+            to = max_used;
+        ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
+                           "to check if is sorted up to %lu", max_used, to);
         return _checksorted<T, compare>(m + from, m + to);
     }
 
@@ -328,10 +360,10 @@ public:
     {
         ASSERT(from <= to);
         if(to == vect::last)
-            to = maxs;
-        ASSERT(to <= maxs, "Vector: value after index %lu not set, but trying "
-                           "to print elements up to %lu", maxs, to);
-        if(maxs == 0)
+            to = max_used;
+        ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
+                           "to print elements up to %lu", max_used, to);
+        if(max_used == 0)
             puts("Vector is empty");
         else
         {
