@@ -4,6 +4,7 @@
 #include "valuemethods.hpp"
 #include "../other/defdef.h"
 #include "../debug/def_debug.h"
+#include "struct_tags.hpp"
 
 #include <cstring>
 
@@ -77,14 +78,14 @@ inline T *_read(SizeType len, const char *scf = "%u")
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_copyable<T>::value>::type
     _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
 {
-    memcpy(start, source, (end - start) * sizeof(*start));
+    memcpy(start, source, (end - start) * sizeof(T));
 }
 
 template<typename T>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_copyable<T>::value>::type
     _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
 {
     while(start < end)
@@ -92,14 +93,14 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_copyable<T>::value>::type
     _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
 {
-    memcpy(start, source, len * sizeof(*start));
+    memcpy(start, source, len * sizeof(T));
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_copyable<T>::value>::type
     _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
 {
     while(len--)
@@ -141,14 +142,14 @@ inline T *_new_copy(T *start, SizeType len, SizeType2 new_length)
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_copyable<T>::value>::type
     _copy_a(T *start, T *end, const T *source)
 {
-    memmove(start, source, (end - start) * sizeof(*start));
+    memmove(start, source, (end - start) * sizeof(T));
 }
 
 template<typename T>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_copyable<T>::value>::type
     _copy_a(T *start, T *end, const T *source)
 {
     if(start < source)
@@ -163,14 +164,14 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_copyable<T>::value>::type
     _copy_a(T *start, SizeType len, const T *source)
 {
-    memmove(start, source, len * sizeof(*start));
+    memmove(start, source, len * sizeof(T));
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_copyable<T>::value>::type
     _copy_a(T *start, SizeType len, const T *source)
 {
     if(start < source)
@@ -186,14 +187,14 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_movable<T>::value>::type
     _move(T *__restrict__ start, T *end, T *__restrict__ source)
 {
-    memcpy(start, source, (end - start) * sizeof(*start));
+    memcpy(start, source, (end - start) * sizeof(T));
 }
 
 template<typename T>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_movable<T>::value>::type
     _move(T *__restrict__ start, T *end, T *__restrict__ source)
 {
     while(start < end)
@@ -201,14 +202,14 @@ inline typename std::enable_if<!std::is_pod<T>::value>::type
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<std::is_pod<T>::value>::type
+inline typename std::enable_if<is_bit_movable<T>::value>::type
     _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
 {
-    memcpy(start, source, len * sizeof(*start));
+    memcpy(start, source, len * sizeof(T));
 }
 
 template<typename T, typename SizeType=unsigned>
-inline typename std::enable_if<!std::is_pod<T>::value>::type
+inline typename std::enable_if<!is_bit_movable<T>::value>::type
     _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
 {
     while(len--)
@@ -233,6 +234,13 @@ inline T* _resize(T *start, SizeType now_length, SizeType2 new_length)
     _move(new_array, _min(now_length, new_length), start);
     delete [] start;
     return new_array;
+}
+
+template<typename T, typename SizeType=unsigned>
+inline typename std::enable_if<is_bit_movable<T>::value, T*>::type
+_resize_alloc(T *start, SizeType new_length)
+{
+    return static_cast<T*>(realloc(start, new_length));
 }
 
 template<typename T, typename SizeType=unsigned>
