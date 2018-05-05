@@ -27,12 +27,12 @@ TEST_PACK(dsu)
         FOR_CLASS(d, dsu<>(), dsu<>(1000), (dsu<void, false, true>()), (dsu<void, true, true>()), {
             d.unite(0, 2);
             d.uniteRange(0, 3);
-            EXPECT_EQ(d.getSetID(0), d.getSetID(1));
-            EXPECT_EQ(d.getSetID(1), d.getSetID(2));
-            EXPECT_NE(d.getSetID(0), d.getSetID(4));
+            EXPECT_EQ(d.getSetID(0), d.getSetID(1), "getSetID(0) != getSetID(1)");
+            EXPECT_EQ(d.getSetID(1), d.getSetID(2), "getSetID(1) != getSetID(2)");
+            EXPECT_NE(d.getSetID(0), d.getSetID(4), "getSetID(0) == getSetID(4)");
             d.unite(3, 4);
             d.uniteRange(2, 4);
-            EXPECT_EQ(d.getSetID(0), d.getSetID(4));
+            EXPECT_EQ(d.getSetID(0), d.getSetID(4), "getSetID(0) != getSetID(4)");
         });
     }
 }
