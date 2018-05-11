@@ -190,3 +190,49 @@ struct _changeSigned
     typedef typename std::conditional<sign, typename std::make_signed<T>::type,
             typename std::make_unsigned<T>::type>::type type;
 };
+
+template<typename T>
+struct clear_type
+{
+    typedef typename std::remove_cv<typename std::remove_reference<T>::type>::type type;
+};
+
+template<typename T, typename Enable = void>
+struct def_get_by_value
+{};
+
+template<typename T>
+struct def_get_by_value<T, typename std::enable_if<
+        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+{
+    typedef T type;
+};
+
+template<typename T, typename Enable = void>
+struct def_get_by_reference
+{};
+
+template<typename T>
+struct def_get_by_reference<T, typename std::enable_if<
+        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
+{
+    typedef T type;
+};
+
+template<typename T, typename Enable = void>
+struct compare_func
+{};
+
+template<typename T>
+struct compare_func<T, typename std::enable_if<
+        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+{
+    typedef bool (*type)(T, T);
+};
+
+template<typename T>
+struct compare_func<T, typename std::enable_if<
+        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
+{
+    typedef bool (*type)(T, T);
+};
