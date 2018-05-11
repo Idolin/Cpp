@@ -7,7 +7,6 @@ add_custom_target(heap_tgt
 set(SOURCE_TGT_AVL avl.hpp)
 add_custom_target(avl_tgt
         DEPENDS "${SOURCE_TGT_AVL}")
-
 add_test(avl_test avl.test.cpp)
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/avl.test.cpp)
 
