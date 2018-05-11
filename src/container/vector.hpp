@@ -252,6 +252,11 @@ public:
             resizeTo(k);
     }
 
+    void clear()
+    {
+        max_used = 0;
+    }
+
     T& back()
     {
         ASSERT(max_used > 0);
