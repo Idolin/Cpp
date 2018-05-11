@@ -8,7 +8,7 @@
 #include "../other/defdef.h"
 #include "../other/term.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <exception>
 
 /*
