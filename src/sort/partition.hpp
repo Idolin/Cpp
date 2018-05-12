@@ -1,9 +1,10 @@
 #pragma once
 
 #include "../template/commonmethods.hpp"
+#include "../template/typemethods.hpp"
 #include <functional>
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 T *partition_3(T *start, const T *end, T &df, unsigned &count, T &min)
 {
     T *sp = start;
@@ -46,7 +47,7 @@ T *partition_3(T *start, const T *end, T &df, unsigned &count, T &min)
     return sp;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 T *partition(T *start, T *end, T df)
 {
     for(T *ep = end; start < ep; start++)
@@ -55,7 +56,7 @@ T *partition(T *start, T *end, T df)
             while(compare(df, *--ep))
                 if(start == ep)
                     return start;
-            std::swap(start, ep);
+            std::swap(*start, *ep);
         }
     return start;
 }
