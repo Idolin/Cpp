@@ -36,7 +36,7 @@ namespace _test_abstract_class_
 
         bool new_subtest(const char *subtest_name);
 
-        bool check_subtest();
+        bool check_subtest(bool saved);
     };
 
 };
