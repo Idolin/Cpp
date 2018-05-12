@@ -71,6 +71,10 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                     DEBUGLVLMSG(5, " at line %d", __LINE__); \
                     this -> print_test_with(term_color::ORANGE); \
                     fputc('\n', DEBUG_OUTPUT_STREAM); \
+                    if(this -> errors_occured == this -> max_error_amount_show) \
+                        DEBUGLVLMSG(4, "> Max amount of errors to show (limit %u)" \
+                                       "\nNo errors will be shown further", \
+                                        this -> max_error_amount_show); \
                 } \
                 this -> test_ok = false; \
                 if(this -> errors_occured == this -> errors_to_stop) \
@@ -165,6 +169,6 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 }
 
 #define SUB_TEST(subtest_name) \
-for(bool saved = (this -> test_ok, this -> test_ok = new_subtest(#subtest_name)), _si = false; \
-    _si == true && (this -> check_subtest(), this -> test_ok &= saved, false) || _si != true; \
-    _si = true)
+for(bool saved = new_subtest(#subtest_name), _si = false; \
+    _si == false; \
+    _si = this -> check_subtest(saved))
