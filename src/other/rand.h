@@ -27,6 +27,7 @@ class randomizer
     };
 public:
     randomizer();
+
     bool randomB();
 
     unsigned char randomUC();
@@ -36,6 +37,7 @@ public:
     unsigned short randomUS();
 
     short randomS();
+
     unsigned randomU();
 
     int randomI();
@@ -77,6 +79,7 @@ char randomC();
 unsigned short randomUS();
 
 short randomS();
+
 unsigned randomU();
 
 int randomI();
