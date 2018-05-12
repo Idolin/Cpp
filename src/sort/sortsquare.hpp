@@ -29,13 +29,13 @@ void shakersort(T *start, T *end)
     {
         bool f = true;
         for(T *k = start + i;k < end - i - 1;k++)
-            if(_less(*(k + 1), *k))
+            if(compare(*(k + 1), *k))
             {
                 f = false;
                 _swap(k, k + 1);
             }
         for(T *k = end - i - 2;k > start + i;k--)
-            if(_less(*k, *(k - 1)))
+            if(compare(*k, *(k - 1)))
             {
                 f = false;
                 _swap(k - 1, k);
@@ -52,14 +52,14 @@ void minmaxsort(T *start, T *end)
     unsigned cnt = (end - start) / 2;
     for(unsigned i = 0; i < cnt; i++)
     {
-        if(_less(*(start + 1), *start))
+        if(compare(*(start + 1), *start))
             _swap(start, start + 1);
         emin = start;
         emax = emin + 1;
         for(T *k = start + 2; k < end; k++)
-            if(_less(*k, *emin))
+            if(compare(*k, *emin))
                 emin = k;
-            else if(_less(*emax, *k))
+            else if(compare(*emax, *k))
                 emax = k;
         _swap(start++, emin);
         _swap(--end, emax);
