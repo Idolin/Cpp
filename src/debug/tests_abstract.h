@@ -1,48 +1,56 @@
 #pragma once
 
+#include "../other/counter.h"
 #include "../other/term.h"
 #include "../container/vector.hpp"
 #include "def_debug.h"
 
 #include <exception>
-#include <sys/time.h>
-#include <ctime>
 
-void ftimeprint(FILE *SOUT, unsigned long long time, bool is_ms);
+void fprinttime(FILE *SOUT, unsigned long long milliseconds);
 
 namespace _test_abstract_class_
 {
 
     struct _test_class_abstract
     {
-        char *test_name;
+        const char *test_name;
         unsigned test_repeat_amount, max_error_amount_show, errors_to_stop,
                 errors_occured;
-        unsigned long long test_time_ms_or_clks;
+        process_time_counter counter;
         bool test_ok, exception_expected, exception_occured;
         vect<const char*> test_with;
+        vect<std::pair<const char*, process_time_counter>> subtests;
 
-        explicit _test_class_abstract(char *test_name);
+        explicit _test_class_abstract(const char *test_name);
 
         virtual ~_test_class_abstract() = default;
 
-        bool run(bool count_ms_not_clocks);
+        bool run();
 
         virtual void test_body() = 0;
+
+        void print_test_with(term_color color = term_color::DEFAULT);
+
+        void print_level(term_color color = term_color::KEEP);
+
+        bool new_subtest(const char *subtest_name);
+
+        bool check_subtest();
     };
 
 };
 
 struct _test_pack_class_abstract
 {
-    char *test_pack_name;
-    bool test_ok, count_ms_not_clocks;
+    const char *test_pack_name;
+    bool test_ok;
     unsigned errors_to_stop, errors_occured;
     vect<_test_abstract_class_::_test_class_abstract *> test_classes;
     vect<unsigned> test_failed;
-    unsigned long long test_time_ms_or_clks;
+    unsigned long long milliseconds;
 
-    explicit _test_pack_class_abstract(char *test_pack_name);
+    explicit _test_pack_class_abstract(const char *test_pack_name);
 
     virtual ~_test_pack_class_abstract() = default;
 

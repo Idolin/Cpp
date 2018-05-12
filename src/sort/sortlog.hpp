@@ -2,6 +2,7 @@
 
 #include "../other/defdef.h"
 #include "../template/commonmethods.hpp"
+#include "../template/typemethods.hpp"
 #include "../other/rand.h"
 #include "sortsquare.hpp"
 #include "partition.hpp"
@@ -39,9 +40,9 @@ void merge_in_place(T *start, unsigned part_len1, unsigned part_len2)
     // ???
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
-void
-merge_seq_two(T *const __restrict__ start, unsigned part_len1, unsigned part_len2, T *const __restrict__ destination)
+template<typename T, bool (*compare)(T, T) = _less<T>>
+void merge_seq_two(T *const __restrict__ start, unsigned part_len1,
+                   T *const __restrict__ destination, unsigned part_len2)
 {
     unsigned i = 0, i1 = 0, i2 = part_len1;
     while((part_len1) && (part_len2))
@@ -62,7 +63,8 @@ merge_seq_two(T *const __restrict__ start, unsigned part_len1, unsigned part_len
         destination[i++] = start[i2++];
 };
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>, bool second_in_place = false>
+template<typename T, bool (*compare)(T, T) = _less<T>,
+                bool sort_in_place = false>
 void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len2, T *destination)
 {
     while((part_len1) && (part_len2))
@@ -79,12 +81,12 @@ void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len
     }
     while(part_len1--)
         *(destination++) = *(first++);
-    if(!second_in_place)
+    if(!sort_in_place)
         while(part_len2--)
             *(destination++) = *(second++);
 };
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, bool (*compare)(T, T) = _less<T>>
 void mergesort(T *start, T *end)
 {
     unsigned dif = end - start;
@@ -114,7 +116,7 @@ void mergesort(T *start, T *end)
     delete[] swap_array;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, bool (*compare)(T, T) = _less<T>>
 void quicksort(T *start, T *end)
 {
     if(end - start < 17)

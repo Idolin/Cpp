@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../other/arraymethods.hxx"
-#include "sortsquare.hxx"
+#include "../template/arraymethods.hpp"
+#include "sortsquare.hpp"
 
 template<typename T>
 void countsort(T min = 0, T max = 0)

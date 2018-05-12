@@ -22,8 +22,6 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     #define DEBUG
 #endif
 
-#define COUNT_TIME_IN_MS this -> count_ms_not_clocks = true;
-#define COUNT_TIME_IN_CLOCKS this -> count_ms_not_clocks = false;
 #define EXCEPTION_EXPECTED this -> exception_expected = true;
 #define STOP_AFTER_ERROR(n) this -> errors_to_stop = n;
 #define REPEAT(n) this -> test_repeat_amount = n;
@@ -71,14 +69,8 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                     DEBUGLVLMSG_N(5, "> "); \
                     DEBUGLVLMSG_N(5, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
                     DEBUGLVLMSG(5, " at line %d", __LINE__); \
-                    for(unsigned i = 0;i < this -> test_with.size();i++) \
-                    { \
-                        if(i + 1 == this -> test_with.size()) \
-                            DEBUGLVLMSG(5, "with %s", this -> test_with[i]) \
-                        else \
-                            DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]); \
-                    } \
-                    set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+                    this -> print_test_with(term_color::ORANGE); \
+                    fputc('\n', DEBUG_OUTPUT_STREAM); \
                 } \
                 this -> test_ok = false; \
                 if(this -> errors_occured == this -> errors_to_stop) \
@@ -97,25 +89,21 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
             if(++this -> errors_occured <= this -> max_error_amount_show) \
             { \
                 set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                DEBUGLVLMSG_N(3, "> "); \
-                DEBUGLVLMSG_N(3, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
-                DEBUGLVLMSG(3, " at line %d", __LINE__); \
-                for(unsigned i = 0;i < this -> test_with.size();i++) \
-                { \
-                    if(i + 1 == this -> test_with.size()) \
-                        DEBUGLVLMSG(5, "with %s", this -> test_with[i]) \
-                    else \
-                        DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]); \
-                } \
-                set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+                this -> print_level(); \
+                fprintf(DEBUG_OUTPUT_STREAM, "> "); \
+                fprintf(DEBUG_OUTPUT_STREAM, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
+                fprintf(DEBUG_OUTPUT_STREAM, " at line %d\n", __LINE__); \
+                this -> print_test_with(term_color::ORANGE); \
+                fputc('\n', DEBUG_OUTPUT_STREAM); \
             } \
             this -> test_ok = false; \
             if(this -> errors_occured == this -> errors_to_stop) \
             { \
                 set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                DEBUGLVLMSG(4, "> Failed test limit reached(%d)!", this -> errors_to_stop); \
+                this -> print_level(); \
+                fprintf(DEBUG_OUTPUT_STREAM, "> Failed test limit reached(%d)!\n", this -> errors_to_stop); \
+                fprintf(DEBUG_OUTPUT_STREAM, "> Stopping test execution\n"); \
                 set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
-                DEBUGLVLMSG(4, "> Stopping test execution"); \
                 return; \
             } \
             throw; \
@@ -155,7 +143,19 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     }
 
 #define COMPOSE_TEST(B, X, A) \
-    { this -> test_with.push(#B " " #X); B X A this -> test_with.pop(); }
+{ \
+    process_time_counter inner; \
+    this -> test_with.push(#B " " #X); \
+    inner.start(); \
+    { B X A } \
+    inner.stop(); \
+    this -> print_level(term_color::CYAN); \
+    color_fputs(term_color::CYAN, "> Test ", DEBUG_OUTPUT_STREAM); \
+    this -> print_test_with(term_color::CYAN); \
+    fputc(' ', DEBUG_OUTPUT_STREAM); \
+    fprinttime(DEBUG_OUTPUT_STREAM, inner.getMilliseconds()); \
+    this -> test_with.pop(); \
+}
 
 // FOR_CLASS(var_name, list to iterate, { body })
 // (example: FOR_CLASS(x, 1, foo(3), Class(), { _tshow(x); })
@@ -163,3 +163,8 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 { \
     FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, auto class_name, ## __VA_ARGS__) \
 }
+
+#define SUB_TEST(subtest_name) \
+for(bool saved = (this -> test_ok, this -> test_ok = new_subtest(#subtest_name)), _si = false; \
+    _si == true && (this -> check_subtest(), this -> test_ok &= saved, false) || _si != true; \
+    _si = true)

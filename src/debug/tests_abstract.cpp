@@ -1,88 +1,46 @@
 #include "tests_abstract.h"
 
-static inline void _fputcs(FILE *SOUT, bool s)
+void fprinttime(FILE *SOUT, unsigned long long milliseconds)
 {
-    if(s)
-        fputc('s', SOUT);
-    fputc(' ', SOUT);
-}
+    const char* identifier[5] = {"day", "hour", "minute", "second", "millisecond"};
+    const unsigned coefficient[4] = {24, 60, 60, 1000};
 
-void fprinttime(FILE *SOUT, unsigned long long time, bool is_ms)
-{
     fputc('[', SOUT);
-    if(is_ms)
+    unsigned value[5];
+    unsigned start_from = 5;
+    while(--start_from > 0)
     {
-        unsigned ms = static_cast<unsigned int>(time % 1000000), s = 0, m = 0, h = 0, d = 0;
-        time /= 1000000;
-        if(time)
-        {
-            s = static_cast<unsigned int>(time % 60);
-            time /= 60;
-        }
-        if(time)
-        {
-            m = static_cast<unsigned int>(time % 60);
-            time /= 60;
-        }
-        if(time)
-        {
-            h = static_cast<unsigned int>(time % 24);
-            time /= 24;
-        }
-        d = static_cast<unsigned int>(time);
-        bool print;
-        if((print = (d > 0)))
-        {
-            fprintf(SOUT, "%u day", d);
-            _fputcs(SOUT, (d > 1));
-        }
-        if((print = print || (h > 0)))
-        {
-            fprintf(SOUT, "%u hour", h);
-            _fputcs(SOUT, (h > 1));
-        }
-        if((print = print || (m > 0)))
-        {
-            fprintf(SOUT, "%u minute", m);
-            _fputcs(SOUT, (m > 1));
-        }
-        if((print || (s > 0)))
-        {
-            fprintf(SOUT, "%u second", s);
-            _fputcs(SOUT, (s > 1));
-        }
-        fprintf(SOUT, "%u microsecond", ms);
-        if(ms > 1)
+        value[start_from] = static_cast<unsigned>(milliseconds % coefficient[start_from - 1]);
+        if((milliseconds /= coefficient[start_from - 1]) == 0)
+            break;
+    }
+    value[0] = static_cast<unsigned>(milliseconds);
+    for(unsigned i = start_from;i < 5;i++)
+    {
+        fprintf(SOUT, "%u %s", value[i], identifier[i]);
+        if(value[i] != 1)
             fputc('s', SOUT);
-    } else
-        fprintf(SOUT, "%llu clocks", time);
+        if(i < 4)
+            fputc(' ', SOUT);
+    }
     fputs("]\n", SOUT);
 }
 
 namespace _test_abstract_class_
 {
-
-    timeval _time;
-
-    _test_class_abstract::_test_class_abstract(char *test_name) : test_name(test_name), test_repeat_amount(1),
-                                                                  max_error_amount_show(3), errors_to_stop(0),
-                                                                  exception_expected(false), test_with()
+    _test_class_abstract::_test_class_abstract(const char *test_name):
+            test_name(test_name), test_repeat_amount(1),
+            max_error_amount_show(3), errors_to_stop(0),
+            exception_expected(false), test_with(), subtests()
     {}
 
-    bool _test_class_abstract::run(bool count_ms_not_clocks)
+    bool _test_class_abstract::run()
     {
         color_fprintf(term_color::BLUE, DEBUG_OUTPUT_STREAM, "> Test: %s\n", this->test_name);
         exception_occured = false;
         errors_occured = 0;
         test_ok = true;
-        if(count_ms_not_clocks)
-        {
-            gettimeofday(&_time, nullptr);
-            test_time_ms_or_clks = static_cast<unsigned long long>(_time.tv_sec * 1000000 +
-                                                                   _time.tv_usec); // NOLINT (always casting non-negative value)
-        }
-        else
-            test_time_ms_or_clks = static_cast<unsigned long long>(clock());
+        counter.start();
         try
         {
             try
@@ -94,60 +52,101 @@ namespace _test_abstract_class_
             {
                 fflush(stdout);
                 color_fputs(term_color::RED, "> Exception!\n", DEBUG_OUTPUT_STREAM);
-                for(unsigned i = 0;i < this -> test_with.size();i++)
-                    if(i + 1 == this -> test_with.size())
-                        DEBUGLVLMSG(5, "with %s", this -> test_with[i])
-                    else
-                        DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]);
+                for(unsigned i = 0;i < subtests.size();i++)
+                    fprintf(DEBUG_OUTPUT_STREAM, "%s subtest %s",
+                            i == 0 ? "In" : ", in", subtests[i].first);
+                if(!subtests.empty())
+                {
+                    fputc('\n', DEBUG_OUTPUT_STREAM);
+                    subtests.clear();
+                }
+                print_test_with();
                 exception_occured = true;
                 throw;
             }
         }
-        catch(std::exception &e)
+        catch(std::exception& e)
         {
-            fprintf(DEBUG_OUTPUT_STREAM, "> What:%s\n", e.what());
+            fprintf(DEBUG_OUTPUT_STREAM, "> What: %s\n", e.what());
         }
         catch(...)
         {
             fputs("> Not inherited from std::exception!\n", DEBUG_OUTPUT_STREAM);
         }
         fflush(stdout);
-        if(count_ms_not_clocks)
-        {
-            gettimeofday(&_time, nullptr);
-            test_time_ms_or_clks = _time.tv_sec * 1000000 + _time.tv_usec - test_time_ms_or_clks;
-        }
-        else
-            test_time_ms_or_clks = static_cast<unsigned long long>(clock()) - test_time_ms_or_clks;
+        counter.stop();
         if(exception_occured)
-            test_ok = test_ok && exception_expected;
+            test_ok &= exception_expected;
         color_fprintf((test_ok ? term_color::GREEN : term_color::RED), DEBUG_OUTPUT_STREAM, "> Test %s ",
-                      (test_ok ? "successed" : "failed!"));
-        fprinttime(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
+                      (test_ok ? "succeeded" : "failed!"));
+        fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds());
         return test_ok;
     }
 
+    void _test_class_abstract::print_test_with(term_color color)
+    {
+        set_term_color(color, DEBUG_OUTPUT_STREAM);
+        for(unsigned i = 0;i < this -> test_with.size();i++)
+            if(i + 1 == this -> test_with.size())
+                DEBUGLVLMSG_N(5, "with %s", this -> test_with[i])
+            else
+                DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]);
+        set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
+    }
+
+    void _test_class_abstract::print_level(term_color color)
+    {
+        set_term_color(color, DEBUG_OUTPUT_STREAM);
+        for(unsigned i = 0;i <= subtests.size();i++)
+            fputc('>', DEBUG_OUTPUT_STREAM);
+        if(color != term_color::KEEP)
+            set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
+    }
+
+    bool _test_class_abstract::new_subtest(const char *subtest_name)
+    {
+        subtests.push(std::make_pair(subtest_name, process_time_counter()));
+        subtests.back().second.start();
+        set_term_color(term_color::MAGENTA, DEBUG_OUTPUT_STREAM);
+        print_level();
+        fprintf(DEBUG_OUTPUT_STREAM, " Subtest: %s\n", subtests.back().first);
+        return true;
+    }
+
+    bool _test_class_abstract::check_subtest()
+    {
+        subtests.back().second.stop();
+        unsigned long long time = subtests.back().second.getMilliseconds();
+        if(!this -> test_ok)
+            set_term_color(term_color::RED, DEBUG_OUTPUT_STREAM);
+        else
+            set_term_color(term_color::MAGENTA, DEBUG_OUTPUT_STREAM);
+        print_level();
+        fprintf(DEBUG_OUTPUT_STREAM, " Subtest %s: %s ", subtests.pop().first,
+                this -> test_ok ? "succeeded" : "failed");
+        fprinttime(DEBUG_OUTPUT_STREAM, time);
+        set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
+        return this -> test_ok;
+    }
 };
 
-_test_pack_class_abstract::_test_pack_class_abstract(char *test_pack_name) : test_pack_name(test_pack_name),
-                                                                             count_ms_not_clocks(true),
-                                                                             errors_to_stop(0),
-                                                                             test_classes(
-                                                                                     vect<_test_abstract_class_::_test_class_abstract *>()),
-                                                                             test_failed(vect<unsigned>())
+_test_pack_class_abstract::_test_pack_class_abstract(const char *test_pack_name):
+        test_pack_name(test_pack_name), errors_to_stop(0),
+        test_classes(), test_failed(),
+        milliseconds(0)
 {}
 
 bool _test_pack_class_abstract::test()
 {
     color_fprintf(term_color::BLUE, DEBUG_OUTPUT_STREAM, "Running %s pack test\n\n", this->test_pack_name);
     test_ok = true;
-    test_time_ms_or_clks = 0;
+    milliseconds = 0;
     errors_occured = 0;
     for(unsigned i = 0; i < test_classes.size(); i++)
     {
-        bool local_test_ok = test_classes[i]->run(this->count_ms_not_clocks);
+        bool local_test_ok = test_classes[i]->run();
         test_ok = test_ok && local_test_ok;
-        test_time_ms_or_clks += test_classes[i]->test_time_ms_or_clks;
+        milliseconds += test_classes[i]->counter.getMilliseconds();
         if(!local_test_ok)
         {
             test_failed.push(i);
@@ -161,10 +160,12 @@ bool _test_pack_class_abstract::test()
         }
     }
     if(test_ok)
-    color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM, "Test pack %s: successed ", this->test_pack_name)
+        color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM,
+                      "Test pack %s: succeeded ", this->test_pack_name)
     else
-    color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM, "Test pack %s: failed! ", this->test_pack_name);
-    fprinttime(DEBUG_OUTPUT_STREAM, test_time_ms_or_clks, count_ms_not_clocks);
+        color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM,
+                      "Test pack %s: failed! ", this->test_pack_name);
+    fprinttime(DEBUG_OUTPUT_STREAM, milliseconds);
     if(!test_ok)
     {
         fprintf(DEBUG_OUTPUT_STREAM, "%d test%s failed:\n", this->errors_occured,

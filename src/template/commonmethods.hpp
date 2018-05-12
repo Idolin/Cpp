@@ -5,30 +5,26 @@
 #include <algorithm>
 #include <type_traits>
 
-template<typename T, typename = typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
-inline bool _less(const T& x1, const T& x2)
-{
-    return x1 < x2;
-}
-
-template<typename T, typename = typename std::enable_if<
-        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+template<typename T, typename = typename def_get_by_value<T>::type>
 inline bool _less(T x1, T x2)
 {
     return x1 < x2;
 }
 
-template<typename T, typename = typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
-inline bool _more(const T& x1, const T& x2)
+template<typename T, typename = typename def_get_by_reference<T>::type>
+inline bool _less(const T& x1, const T& x2)
+{
+    return x1 < x2;
+}
+
+template<typename T, typename = typename def_get_by_value<T>::type>
+inline bool _more(T x1, T x2)
 {
     return _less(x2, x1);
 }
 
-template<typename T, typename = typename std::enable_if<
-        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
-inline bool _more(T x1, T x2)
+template<typename T, typename = typename def_get_by_reference<T>::type>
+inline bool _more(const T& x1, const T& x2)
 {
     return _less(x2, x1);
 }

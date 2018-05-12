@@ -38,9 +38,10 @@ public:
         iterator(const iterator &otr): ptr(otr.ptr)
         {}
 
-        iterator &operator=(iterator const &otr)
+        iterator& operator=(iterator const &otr)
         {
             ptr = otr.ptr;
+            return *this;
         }
 
         bool operator==(const iterator &otr) const
@@ -219,6 +220,7 @@ public:
         {
             ptr = otr.ptr;
             end = otr.end;
+            return *this;
         }
 
         bool operator==(const iterator &otr) const

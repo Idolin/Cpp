@@ -14,6 +14,7 @@ add_subdirectory(src/bigint)
 add_subdirectory(src/debug)
 add_subdirectory(src/container)
 add_subdirectory(src/struct)
+add_subdirectory(src/sort)
 add_subdirectory(src/tree)
 
 set(MAIN_FILE ./src/main.cpp)

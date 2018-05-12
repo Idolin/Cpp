@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commonmethods.hpp"
+#include "typemethods.hpp"
 #include "valuemethods.hpp"
 #include "../other/defdef.h"
 #include "../debug/def_debug.h"
@@ -364,7 +365,7 @@ inline Ts& _sum(Ta *start, Ta *end)
     return sum;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 inline bool _checksorted(T *start, T *end)
 {
     while(++start < end)
@@ -373,7 +374,7 @@ inline bool _checksorted(T *start, T *end)
     return true;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 inline bool _checksorted(T *start, unsigned long len)
 {
     while(len-- > 0)

@@ -176,7 +176,7 @@ long *graph::shortestWay(unsigned node)
     if(!cycles)
     {
         long *distance = new long[gLen];
-        _vfill(distance, gLen, LONG_MAX);
+        _vfill(distance, gLen, std::numeric_limits<long>::max());
         distance[node] = 0;
         for(unsigned i = _utmp; i < gLen; i++)
             for(unsigned k = 0; k < waysGo[_uatmp[i]].size(); k++)
