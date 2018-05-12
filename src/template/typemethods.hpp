@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <type_traits>
 
 #include "t_useful.hpp"
@@ -148,16 +149,15 @@ template <typename T>
 struct _hasNextType
 {
 private:
-    template <typename C>
-    static long long test(_rank<0>);
+    static uint8_t test(_rank<0>);
 
-    template <typename C, typename _typeSeq<C>::next::type = 0>
-    static char test(_rank<1>);
+    template<typename _typeSeq<T>::next::type = 0>
+    static uint16_t test(_rank<1>);
 
 public:
     enum
     {
-        value = (sizeof(test<T>(_rank<1>())) == sizeof(char))
+        value = sizeof(test<>(_rank<1>())) == 2
     };
 };
 
