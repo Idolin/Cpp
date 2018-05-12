@@ -130,8 +130,8 @@ void quicksort(T *start, T *end)
     quicksort<T, compare>(sp, end);
 }
 
-void timsort()
-{}
-
-void heapsort()
-{}
+//void timsort()
+//{}
+//
+//void heapsort()
+//{}
