@@ -2,11 +2,13 @@
 
 #include <stdio.h>
 #include "../other/defdef.h"
+#include "../debug/def_debug.h"
 #include "typemethods.hpp"
 
 template<typename T>
-inline void _display(const T *const start, const T *const end, const char *const prf = _typeSeq<T>::specifier,
-                     const char *const del = " ")
+inline void _display(const T *start, const T *end,
+                     const char *prf = _typeSeq<T>::specifier,
+                     const char *del = " ")
 {
     ASSERT(start <= end);
     if(start == end)
@@ -21,7 +23,9 @@ inline void _display(const T *const start, const T *const end, const char *const
 }
 
 template<typename T>
-inline void _display(T *start, unsigned len, const char *prf = _typeSeq<T>::specifier, const char *del = " ")
+inline void _display(const T *start, unsigned len,
+                     const char *prf = _typeSeq<T>::specifier,
+                     const char *del = " ")
 {
     if(len == 0)
         return;
@@ -35,9 +39,9 @@ inline void _display(T *start, unsigned len, const char *prf = _typeSeq<T>::spec
 }
 
 template<typename T>
-inline void
-_display2D(T **array, unsigned length, unsigned height, const char *prf = _typeSeq<T>::specifier, const char *del = " ",
-           const char *ldel = "\n")
+inline void _display2D(const T *const *array, unsigned length, unsigned height,
+                       const char *prf = _typeSeq<T>::specifier,
+                       const char *del = " ", const char *ldel = "\n")
 {
     if((height == 0) or (length == 0))
         return;
