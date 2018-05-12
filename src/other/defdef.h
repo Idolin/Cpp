@@ -206,6 +206,7 @@
 
 #define FOR_EACH(compose, before, after, ...) FOR_EACH_(compose, before, after, __VA_ARGS__)
 
+
 //FOR_EACH_ARG(type name, values to iterate, { body })
 #define FOR_EACH_ARG(var_decl, ...) \
     FOR_EACH(COMPOSE_DEF, var_decl =, \
@@ -214,3 +215,6 @@
 #define FOR_EACH_ARG_COMPOSE(compose, var_decl, ...) \
     FOR_EACH(compose, var_decl =, \
     ; GET_ARG_LAST(__VA_ARGS__), EXCLUDE_LAST(__VA_ARGS__))
+
+#define FOR_EACH_ARG_COMPOSE_I(compose, var_decl, ...) \
+    FOR_EACH_ARG_COMPOSE(compose, var_decl, ## __VA_ARGS__)
