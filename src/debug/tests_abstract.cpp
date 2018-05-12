@@ -30,7 +30,7 @@ namespace _test_abstract_class_
 {
     _test_class_abstract::_test_class_abstract(const char *test_name):
             test_name(test_name), test_repeat_amount(1),
-            max_error_amount_show(3), errors_to_stop(0),
+            max_error_amount_show(30), errors_to_stop(0),
             exception_expected(false), test_with(), subtests()
     {}
 
@@ -80,6 +80,7 @@ namespace _test_abstract_class_
         color_fprintf((test_ok ? term_color::GREEN : term_color::RED), DEBUG_OUTPUT_STREAM, "> Test %s ",
                       (test_ok ? "succeeded" : "failed!"));
         fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds());
+        fputc('\n', DEBUG_OUTPUT_STREAM);
         return test_ok;
     }
 
@@ -90,14 +91,14 @@ namespace _test_abstract_class_
             if(i + 1 == this -> test_with.size())
                 DEBUGLVLMSG_N(5, "with %s", this -> test_with[i])
             else
-                DEBUGLVLMSG_N(5, "with %s,", this -> test_with[i]);
+                DEBUGLVLMSG_N(5, "with %s, ", this -> test_with[i]);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
     }
 
     void _test_class_abstract::print_level(term_color color)
     {
         set_term_color(color, DEBUG_OUTPUT_STREAM);
-        for(unsigned i = 0;i <= subtests.size();i++)
+        for(unsigned i = 0;i <= subtests.size() + (test_with.empty() ? 0 : 1);i++)
             fputc('>', DEBUG_OUTPUT_STREAM);
         if(color != term_color::KEEP)
             set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
@@ -108,12 +109,15 @@ namespace _test_abstract_class_
         subtests.push(std::make_pair(subtest_name, process_time_counter()));
         subtests.back().second.start();
         set_term_color(term_color::MAGENTA, DEBUG_OUTPUT_STREAM);
+        fputc('\n', DEBUG_OUTPUT_STREAM);
         print_level();
         fprintf(DEBUG_OUTPUT_STREAM, " Subtest: %s\n", subtests.back().first);
-        return true;
+        bool saved = this -> test_ok;
+        test_ok = true;
+        return saved;
     }
 
-    bool _test_class_abstract::check_subtest()
+    bool _test_class_abstract::check_subtest(bool saved)
     {
         subtests.back().second.stop();
         unsigned long long time = subtests.back().second.getMilliseconds();
@@ -125,8 +129,10 @@ namespace _test_abstract_class_
         fprintf(DEBUG_OUTPUT_STREAM, " Subtest %s: %s ", subtests.pop().first,
                 this -> test_ok ? "succeeded" : "failed");
         fprinttime(DEBUG_OUTPUT_STREAM, time);
+        fputc('\n', DEBUG_OUTPUT_STREAM);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
-        return this -> test_ok;
+        this -> test_ok &= saved;
+        return true;
     }
 };
 
