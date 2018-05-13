@@ -6,9 +6,8 @@
 #include "typemethods.hpp"
 
 template<typename T>
-inline void _display(const T *start, const T *end,
-                     const char *prf = _typeSeq<T>::specifier,
-                     const char *del = " ")
+inline void _display(const T *const start, const T *const end, const char *const prf = _typeSeq<T>::specifier,
+                     const char *const del = " ")
 {
     ASSERT(start <= end);
     if(start == end)
@@ -22,10 +21,8 @@ inline void _display(const T *start, const T *end,
     putchar('\n');
 }
 
-template<typename T>
-inline void _display(const T *start, unsigned len,
-                     const char *prf = _typeSeq<T>::specifier,
-                     const char *del = " ")
+template<typename T, typename SizeType = unsigned>
+inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>::specifier, const char *del = " ")
 {
     if(len == 0)
         return;
@@ -38,10 +35,10 @@ inline void _display(const T *start, unsigned len,
     putchar('\n');
 }
 
-template<typename T>
-inline void _display2D(const T *const *array, unsigned length, unsigned height,
-                       const char *prf = _typeSeq<T>::specifier,
-                       const char *del = " ", const char *ldel = "\n")
+template<typename T, typename SizeTypeL = unsigned, typename SizeTypeH = unsigned>
+inline void _display2D(const T *const *array, SizeTypeL length, SizeTypeH height,
+                       const char *prf = _typeSeq<T>::specifier, const char *del = " ",
+                       const char *ldel = "\n")
 {
     if((height == 0) or (length == 0))
         return;
@@ -73,8 +70,8 @@ inline void _tshow(const T& x)
 }
 
 template<typename T>
-inline typename std::enable_if<std::is_same<std::remove_reference<T>, const size_t>::value &&
-                               !std::is_integral<size_t>::value>::type _tshow(T& x)
+inline typename std::enable_if<std::is_same<typename clear_type<T>::type, size_t>::value &&
+                               !std::is_integral<size_t>::value>::type _tshow(const T &x)
 {
     printf("%z", x);
 }
@@ -152,7 +149,7 @@ inline void _tshow(const bool& x)
 }
 
 template<typename T, void (*show)(const T&) = &_tshow>
-inline void _tdisplay(T *a, unsigned long len, const char *del = ", ")
+inline void _tdisplay(const T *a, unsigned long len, const char *del = ", ")
 {
     if(len--)
     {
@@ -167,7 +164,7 @@ inline void _tdisplay(T *a, unsigned long len, const char *del = ", ")
 }
 
 template<typename T, void (*show)(const T&) = &_tshow>
-inline void _tdisplay(T *a, unsigned long start, unsigned long end, const char* del = ", ")
+inline void _tdisplay(const T *a, unsigned long start, unsigned long end, const char *del = ", ")
 {
     _tdisplay<T, show>(a + start, end - start, del);
 }
