@@ -168,40 +168,38 @@ TEST_PACK(sort)
     }
 
     TEST(n_logn_sort_custom_comparator)
-{
-    short *t = new short[10000000];
-    unsigned long long *l = new unsigned long long[10000000];
-    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<short> sort,
-                         (mergesort<short, compare_short_reversed>),
-                         (quicksort<short, compare_short_reversed>), {
-                             SUB_TEST(short_reversed)
-                             {
-                                 FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned
-                                 length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
-                                         for(unsigned i = 0; i < length; i++)
-                                         t[i] = randomS();
-                                         sort(t, t + length);
-                                         EXPECT_TRUE((_checksorted<short, compare_short_reversed>(t, t + length)));
-                                 });
-                             }
-                         });
-    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<unsigned long long> sort,
-                         (mergesort<unsigned long long, compare_unsigned_long_long_odd_first>),
-                         (quicksort<unsigned long long, compare_unsigned_long_long_odd_first>), {
-                             SUB_TEST(unsigned_long_long_odd_first)
-                             {
-                                 FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned
-                                 length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
-                                         for(unsigned i = 0; i < length; i++)
-                                         l[i] = randomULL();
-                                         sort(l, l + length);
-                                         EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(l, l + length)));
-                                 });
-                             }
-                         });
-    delete []
-    t;
-    delete []
-    l;
-}
+	{
+	    short *t = new short[10000000];
+	    unsigned long long *l = new unsigned long long[10000000];
+	    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<short> sort,
+	            (mergesort<short, compare_short_reversed>),
+	            (quicksort<short, compare_short_reversed>), {
+            SUB_TEST(short_reversed)
+            {
+                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned
+                length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                        for(unsigned i = 0; i < length; i++)
+                            t[i] = randomS();
+                        sort(t, t + length);
+                        EXPECT_TRUE((_checksorted<short, compare_short_reversed>(t, t + length)));
+                });
+            }
+        });
+	    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<unsigned long long> sort,
+	            (mergesort<unsigned long long, compare_unsigned_long_long_odd_first>),
+	            (quicksort<unsigned long long, compare_unsigned_long_long_odd_first>), {
+	        SUB_TEST(unsigned_long_long_odd_first)
+	        {
+	            FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned
+	            length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+	                    for(unsigned i = 0; i < length; i++)
+	                        l[i] = randomULL();
+	                    sort(l, l + length);
+	                    EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(l, l + length)));
+	            });
+	        }
+	    });
+	    delete [] t;
+	    delete [] l;
+	}
 }
