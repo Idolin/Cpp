@@ -2,6 +2,8 @@
 
 #include "t_useful.hpp"
 
+#include <type_traits>
+
 template<typename T = void>
 struct is_bit_movable;
 
@@ -52,5 +54,33 @@ struct is_mergeable
 {
     enum {
         value = std::is_base_of<mergeable<T>, T>::value
+    };
+};
+
+template<typename T, typename Enable = void>
+struct is_less_comparable;
+
+template<typename T>
+struct is_less_comparable<T, typename std::enable_if<std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+{
+    enum {
+        value = true
+    };
+};
+
+template<typename T>
+struct is_less_comparable<T, typename std::enable_if<!std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
+{
+private:
+    static uint8_t test(_rank<0>);
+
+    template<typename = decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
+            std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>())>
+    static uint16_t test(_rank<1>);
+
+public:
+    enum
+    {
+        value = sizeof(test<>(_rank<1>())) == 2
     };
 };
