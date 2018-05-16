@@ -39,7 +39,7 @@ TEST_PACK(sort)
             {
                 FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
                     for(unsigned i = 0; i < length; i++)
-                        t[i] = randomU() & 0x0f;
+                        t[i] = randomU() & 0x0fu;
                     sort(t, t + length);
                     EXPECT_TRUE(_checksorted(t, t + length));
                 });
@@ -73,7 +73,7 @@ TEST_PACK(sort)
 
     bool compare_unsigned_long_long_odd_first(unsigned long long a, unsigned long long b)
     {
-        return ((a ^ b) & 0x1) ? (a & 0x1) : (a < b);
+        return (((a ^ b) & 0x1u)) ? ((a & 0x1u)) : (a < b);
     }
 
     TEST(square_sort_custom_comparator)
@@ -141,7 +141,7 @@ TEST_PACK(sort)
             {
                 FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
                     for(unsigned i = 0; i < length; i++)
-                        t[i] = randomU() & 0x0f;
+                        t[i] = randomU() & 0x0fu;
                     sort(t, t + length);
                     EXPECT_TRUE(_checksorted(t, t + length));
                 });
