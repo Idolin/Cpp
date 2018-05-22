@@ -28,7 +28,7 @@ TEST_PACK(sort)
             }
             SUB_TEST(sorted_order)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
                      for(unsigned i = 0; i < length; i++)
                         t[i] = i;
                      sort(t, t + length);
@@ -37,16 +37,16 @@ TEST_PACK(sort)
             }
             SUB_TEST(few_numbers)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
                     for(unsigned i = 0; i < length; i++)
-                        t[i] = randomU() & 0x0f;
+                        t[i] = randomU() & 0x0fu;
                     sort(t, t + length);
                     EXPECT_TRUE(_checksorted(t, t + length));
                 });
             }
             SUB_TEST(partially_sorted)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
                     for(unsigned i = 0, k = 0; i < length; i++, k += (i & 0x40 == 0x40) * 30)
                         t[i] = i + 20 + randomU() & 0xff - randomU() & 0xf - k;
                     sort(t, t + length);
@@ -55,7 +55,7 @@ TEST_PACK(sort)
             }
             SUB_TEST(fully_random)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
                     for(unsigned i = 0; i < length; i++)
                         t[i] = randomU();
                     sort(t, t + length);
@@ -73,7 +73,7 @@ TEST_PACK(sort)
 
     bool compare_unsigned_long_long_odd_first(unsigned long long a, unsigned long long b)
     {
-        return ((a ^ b) & 0x1) ? (a & 0x1) : (a < b);
+        return (((a ^ b) & 0x1u)) ? ((a & 0x1u)) : (a < b);
     }
 
     TEST(square_sort_custom_comparator)
@@ -87,7 +87,7 @@ TEST_PACK(sort)
                 (insertionsort<short, compare_short_reversed>), {
 	        SUB_TEST(short_reversed)
 	        {
-	            FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+	            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
 	                for(unsigned i = 0; i < length; i++)
 	                    t[i] = randomS();
 	                sort(t, t + length);
@@ -102,7 +102,7 @@ TEST_PACK(sort)
                 (insertionsort<unsigned long long, compare_unsigned_long_long_odd_first>), {
 	        SUB_TEST(unsigned_long_long_odd_first)
 	        {
-	            FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
+	            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
 	                for(unsigned i = 0; i < length; i++)
 	                    l[i] = randomULL();
 	                sort(l, l + length);
@@ -114,7 +114,7 @@ TEST_PACK(sort)
         delete [] l;
 	}
 
-	TEST(sort_n_logn)
+	TEST(sort_n_logn_unsigned)
     {
     	unsigned *t = new unsigned[10000000];
         FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<unsigned> sort,
@@ -130,7 +130,7 @@ TEST_PACK(sort)
             }
             SUB_TEST(sorted_order)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
                      for(unsigned i = 0; i < length; i++)
                         t[i] = i;
                      sort(t, t + length);
@@ -139,16 +139,16 @@ TEST_PACK(sort)
             }
             SUB_TEST(few_numbers)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
                     for(unsigned i = 0; i < length; i++)
-                        t[i] = randomU() & 0x0f;
+                        t[i] = randomU() & 0x0fu;
                     sort(t, t + length);
                     EXPECT_TRUE(_checksorted(t, t + length));
                 });
             }
             SUB_TEST(partially_sorted)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
                     for(unsigned i = 0, k = 0; i < length; i++, k += (i & 0x40 == 0x40) * 30)
                         t[i] = i + 20 + randomU() & 0xff - randomU() & 0xf - k;
                     sort(t, t + length);
@@ -157,7 +157,7 @@ TEST_PACK(sort)
             }
             SUB_TEST(fully_random)
             {
-                FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
                     for(unsigned i = 0; i < length; i++)
                         t[i] = randomU();
                     sort(t, t + length);
@@ -168,36 +168,79 @@ TEST_PACK(sort)
     }
 
     TEST(n_logn_sort_custom_comparator)
-    {
-        short *t = new short[10000000];
-        unsigned long long *l = new unsigned long long[10000000];
-        FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<short> sort,
-                (mergesort<short, compare_short_reversed>),
-                (quicksort<short, compare_short_reversed>), {
-	        SUB_TEST(short_reversed)
-	        {
-	            FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
-	                for(unsigned i = 0; i < length; i++)
-	                    t[i] = randomS();
-	                sort(t, t + length);
-	                EXPECT_TRUE((_checksorted<short, compare_short_reversed>(t, t + length)));
-	            });
-	        }
+	{
+	    short *t = new short[10000000];
+	    unsigned long long *l = new unsigned long long[10000000];
+	    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<short> sort,
+	            (mergesort<short, compare_short_reversed>),
+	            (quicksort<short, compare_short_reversed>), {
+            SUB_TEST(short_reversed)
+            {
+                FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+                        for(unsigned i = 0; i < length; i++)
+                            t[i] = randomS();
+                        sort(t, t + length);
+                        EXPECT_TRUE((_checksorted<short, compare_short_reversed>(t, t + length)));
+                });
+            }
         });
-        FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<unsigned long long> sort,
-                (mergesort<unsigned long long, compare_unsigned_long_long_odd_first>),
-                (quicksort<unsigned long long, compare_unsigned_long_long_odd_first>), {
+	    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, sort_algo<unsigned long long> sort,
+	            (mergesort<unsigned long long, compare_unsigned_long_long_odd_first>),
+	            (quicksort<unsigned long long, compare_unsigned_long_long_odd_first>), {
 	        SUB_TEST(unsigned_long_long_odd_first)
 	        {
-	            FOR_EACH_ARG_COMPOSE_I(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
-	                for(unsigned i = 0; i < length; i++)
-	                    l[i] = randomULL();
-	                sort(l, l + length);
-	                EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(l, l + length)));
+	            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, {
+	                    for(unsigned i = 0; i < length; i++)
+	                        l[i] = randomULL();
+	                    sort(l, l + length);
+	                    EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(l, l + length)));
 	            });
 	        }
-        });
-        delete [] t;
-        delete [] l;
+	    });
+	    delete [] t;
+	    delete [] l;
+	}
+
+	TEST(line_sort_unsigned)
+	{
+		unsigned *t = new unsigned[1000000000];
+		WITH_ARG_DEF(sort_algo<unsigned> sort, bucketsort<unsigned>);
+	    SUB_TEST(equal_numbers)
+        {
+            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, SEQ_10_POW(9), {
+                for(unsigned i = 0; i < length; i++)
+                    t[i] = length;
+                bucketsort(t, t + length);
+                EXPECT_TRUE(_checksorted(t, t + length));
+            });
+        }
+        SUB_TEST(few_numbers)
+        {
+            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, SEQ_10_POW(9), {
+                for(unsigned i = 0; i < length; i++)
+                    t[i] = randomU() & 0x0fu;
+                bucketsort(t, t + length);
+                EXPECT_TRUE(_checksorted(t, t + length));
+            });
+        }
+        SUB_TEST(many_numbers)
+        {
+            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, SEQ_10_POW(9), {
+                for(unsigned i = 0; i < length; i++)
+                    t[i] = randomU() & 0xffff;
+                bucketsort(t, t + length);
+                EXPECT_TRUE(_checksorted(t, t + length));
+            });
+        }
+        SUB_TEST(all_numbers_different)
+        {
+            FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, SEQ_10_POW(9), {
+                for(unsigned i = 0; i < length; i++)
+                    t[i] = i;
+                bucketsort(t, t + length);
+                EXPECT_TRUE(_checksorted(t, t + length));
+            });
+        }
+        delete[] t;
 	}
 }
