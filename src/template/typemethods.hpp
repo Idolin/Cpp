@@ -234,5 +234,23 @@ template<typename T>
 struct compare_func<T, typename std::enable_if<
         !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
 {
-    typedef bool (*type)(T, T);
+    typedef bool (*type)(const T&, const T&);
+};
+
+template<typename T, typename R>
+constexpr inline unsigned short getter_parts()
+{
+    return (sizeof(T) + sizeof(R) - 1) / sizeof(R);
+};
+
+template<typename T, typename R = typename _getMinType<uint16_t,
+        typename std::make_unsigned<typename clear_type<T>::type>::type>::type,
+    typename = typename std::enable_if<std::is_unsigned<R>::value>::type>
+struct getter_func
+{
+    typedef R (*type)(T, unsigned short);
+
+    typedef R RType;
+
+    constexpr static const unsigned short parts = getter_parts<T, R>();
 };
