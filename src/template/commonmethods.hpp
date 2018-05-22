@@ -11,7 +11,8 @@ inline bool _less(T x1, T x2)
     return x1 < x2;
 }
 
-template<typename T, typename = typename def_get_by_reference<T>::type>
+template<typename T, typename = typename std::enable_if<
+        is_less_comparable<T>::value, typename def_get_by_reference<T>::type>::type>
 inline bool _less(const T& x1, const T& x2)
 {
     return x1 < x2;
@@ -170,8 +171,8 @@ T to2(T k)
     return a;
 }
 
-template<typename T>
-unsigned char max_bit_pos(T value)
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+constexpr unsigned char max_bit_pos(T value)
 {
     if(value < 0)
         return sizeof(T) << 3;
@@ -183,4 +184,15 @@ unsigned char max_bit_pos(T value)
         ans++;
     }
     return ans;
+}
+
+template<typename T,
+        typename = typename std::enable_if<std::is_integral<T>::value>::type>
+constexpr unsigned char min_bit_pos(T value)
+{
+    if(value == std::numeric_limits<T>::min())
+        return (value < 0) ? 255 : (sizeof(T) << 3);
+    for(unsigned char i = 0;; i++)
+        if(value & (1 << i))
+            return i;
 }
