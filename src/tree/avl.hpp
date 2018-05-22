@@ -68,7 +68,9 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
 
     typedef tree_iterator<TData, TKey> t_iterator;
 
-    avl_tree(): search_tree_abstract_crtp<TData, TKey, avl_node>()
+    unsigned long _size;
+
+    avl_tree(): search_tree_abstract_crtp<TData, TKey, avl_node>(), _size(0)
     {}
 
     std::pair<t_iterator, bool> insert(TKey key, TData data, bool rewrite = false)
@@ -84,6 +86,7 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
             {
                 balance((*next = new avl_node(key, data, node)));
                 t_iterator t = t_iterator(*next);
+                _size++;
                 this->_lock.unlock();
                 return make_pair(t, true);
             }
@@ -143,8 +146,14 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
         TData &data = node->data;
         balance(node);
         delete node;
+        _size--;
         this->_lock.unlock();
         return data;
+    }
+
+    unsigned long size()
+    {
+        return _size;
     }
 
     t_iterator begin() const
