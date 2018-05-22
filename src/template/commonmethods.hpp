@@ -1,6 +1,7 @@
 #pragma once
 
 #include "typemethods.hpp"
+#include "struct_tags.hpp"
 
 #include <algorithm>
 #include <type_traits>
