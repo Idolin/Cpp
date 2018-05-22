@@ -134,6 +134,17 @@ namespace _test_abstract_class_
         this -> test_ok &= saved;
         return true;
     }
+
+    _test_with_wrapper::_test_with_wrapper(_test_class_abstract *p, const char *with):
+        test_p(p)
+    {
+        test_p -> test_with.push(with);
+    }
+
+    _test_with_wrapper::~_test_with_wrapper()
+    {
+        test_p -> test_with.pop();
+    }
 };
 
 _test_pack_class_abstract::_test_pack_class_abstract(const char *test_pack_name):

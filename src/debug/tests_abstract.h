@@ -39,6 +39,14 @@ namespace _test_abstract_class_
         bool check_subtest(bool saved);
     };
 
+    struct _test_with_wrapper
+    {
+        _test_class_abstract *test_p;
+        
+        _test_with_wrapper(_test_class_abstract *p, const char *with);
+        
+        ~_test_with_wrapper();
+    };
 };
 
 struct _test_pack_class_abstract

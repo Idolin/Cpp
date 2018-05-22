@@ -67,7 +67,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                 { \
                     set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
                     DEBUGLVLMSG_N(5, "> "); \
-                    DEBUGLVLMSG_N(5, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
+                    DEBUGLVLMSG_N(5, GET_ARG_DEF_I("Check(true) failed", ## __VA_ARGS__)); \
                     DEBUGLVLMSG(5, " at line %d", __LINE__); \
                     this -> print_test_with(term_color::ORANGE); \
                     fputc('\n', DEBUG_OUTPUT_STREAM); \
@@ -95,7 +95,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                 set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
                 this -> print_level(); \
                 fprintf(DEBUG_OUTPUT_STREAM, "> "); \
-                fprintf(DEBUG_OUTPUT_STREAM, GET_ARG_DEF_("Check(true) failed", ## __VA_ARGS__)); \
+                fprintf(DEBUG_OUTPUT_STREAM, GET_ARG_DEF_I("Check(true) failed", ## __VA_ARGS__)); \
                 fprintf(DEBUG_OUTPUT_STREAM, " at line %d\n", __LINE__); \
                 this -> print_test_with(term_color::ORANGE); \
                 fputc('\n', DEBUG_OUTPUT_STREAM); \
@@ -146,10 +146,10 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception) failed", ## __VA_ARGS__)); \
     }
 
-#define COMPOSE_TEST(B, X, A) \
+#define COMPOSE_TEST(B, A, X,  ...) \
 { \
     process_time_counter inner; \
-    this -> test_with.push(#B " " #X); \
+    this -> test_with.push(#B " " QUOTE_F(X)); \
     inner.start(); \
     { B X A } \
     inner.stop(); \
@@ -159,7 +159,12 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     fputc(' ', DEBUG_OUTPUT_STREAM); \
     fprinttime(DEBUG_OUTPUT_STREAM, inner.getMilliseconds()); \
     this -> test_with.pop(); \
-}
+} __VA_ARGS__
+
+#define _LAST_COMPOSE_TEST(...) COMPOSE_TEST(__VA_ARGS__)
+
+#define WITH_ARG_DEF(decl, value) \
+    _test_abstract_class_::_test_with_wrapper wrapper_ ## __COUNTER__ ## _ ## __LINE__(this, #decl " = " #value)
 
 // FOR_CLASS(var_name, list to iterate, { body })
 // (example: FOR_CLASS(x, 1, foo(3), Class(), { _tshow(x); })
