@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <type_traits>
+#include "struct_tags.hpp"
 
 template<typename T, typename = typename def_get_by_value<T>::type>
 inline bool _less(T x1, T x2)
@@ -30,6 +31,27 @@ inline bool _more(const T& x1, const T& x2)
 {
     return _less(x2, x1);
 }
+
+template<typename T, typename Enable = void>
+struct def_comparator;
+
+template<typename T>
+struct def_comparator<T, typename def_get_by_value<T>::type>
+{
+    bool (*comparator)(T, T) = &_less<T>;
+};
+
+template<typename T>
+struct def_comparator<T, typename std::enable_if<is_less_comparable<T>::value, typename def_get_by_reference<T>::type>::type>
+{
+    bool (*comparator)(const T&, const T&) = &_less<T>;
+};
+
+template<typename T>
+struct def_comparator<T, typename std::enable_if<!is_less_comparable<T>::value, typename def_get_by_reference<T>::type>::type>
+{
+    bool (*comparator)(const T&, const T&) = nullptr;
+};
 
 #define _notmore(x, y) (not(_more(x, y)))
 
