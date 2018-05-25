@@ -82,12 +82,6 @@ struct make_getter<RType, RNow, T, get, parts, typename std::enable_if<
     constexpr static unsigned short parts_new = parts * sizeof(RNow) / sizeof(RType);
 };
 
-template<typename T>
-void countsort(T min = 0, T max = 0)
-{}
-
-void radixsort(bool right = false, bool nsigned = true);
-
 template<typename T, typename R, typename getter_func<T, R>::type getter,
         unsigned short parts,
         typename compare_func<T>::type compare, typename E>
