@@ -163,6 +163,14 @@ public:
 
     bool operator!=(const str&) const;
 
+    bool operator<(const str&) const;
+
+    bool operator<=(const str&) const;
+
+    bool operator>(const str&) const;
+
+    bool operator>=(const str&) const;
+
     unsigned long length() const;
 
     const_array<char> c_str() const;
