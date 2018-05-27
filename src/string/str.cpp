@@ -396,7 +396,7 @@ bool str::operator==(const str& b) const
     else
     {
         for(unsigned i = 0; i < info->len; i++)
-            if((*static_cast<str_info_cnct*>(info))[i] != b[i]) // NOLINT (we are sure about info type)
+            if((*info)[i] != b[i])
                 return false;
     }
     return true;
@@ -409,8 +409,23 @@ bool str::operator!=(const str& b) const
 
 bool str::operator<(const str& b) const
 {
-    if(info->len != b.length())
-        return (info -> len < b.length());
+    if(s)
+    {
+        for(unsigned i = 0; i < info->len; i++) //should work, as b[last] is '\NUL'
+            if(s[i] != b[i])
+                return (s[i] < b[i]);
+    }
+    else
+    {
+        for(unsigned i = 0; i < info->len; i++)
+            if((*info)[i] != b[i])
+                return ((*info)[i] < b[i]);
+    }
+    return (info -> len < b.length());
+}
+
+bool str::operator<=(const str& b) const
+{
     if(s)
     {
         for(unsigned i = 0; i < info->len; i++)
@@ -419,12 +434,45 @@ bool str::operator<(const str& b) const
     }
     else
     {
-        str_info_cnct *
         for(unsigned i = 0; i < info->len; i++)
-            if((*static_cast<str_info_cnct*>(info))[i] != b[i]) // NOLINT (we are sure about info type)
-                return ((*static_cast<str_info_cnct*>(info))[i] < b[i]);
+            if((*info)[i] != b[i])
+                return ((*info)[i] < b[i]);
     }
-    return false;
+    return (info -> len <= b.length());
+}
+
+bool str::operator>(const str& b) const
+{
+    if(s)
+    {
+        for(unsigned i = 0; i < info->len; i++)
+            if(s[i] != b[i])
+                return (s[i] > b[i]);
+    }
+    else
+    {
+        for(unsigned i = 0; i < info->len; i++)
+            if((*info)[i] != b[i])
+                return ((*info)[i] > b[i]);
+    }
+    return (info -> len > b.length());
+}
+
+bool str::operator>=(const str& b) const
+{
+    if(s)
+    {
+        for(unsigned i = 0; i < info->len; i++)
+            if(s[i] != b[i])
+                return (s[i] >= b[i]);
+    }
+    else
+    {
+        for(unsigned i = 0; i < info->len; i++)
+            if((*info)[i] != b[i])
+                return ((*info)[i] >= b[i]);
+    }
+    return (info -> len >= b.length());
 }
 
 unsigned long str::length() const

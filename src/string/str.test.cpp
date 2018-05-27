@@ -230,4 +230,80 @@ TEST_PACK(str)
                   "Expected length of str: %lu, but length is %lu",
                   str_count * 2 + 100000, u.length());
     }
+
+    TEST(last_char_is_nul)
+    {
+        str e;
+        EXPECT_EQ(e.at(0), '\0');
+        for(int i = 0;i < 10;i++)
+        {
+            e += '1';
+            EXPECT_EQ(e.at(e.length()), '\0');
+        }
+        str a = "1234567";
+        EXPECT_EQ(a.at(a.length()), '\0');
+        e += a;
+        EXPECT_EQ(e.at(e.length()), '\0');
+        for(int i = 0;i < 10;i++)
+        {
+            e += '1';
+            EXPECT_EQ(e.at(e.length()), '\0');
+        }
+        a = e.subStr(3, 7);
+        EXPECT_EQ(a.at(a.length()), '\0');
+        a = a.subStr(3);
+        EXPECT_EQ(a.at(a.length()), '\0');
+        a = "";
+        EXPECT_EQ(a.at(a.length()), '\0');
+    }
+
+    TEST(str_comparision)
+    {
+        str a, b;
+        EXPECT_LE(a, b);
+        EXPECT_GE(a, b);
+        EXPECT_EQ(a, b);
+        a = "123";
+        EXPECT_LE(b, a);
+        EXPECT_FALSE(a <= b);
+        b = "12";
+        EXPECT_LE(b, a);
+        EXPECT_FALSE(a <= b);
+        b += '5';
+        EXPECT_GT(b, a);
+        EXPECT_LE(a, b);
+    }
+
+    TEST(str_equals_speed)
+    {
+        str a = "1";
+        str b = "1";
+        for(unsigned i = 0;i < 22;i++)
+        {
+            EXPECT_EQ(a, b);
+            a += a;
+            b += b;
+        }
+    }
+
+    TEST(str_comparision_speed)
+    {
+        for(unsigned i = 0;i < 100;i++)
+        {
+            str a = "1";
+            str b = "1";
+            a *= 100000;
+            b *= 100000;
+            EXPECT_EQ(a, b);
+            EXPECT_LE(b, a);
+            EXPECT_GE(b, a);
+            EXPECT_FALSE(b < a);
+            a = "0" + a;
+            EXPECT_LT(a, b);
+            EXPECT_NE(a, b);
+            b = "0" + b + "1";
+            EXPECT_LT(a, b);
+            EXPECT_NE(a, b);
+        }
+    }
 }

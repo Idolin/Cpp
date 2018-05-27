@@ -149,9 +149,10 @@ public:
     char at(unsigned long) const; //use this for fast access(otherwise if you call [] operator from
     // non-const context non-const [] will be executed what may lead to slowdowns and increased memory usage
 
-    char operator[](unsigned long) const;
+    char operator[](unsigned long) const; //str[str.length()] == '\0'
 
-    char &operator[](unsigned long);
+    //str[str.length()] is exception, because of attempt of write access(use at method instead)
+    char& operator[](unsigned long);
 
     str& operator+=(const str&);
 
