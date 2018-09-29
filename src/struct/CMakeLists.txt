@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 
-set(SOURCE_LIB graph.cpp)
-add_library(graph_lib STATIC "${SOURCE_LIB}")
+set(SOURCE_LIB_GRAPH graph.cpp)
+add_library(graph_lib STATIC "${SOURCE_LIB_GRAPH}")
 
 add_dependencies(graph_lib heap_tgt vector_tgt)
 
@@ -11,5 +11,10 @@ add_custom_target(dsu_tgt
 
 add_test(dsu_test dsu.test.cpp)
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/dsu.test.cpp)
+
+set(SOURCE_LIB_TM turing_machine.cpp)
+add_library(tm_lib STATIC "${SOURCE_LIB_TM}")
+
+add_dependencies(tm_lib str_lib vector_tgt avl_tgt)
 
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
