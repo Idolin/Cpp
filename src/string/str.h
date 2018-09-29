@@ -6,13 +6,15 @@
 #include "../container/vector.hpp"
 #include "../template/displaymethods.hpp"
 #include "../container/const_array.hpp"
+#include "../template/commonmethods.hpp"
+#include "../other/hash.hpp"
 
 #include <string>
 
-struct str
+struct str: Hashable
 {
 protected:
-    struct str_info
+    struct str_info: HashableStored<true>
     {
         union
         {
@@ -20,9 +22,11 @@ protected:
             str_info *lpart;
         };
         unsigned long len, links;
+        mutable unsigned long cell_changed;
 
         str_info(char *s, unsigned long len) noexcept;
         str_info(str_info *lpart, unsigned long len);
+        str_info(str_info *copy_from);
 
         virtual ~str_info();
 
@@ -30,6 +34,10 @@ protected:
         virtual void copy_to_array(char *dst) const;
         virtual void copy_to_array(char *dst, unsigned long from, unsigned long to) const;
         virtual bool is_owner() const;
+
+        void update_hash() const;
+        void update_hash(unsigned long cell) const;
+        virtual uint64_t hash_recalc() const override;
     };
 
     struct str_info_subs: str_info
@@ -65,13 +73,18 @@ protected:
         void copy_to_array(char *dst) const override;
         void copy_to_array(char *dst, unsigned long from, unsigned long to) const override;
         bool is_owner() const override;
+
+        virtual uint64_t hash_recalc() const override;
     };
 
     char *s;
     str_info *info;
 
-    static str_info& empty();
+private:
+    static str_info empty;
+    static const uint64_t hash_mult = 137;
 
+protected:
     struct const_iterator: public std::iterator<std::random_access_iterator_tag, const char>
     {
         friend struct str;
@@ -115,8 +128,56 @@ protected:
 
         const str& operator->() const;
     };
+
+    struct str_iterable
+    {
+        struct str_iterator: public std::iterator<std::forward_iterator_tag, str>
+        {
+            friend struct str;
+        private:
+            const str &s, &f;
+            unsigned long l;
+
+            str_iterator();
+
+        public:
+            str_iterator(const str &s, const str &p);
+
+            str_iterator(const str_iterator &otr);
+
+            bool operator==(const str_iterator &otr) const;
+
+            bool operator!=(const str_iterator &otr) const;
+
+            str_iterator& operator++();
+
+            str_iterator operator++(int);
+
+            str operator*() const;
+
+            operator bool() const;
+        };
+
+        const str &s, &f;
+
+        str_iterable(const str &s, const str &p);
+
+        str_iterator begin() const;
+
+        str_iterator end() const;
+    };
 public:
     str();
+
+    str(bool);
+
+    str(char);
+
+    template<typename I,
+            typename = typename std::enable_if_t<std::is_integral<I>::value &&
+                                                 !std::is_same<I, char>::value &&
+                                                 !std::is_same<I, bool>::value>>
+    str(I x); // NOLINT
 
     str(const char *); // NOLINT
 
@@ -126,13 +187,13 @@ public:
 
     str(char*, unsigned long);
 
-    str(const std::string &); // NOLINT
+    str(const std::string&); // NOLINT
 
     str(const str&);
 
     str(std::string&&); // NOLINT
 
-    str(str &&) noexcept;
+    str(str&&) noexcept;
 
 protected:
 
@@ -174,7 +235,7 @@ public:
 
     unsigned long length() const;
 
-    const_array<char> c_str() const;
+    const_array<char> c_str_ptr() const;
 
     const char *c_str();
 
@@ -201,14 +262,26 @@ public:
 
     bool endswith(const str&) const;
 
+    unsigned long count(const str&) const;
+
+    unsigned long find(const str&, unsigned long from = 0) const;
+
+    unsigned long rfind(const str&, unsigned long from = str::last) const;
+
+    str_iterable& split(const str&) const;
+
     const_iterator begin() const;
 
     const_iterator end() const;
 
-protected:
+    static const unsigned long last = std::numeric_limits<unsigned long>::max();
 
+    static const unsigned long not_found = std::numeric_limits<unsigned long>::max() - 1;
+
+protected:
     void unlink() const noexcept;
 
+    uint64_t hash() const noexcept override;
 };
 
 str operator+(str a, const str& b);
