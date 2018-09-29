@@ -8,7 +8,7 @@ struct _valueOtherMethods
 
 template<typename T>
 struct _valueOtherMethods<T, typename std::enable_if<std::is_integral<T>::value &&
-!std::is_same<T, bool>::value>::type>
+    !std::is_same<T, bool>::value>::type>
 {
     constexpr static typename std::make_unsigned<T>::type to_unsigned(T x)
     {
@@ -19,15 +19,27 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_integral<T>::value 
     {
         return static_cast<unsigned char>(x);
     }
+
+    constexpr static T rol(T x, unsigned char shift)
+    {
+        shift &= (4 << sizeof(T)) - 1;
+        return (x << shift) | (x >> (sizeof(T) * 8 - shift));
+    }
+
+    constexpr static T ror(T x, unsigned char shift)
+    {
+        shift &= (4 << sizeof(T)) - 1;
+        return static_cast<T>(to_unsigned(x) >> shift) | (x << (sizeof(T) * 8 - shift));
+    }
 };
 
 template<typename T>
 struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &&
         (sizeof(T) == 4)>::type>
 {
-    constexpr static u_int32_t to_unsigned(T x)
+    constexpr static uint32_t to_unsigned(T x)
     {
-        return reinterpret_cast<u_int32_t>(x);
+        return reinterpret_cast<uint32_t>(x);
     }
 
     constexpr static unsigned char getFirstByte(T x)
@@ -40,9 +52,9 @@ template<typename T>
 struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &&
                                                      (sizeof(T) == 8)>::type>
 {
-    constexpr static u_int64_t to_unsigned(T x)
+    constexpr static uint64_t to_unsigned(T x)
     {
-        return reinterpret_cast<u_int64_t>(x);
+        return reinterpret_cast<uint64_t>(x);
     }
 
     constexpr static unsigned char getFirstByte(T x)
@@ -124,7 +136,7 @@ struct _valueMethods<T, typename std::enable_if<(sizeof(T) == 4) &&
 {
     constexpr static bool bytesEqual(T x)
     {
-        return _valueMethods<u_int32_t>::bytesEqual(reinterpret_cast<u_int32_t>(x));
+        return _valueMethods<uint32_t>::bytesEqual(reinterpret_cast<uint32_t>(x));
     }
 };
 
@@ -135,6 +147,6 @@ struct _valueMethods<T, typename std::enable_if<(sizeof(T) == 8) &&
 {
     constexpr static bool bytesEqual(T x)
     {
-        return _valueMethods<u_int64_t>::bytesEqual(reinterpret_cast<u_int64_t>(x));
+        return _valueMethods<uint64_t>::bytesEqual(reinterpret_cast<uint64_t>(x));
     }
 };
