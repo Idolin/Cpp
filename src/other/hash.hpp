@@ -7,18 +7,22 @@
 struct Hashable
 {
     virtual uint64_t hash() const = 0;
+
+    virtual bool hash_equals(const Hashable &b) const final
+    {
+        return (hash() == b.hash());
+    }
 };
 
-template<class Self, bool lazy = true>
-class HashableStored: Hashable
+template<bool lazy = true>
+struct HashableStored: Hashable
 {};
 
-template<class Self>
-class HashableStored<Self, true>: Hashable
+template<>
+struct HashableStored<true>: Hashable
 {
-private:
-    mutable uint64_t hash_value;
 protected:
+    mutable uint64_t hash_value;
     mutable bool changed;
 public:
     HashableStored(uint64_t hash_value): hash_value(hash_value), changed(false)
@@ -27,8 +31,8 @@ public:
     HashableStored(): changed(true)
     {}
 
-private:
-    bool equals(const Self&) const = 0;
+    HashableStored(const HashableStored& otr): hash_value(otr.hash_value), changed(otr.changed)
+    {}
 
 protected:
     virtual uint64_t hash_recalc() const = 0;
@@ -37,49 +41,28 @@ public:
     uint64_t hash() const final
     {
         if(changed)
-            hash_value = hash_recalc();
+            hash_value = hash_recalc(), changed = false;
         return hash_value;
     }
 
-    bool operator==(const Self &b) const final
+    bool is_changed() const
     {
-        return ((hash() == b.hash()) && this->equals(b));
-    }
-
-    bool operator!=(const Self &b) const final
-    {
-        return !(*this == b);
+        return changed;
     }
 };
 
-template<class Self>
-class HashableStored<Self, false>: Hashable
+template<>
+struct HashableStored<false>: Hashable
 {
-private:
+protected:
     uint64_t hash_value;
 public:
-    HashableStored(uint64_t hash_value): hash_value(hash_value)
+    HashableStored(uint64_t hash_value = 0): hash_value(hash_value)
     {}
-
-private:
-    virtual bool equals(const Self &) const = 0;
-
-protected:
-    virtual uint64_t hash_recalc() const = 0;
 
 public:
     uint64_t hash() const final
     {
         return hash_value;
-    }
-
-    bool operator==(const Self &b) const final
-    {
-        return ((hash() == b.hash()) && this->equals(b));
-    }
-
-    bool operator!=(const Self &b) const final
-    {
-        return !(*this == b);
     }
 };
