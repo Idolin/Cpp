@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 project(AADS)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_BUILD_TYPE Debug)
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message("debug mode")
@@ -14,14 +15,16 @@ add_subdirectory(src/bigint)
 add_subdirectory(src/debug)
 add_subdirectory(src/container)
 add_subdirectory(src/struct)
+add_subdirectory(src/struct_algo)
 add_subdirectory(src/sort)
+add_subdirectory(src/template)
 add_subdirectory(src/tree)
 
 set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
 add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 
-target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib str_lib term_lib)
+target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib str_lib term_lib tm_lib)
 
 add_executable(only_main "${MAIN_FILE}")
 
