@@ -153,28 +153,39 @@ _test_pack_class_abstract::_test_pack_class_abstract(const char *test_pack_name)
         milliseconds(0)
 {}
 
-bool _test_pack_class_abstract::test()
+bool _test_pack_class_abstract::test(str mask)
 {
     color_fprintf(term_color::BLUE, DEBUG_OUTPUT_STREAM, "Running %s pack test\n\n", this->test_pack_name);
     test_ok = true;
     milliseconds = 0;
     errors_occured = 0;
+    bool at_least_one_test_run = false;
     for(unsigned i = 0; i < test_classes.size(); i++)
     {
-        bool local_test_ok = test_classes[i]->run();
-        test_ok = test_ok && local_test_ok;
-        milliseconds += test_classes[i]->counter.getMilliseconds();
-        if(!local_test_ok)
+        if(mask == "*" || mask == test_classes[i]->test_name)
         {
-            test_failed.push(i);
-            if(++errors_occured == errors_to_stop)
+            at_least_one_test_run = true;
+            bool local_test_ok = test_classes[i]->run();
+            test_ok = test_ok && local_test_ok;
+            milliseconds += test_classes[i]->counter.getMilliseconds();
+            if(!local_test_ok)
             {
-                color_fprintf(term_color::ORANGE, DEBUG_OUTPUT_STREAM, "Failed test limit reached(%d)!\n",
-                              this->errors_to_stop);
-                fputs("Stopping test pack execution\n", DEBUG_OUTPUT_STREAM);
-                break;
+                test_failed.push(i);
+                if(++errors_occured == errors_to_stop)
+                {
+                    color_fprintf(term_color::ORANGE, DEBUG_OUTPUT_STREAM, "Failed test limit reached(%d)!\n",
+                                  this->errors_to_stop);
+                    fputs("Stopping test pack execution\n", DEBUG_OUTPUT_STREAM);
+                    break;
+                }
             }
         }
+    }
+    if(!at_least_one_test_run)
+    {
+        color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM,
+                      "No tests in test pack %s covered by mask %s", this->test_pack_name, mask.c_str());
+        return false;
     }
     if(test_ok)
         color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM,

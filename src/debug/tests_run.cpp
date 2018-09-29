@@ -3,7 +3,7 @@
 #include "tests_abstract.h"
 #include "tests_run.h"
 
-bool run_test(str test_name)
+bool run_test(str test_name, str subtest_mask)
 {
     bool run_ok = true;
     bool exists = false;
@@ -13,7 +13,7 @@ bool run_test(str test_name)
         if((test_name == _test_class_packs_defined[i]->test_pack_name) || (test_name == "*"))
         {
             exists = true;
-            bool run_local_test_ok = _test_class_packs_defined[i]->test();
+            bool run_local_test_ok = _test_class_packs_defined[i]->test(subtest_mask);
             run_ok = run_local_test_ok && run_ok;
         }
     DEBUGIFMSG(!exists, "Test not found: %s", test_name.c_str());

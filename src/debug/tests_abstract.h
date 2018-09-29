@@ -4,6 +4,7 @@
 #include "../other/term.h"
 #include "../container/vector.hpp"
 #include "def_debug.h"
+#include "../string/str.h"
 
 #include <exception>
 
@@ -42,9 +43,9 @@ namespace _test_abstract_class_
     struct _test_with_wrapper
     {
         _test_class_abstract *test_p;
-        
+
         _test_with_wrapper(_test_class_abstract *p, const char *with);
-        
+
         ~_test_with_wrapper();
     };
 };
@@ -62,5 +63,5 @@ struct _test_pack_class_abstract
 
     virtual ~_test_pack_class_abstract() = default;
 
-    virtual bool test();
+    virtual bool test(str mask);
 };
