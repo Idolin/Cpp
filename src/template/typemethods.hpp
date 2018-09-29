@@ -16,103 +16,128 @@ struct _typeLower
 template<typename T>
 struct _typeSeq;
 
-template<>
-struct _typeSeq<signed char>
+namespace
 {
-    typedef signed char type;
-    typedef _typeSeq<short> next;
-    constexpr static const char *name = "signed char";
-    constexpr static const char *specifier = "%hhd";
-};
+    template<typename T>
+    struct _typeSeqBase;
 
-template<>
-struct _typeSeq<short>
-{
-    typedef short type;
-    typedef _typeSeq<int> next;
-    constexpr static const char *name = "short";
-    constexpr static const char *specifier = "%hd";
-};
+    template<>
+    struct _typeSeqBase<signed char>
+    {
+        typedef signed char type;
+        typedef _typeSeq<short> next;
+        constexpr static const char *name = "signed char";
+        constexpr static const char *specifier = "%hhd";
+    };
 
-template<>
-struct _typeSeq<int>
-{
-    typedef int type;
-    typedef _typeSeq<long> next;
-    constexpr static const char *name = "int";
-    constexpr static const char *specifier = "%d";
-};
 
-template<>
-struct _typeSeq<long>
-{
-    typedef long type;
-    typedef _typeSeq<long long> next;
-    constexpr static const char *name = "long";
-    constexpr static const char *specifier = "%ld";
-};
+    template<>
+    struct _typeSeqBase<short>
+    {
+        typedef short type;
+        typedef _typeSeq<int> next;
+        constexpr static const char *name = "short";
+        constexpr static const char *specifier = "%hd";
+    };
 
-template<>
-struct _typeSeq<long long>
-{
-    typedef long long type;
-    constexpr static const char *name = "long long";
-    constexpr static const char *specifier = "%lld";
-};
+    template<>
+    struct _typeSeqBase<int>
+    {
+        typedef int type;
+        typedef _typeSeq<long> next;
+        constexpr static const char *name = "int";
+        constexpr static const char *specifier = "%d";
+    };
 
-template<>
-struct _typeSeq<unsigned char>
-{
-    typedef unsigned char type;
-    typedef _typeSeq<unsigned short> next;
-    constexpr static const char *name = "unsigned char";
-    constexpr static const char *specifier = "%hhu";
-};
+    template<>
+    struct _typeSeqBase<long>
+    {
+        typedef long type;
+        typedef _typeSeq<long long> next;
+        constexpr static const char *name = "long";
+        constexpr static const char *specifier = "%ld";
+    };
 
-template<>
-struct _typeSeq<unsigned short>
-{
-    typedef unsigned short type;
-    typedef _typeSeq<unsigned> next;
-    constexpr static const char *name = "unsigned short";
-    constexpr static const char *specifier = "%hu";
-};
+    template<>
+    struct _typeSeqBase<long long>
+    {
+        typedef long long type;
+        constexpr static const char *name = "long long";
+        constexpr static const char *specifier = "%lld";
+    };
 
-template<>
-struct _typeSeq<unsigned>
-{
-    typedef unsigned type;
-    typedef _typeSeq<unsigned long> next;
-    constexpr static const char *name = "unsigned int";
-    constexpr static const char *specifier = "%u";
-};
+    template<>
+    struct _typeSeqBase<unsigned char>
+    {
+        typedef unsigned char type;
+        typedef _typeSeq<unsigned short> next;
+        constexpr static const char *name = "unsigned char";
+        constexpr static const char *specifier = "%hhu";
+    };
 
-template<>
-struct _typeSeq<unsigned long>
-{
-    typedef unsigned long type;
-    typedef _typeSeq<unsigned long long> next;
-    constexpr static const char *name = "unsigned long";
-    constexpr static const char *specifier = "%lu";
-};
+    template<>
+    struct _typeSeqBase<unsigned short>
+    {
+        typedef unsigned short type;
+        typedef _typeSeq<unsigned> next;
+        constexpr static const char *name = "unsigned short";
+        constexpr static const char *specifier = "%hu";
+    };
 
-template<>
-struct _typeSeq<unsigned long long>
-{
-    typedef unsigned long long type;
-    constexpr static const char *name = "unsigned long long";
-    constexpr static const char *specifier = "%llu";
-};
+    template<>
+    struct _typeSeqBase<unsigned>
+    {
+        typedef unsigned type;
+        typedef _typeSeq<unsigned long> next;
+        constexpr static const char *name = "unsigned int";
+        constexpr static const char *specifier = "%u";
+    };
 
-template<>
-struct _typeSeq<char>
+    template<>
+    struct _typeSeqBase<unsigned long>
+    {
+        typedef unsigned long type;
+        typedef _typeSeq<unsigned long long> next;
+        constexpr static const char *name = "unsigned long";
+        constexpr static const char *specifier = "%lu";
+    };
+
+    template<>
+    struct _typeSeqBase<unsigned long long>
+    {
+        typedef unsigned long long type;
+        constexpr static const char *name = "unsigned long long";
+        constexpr static const char *specifier = "%llu";
+    };
+
+    template<>
+    struct _typeSeqBase<char>
+    {
+        typedef char type;
+        typedef typename std::conditional<std::is_signed<char>::value,
+                _typeSeq<short>,
+                _typeSeq<unsigned short>>::type next;
+        constexpr static const char *name = "char";
+        constexpr static const char *specifier = "%c";
+    };
+
+    constexpr static unsigned char get_pwr2(unsigned char type_size)
+    {
+        unsigned char b = 0;
+        while(type_size)
+            b++, type_size >>= 1;
+        return b;
+    }
+}
+
+template<typename T>
+struct _typeSeq
 {
-    typedef char type;
-    typedef typename std::conditional<std::is_signed<char>::value,
-            _typeSeq<short>,
-            _typeSeq<unsigned short>>::type next;
-    constexpr static const char *name = "char";
-    constexpr static const char *specifier = "%c";
+    typedef T type;
+    constexpr static const char *name = _typeSeqBase<T>::name;
+    constexpr static const char *specifier = _typeSeqBase<T>::specifier;
+    constexpr static unsigned char bit_length = sizeof(T) << 3;
+    constexpr static unsigned char pwr2_length = get_pwr2(sizeof(T));
 };
 
 template<typename T, typename T2>
