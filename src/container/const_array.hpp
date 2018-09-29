@@ -20,4 +20,9 @@ struct const_array
     {
         return array;
     }
+
+    const T* ptr()
+    {
+        return array;
+    }
 };
