@@ -73,6 +73,15 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
     avl_tree(): search_tree_abstract_crtp<TData, TKey, avl_node>(), _size(0)
     {}
 
+    avl_tree& operator=(avl_tree&& otr) noexcept
+    {
+        this -> root = otr.root;
+        _size = otr._size;
+        otr.root = nullptr;
+        otr._size = 0;
+        return *this;
+    }
+
     std::pair<t_iterator, bool> insert(TKey key, TData data, bool rewrite = false)
     {
         DEBUGLVLMSG(7, "AVL Tree: Inserting new node");
