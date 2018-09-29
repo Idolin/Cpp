@@ -108,7 +108,17 @@ struct tree_iterator
     // Элемент на который сейчас ссылается итератор.
     // Разыменование итератора end() неопределено.
     // Разыменование невалидного итератора неопределено.
-    TData const &operator*() const
+    TData& operator*()
+    {
+        return current->data;
+    }
+
+    TKey const& key() const
+    {
+        return current->key;
+    }
+
+    TData const& data() const
     {
         return current->data;
     }
@@ -116,7 +126,7 @@ struct tree_iterator
     // Переход к элементу со следующим по величине ключом.
     // Инкремент итератора end() неопределен.
     // Инкремент невалидного итератора неопределен.
-    tree_iterator<TData, TKey> &operator++()
+    tree_iterator<TData, TKey>& operator++()
     {
         if(current->getRight())
         {
@@ -146,7 +156,7 @@ struct tree_iterator
     // Переход к элементу со следующим по величине ключом.
     // Декремент итератора begin() неопределен.
     // Декремент невалидного итератора неопределен.
-    tree_iterator<TData, TKey> &operator--()
+    tree_iterator<TData, TKey>& operator--()
     {
         if(is_end)
         {
@@ -186,6 +196,11 @@ struct tree_iterator
     bool operator!=(const tree_iterator<TData, TKey> i) const
     {
         return !(*this == i);
+    }
+
+    operator bool() const
+    {
+        return !is_end;
     }
 };
 
