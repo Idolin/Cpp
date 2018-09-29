@@ -10,6 +10,10 @@
                  _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, \
                  _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, ...) _53
 
+//returns amount of arguments in argument list
+#define GET_ARGS_COUNT(...) TAKE53(53, 52, ## __VA_ARGS__, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, \
+                                                24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+
 #define GET_FIRST(_1, ...) _1
 #define GET_SECOND(_1, _2, ...) _2
 #define SELF(...) __VA_ARGS__
@@ -143,11 +147,17 @@
 #define CONCAT_(a, b) a ## b
 #define CONCAT(a, b) CONCAT_(a, b)
 
+#define MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ...) \
+    CONCAT(MULT_ARG_R_, N)(compose, get_current, get_arg_next, ## __VA_ARGS__)
+
 //recursive(50 levels!) macro to expand
 //result = compose(get_current(args...), compose(get_current(get_arg_next(args...)),
 //  compose(...))), where last compose is: _LAST_ ## compose(args...)
 #define MULT_ARG_R_N(N, compose, get_current, get_arg_next, ...) \
-    CONCAT(MULT_ARG_R_, N)(compose, get_current, get_arg_next, ## __VA_ARGS__)
+    MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ## __VA_ARGS__)
+
+#define MULT_ARG_R_C(compose, get_current, get_arg_next, ...) \
+    MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), compose, get_current, get_arg_next, ## __VA_ARGS__)
 
 #define _LAST_SELF(...) __VA_ARGS__
 
@@ -163,10 +173,6 @@
 #define GET_ARG_N(N, ...) \
     CONCAT(MULT_ARG_R_, N)(LSKIP1, GET_FIRST, SKIP1, ## __VA_ARGS__)
 
-//returns amount of arguments in argument list
-#define GET_ARGS_COUNT(...) TAKE53(53, 52, ## __VA_ARGS__, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, \
-                                                24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
-
 #define SKIP1(B, ...) __VA_ARGS__
 #define _LAST_SKIP1(...) SKIP1(__VA_ARGS__)
 
@@ -175,7 +181,7 @@
 
 //returns arguments without last
 #define EXCLUDE_LAST(...) \
-    CONCAT(MULT_ARG_R_, GET_ARGS_COUNT(__VA_ARGS__))(LSELF, GET_FIRST, SKIP1, ## __VA_ARGS__)
+    MULT_ARG_R_C(LSELF, GET_FIRST, SKIP1, ## __VA_ARGS__)
 
 #define _QUOTE(...) # __VA_ARGS__
 #define QUOTE(...) _QUOTE(__VA_ARGS__) //returns quoted string from argument list
@@ -193,6 +199,8 @@
 #define GET_ARG_DEF(def, ...) CONCAT(_GET_ARG_DEF__, GET_ARGS_COUNT_3(def, ## __VA_ARGS__))(def, ## __VA_ARGS__)
 //another GET_ARG_DEF(to use inside GET_ARG_DEF)
 #define GET_ARG_DEF_I(def, ...) CONCAT(_GET_ARG_DEF__, GET_ARGS_COUNT_3(def, ## __VA_ARGS__))(def, ## __VA_ARGS__)
+//another GET_ARG_DEF(to use inside GET_ARG_DEF_I)
+#define GET_ARG_DEF_II(def, ...) CONCAT(_GET_ARG_DEF__, GET_ARGS_COUNT_3(def, ## __VA_ARGS__))(def, ## __VA_ARGS__)
 
 #define _START_IF_ARGS__0(f)
 #define _START_IF_ARGS__1(f, ...) f(__VA_ARGS__)
