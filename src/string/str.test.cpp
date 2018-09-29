@@ -21,7 +21,7 @@ TEST_PACK(str)
         UNUSED(c);
         const str d = b;
         const char *e = d;
-        const char *f = d.c_str();
+        const char *f = d.c_str_ptr();
         EXPECT_STRING_EQ(e, f);
         delete [] c;
         delete [] e; //convert to char* always creates new array(use c_str instead)
@@ -163,6 +163,11 @@ TEST_PACK(str)
         str q = "1";
         q *= 2;
         EXPECT_NE(a, q);
+        c = "0";
+        c *= 31;
+        EXPECT_NE("a" + c, c + "a");
+        c += '0';
+        EXPECT_NE("a" + c + "b", "b" + c + "a");
     }
 
     TEST(invert)
