@@ -3,6 +3,7 @@ project(str)
 
 set(SOURCE_LIB str.cpp str_func.cpp)
 add_library(str_lib STATIC "${SOURCE_LIB}")
+add_dependencies(str_lib hash_tgt)
 
 add_test(str_test str.test.cpp)
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/str.test.cpp)
