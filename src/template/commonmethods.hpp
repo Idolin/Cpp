@@ -1,11 +1,11 @@
 #pragma once
 
+#include "../debug/def_debug.h"
 #include "typemethods.hpp"
 #include "struct_tags.hpp"
 
 #include <algorithm>
 #include <type_traits>
-#include "struct_tags.hpp"
 
 template<typename T, typename = typename def_get_by_value<T>::type>
 inline bool _less(T x1, T x2)
@@ -188,34 +188,58 @@ inline typename _getMMaxType<T, T2>::type _max(T a, T2 b)
 template<typename T>
 T to2(T k)
 {
+    if(k < 0)
+        return 0;
     T a = 1;
-    while((a < k) and (a > 0))
+    while((a < k) && (a > 0))
         a <<= 1;
     return a;
 }
 
-template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+template<typename T, typename = typename std::enable_if_t<std::is_integral<T>::value>>
 constexpr unsigned char max_bit_pos(T value)
 {
     if(value < 0)
-        return sizeof(T) << 3;
+        return _typeSeq<T>::bit_length - 1;
     T mask = ~0;
-    unsigned char ans = 0;
+    unsigned char ans = 255;
     while(mask & value)
-    {
-        mask <<= 1;
-        ans++;
-    }
+        mask <<= 1, ans++;
     return ans;
 }
 
 template<typename T,
-        typename = typename std::enable_if<std::is_integral<T>::value>::type>
+        typename = typename std::enable_if_t<std::is_integral<T>::value>>
 constexpr unsigned char min_bit_pos(T value)
 {
-    if(value == std::numeric_limits<T>::min())
-        return (value < 0) ? 255 : (sizeof(T) << 3);
-    for(unsigned char i = 0;; i++)
-        if(value & (1 << i))
-            return i;
+    if(value == 0)
+        return 255;
+    T mask = 1;
+    unsigned char ans = 0;
+    while(!(mask & value))
+        mask <<= 1, ans++;
+    return ans;
+}
+
+template<typename T,
+    typename = typename std::enable_if<std::is_integral<T>::value>::type>
+constexpr inline T sqr(T value)
+{
+    return value * value;
+}
+
+template<typename T, typename PT = unsigned,
+    typename = typename std::enable_if_t<std::is_integral<T>::value && std::is_unsigned<PT>::value>>
+constexpr T pwr(T value, PT power)
+{
+    T result = 1;
+    T pwr_values[4] = {1, value, sqr(value)};
+    while(power)
+    {
+        if(power & 3)
+            result *= pwr_values[power & 1] * pwr_values[power & 2];
+        power >>= 2;
+        pwr_values[1] = sqr(pwr_values[2]), pwr_values[2] = sqr(pwr_values[1]);
+    }
+    return result;
 }
