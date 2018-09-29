@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.2)
-project(sort)
 
 set(SOURCE_TGT_SORT partition.hpp sortline.hpp sortlog.hpp sortsquare.hpp)
 add_custom_target(sort_tgt DEPENDS "${SOURCE_TGT_SORT}")
