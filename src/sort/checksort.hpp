@@ -33,7 +33,7 @@ double getClocksPerCount()
     return (double) (2 * middle - start - end) / countAmount;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 bool checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
 {
     T xor_val = 0;
@@ -58,8 +58,8 @@ bool checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.
     return false;
 }
 
-template<typename T, bool (*compare)(const T &, const T &) = _less<T>>
-void checksort(void(sortf)(T *, T *))
+template<typename T, typename compare_func<T>::type compare = _less<T>>
+void checksort(void(sortf)(T*, T*))
 {
     double CLOCKSPERCOUNTERINCREASE = getClocksPerCount();
     T *t = new T[_max(checkArraySizes, sizesToCheck)];
@@ -120,7 +120,6 @@ void checksort(void(sortf)(T *, T *))
             t[i] = randomA<T>();
         printf("\tFull random: ");
         checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
-        usleep(1000);
     }
     delete[] t;
 }
