@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../other/defdef.h"
+#include "../template/arraymethods.hpp"
 #include "../template/commonmethods.hpp"
 #include "../template/typemethods.hpp"
 #include "../other/rand.h"
@@ -40,53 +41,7 @@ void merge_in_place(T *start, unsigned part_len1, unsigned part_len2)
     // ???
 }
 
-template<typename T, bool (*compare)(T, T) = _less<T>>
-void merge_seq_two(T *const __restrict__ start, unsigned part_len1,
-                   T *const __restrict__ destination, unsigned part_len2)
-{
-    unsigned i = 0, i1 = 0, i2 = part_len1;
-    while((part_len1) && (part_len2))
-    {
-        if(compare(start[i1], start[i2]))
-        {
-            destination[i++] = start[i1++];
-            part_len1--;
-        } else
-        {
-            destination[i++] = start[i2++];
-            part_len2--;
-        }
-    }
-    while(part_len1--)
-        destination[i++] = start[i1++];
-    while(part_len2--)
-        destination[i++] = start[i2++];
-};
-
-template<typename T, bool (*compare)(T, T) = _less<T>,
-                bool sort_in_place = false>
-void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len2, T *destination)
-{
-    while((part_len1) && (part_len2))
-    {
-        if(compare(*first, *second))
-        {
-            *(destination++) = *(first++);
-            part_len1--;
-        } else
-        {
-            *(destination++) = *(second++);
-            part_len2--;
-        }
-    }
-    while(part_len1--)
-        *(destination++) = *(first++);
-    if(!sort_in_place)
-        while(part_len2--)
-            *(destination++) = *(second++);
-};
-
-template<typename T, bool (*compare)(T, T) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 void mergesort(T *start, T *end)
 {
     unsigned dif = end - start;
@@ -116,7 +71,42 @@ void mergesort(T *start, T *end)
     delete[] swap_array;
 }
 
-template<typename T, bool (*compare)(T, T) = _less<T>>
+template<typename T, typename compare_func<T>::type compare = _less<T>>
+void mergesort_v2(T *start, T *end)
+{
+    unsigned dif = end - start;
+    if(dif < 2)
+        return;
+    unsigned max_block_size = to2(dif) >> 1, block_size = 2, i = 1;
+    T *swap_array = new T[max_block_size];
+    for(; i < dif; i += 2)
+        if(compare(start[i], start[i - 1]))
+            std::swap(start[i - 1], start[i]);
+    if((i-- == dif) && compare(start[i], start[i - 1]))
+    {
+        if(compare(start[i], start[i - 2]))
+            std::swap(start[i - 2], start[i]);
+        std::swap(start[i - 1], start[i]);
+    }
+    while(block_size <= max_block_size)
+    {
+        for(i = block_size;i < dif - block_size;i += block_size * 2)
+            if(compare(start[i], start[i - 1]))
+            {
+                _copy(swap_array, block_size, start + i - block_size);
+                merge_two_arrays<T, compare, true>(swap_array, block_size, start + i, block_size, start + i - block_size);
+            }
+        if(i < dif)
+        {
+            _copy(swap_array, block_size, start + i - block_size);
+            merge_two_arrays<T, compare, true>(swap_array, block_size, start + i, dif - i, start + i - block_size);
+        }
+        block_size *= 2;
+    }
+    delete[] swap_array;
+}
+
+template<typename T, typename compare_func<T>::type compare = _less<T>>
 void quicksort(T *start, T *end)
 {
     if(end - start < 17)
