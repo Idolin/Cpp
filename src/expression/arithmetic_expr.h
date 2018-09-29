@@ -3,15 +3,14 @@
 #include "../debug/def_debug.h"
 #include "expr.hpp"
 
-struct ExprAbstractA : ExprAbstract
+struct ExprAbstractA: ExprAbstract
 {
     virtual double operator()(double) const = 0;
 };
 
 template<class Self>
-struct ExprA : Expr<Self, ExprAbstractA>
-{
-};
+struct ExprA: Expr<Self, ExprAbstractA>
+{};
 
 struct Const : ExprA<Const>
 {
