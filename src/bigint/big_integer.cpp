@@ -201,10 +201,10 @@ big_integer::big_integer(unsigned long number) : _number(big_integer_container(2
     _number.getms();
 }
 
-big_integer::big_integer(const big_integer &b) : _number(b._number)
+big_integer::big_integer(const big_integer& b) : _number(b._number)
 {}
 
-big_integer &big_integer::operator=(const big_integer &b)
+big_integer& big_integer::operator=(const big_integer& b)
 {
     if(&(this->_number) != &(b._number))
     {
@@ -219,7 +219,7 @@ big_integer::big_integer(string const &s) : _number(big_integer_container(static
     if(s.length() == 0)
         throw big_integer_exception("Empty string");
     _number.clear();
-    int pos = (s[0] == '-');
+    unsigned pos = (s[0] == '-');
     if(s.length() == pos)
         throw big_integer_exception("String with only '-'");
     while(s[pos] == '0' && pos < s.length())

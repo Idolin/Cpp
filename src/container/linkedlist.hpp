@@ -5,8 +5,7 @@
 
 template<typename T, bool bidirectional = true>
 struct linkedList
-{
-};
+{};
 
 template<typename T>
 struct linkedList<T, false>
@@ -35,26 +34,26 @@ public:
         iterator(node *ptr = nullptr): ptr(ptr)
         {}
 
-        iterator(const iterator &otr): ptr(otr.ptr)
+        iterator(const iterator& otr): ptr(otr.ptr)
         {}
 
-        iterator& operator=(iterator const &otr)
+        iterator& operator=(const iterator& otr)
         {
             ptr = otr.ptr;
             return *this;
         }
 
-        bool operator==(const iterator &otr) const
+        bool operator==(const iterator& otr) const
         {
             return ptr == otr.ptr;
         }
 
-        bool operator!=(const iterator &otr) const
+        bool operator!=(const iterator& otr) const
         {
             return !(*this == otr);
         }
 
-        iterator &operator++()
+        iterator& operator++()
         {
             ptr = ptr->next;
             return *this;
@@ -67,7 +66,7 @@ public:
             return copy;
         }
 
-        T &operator*() const
+        T& operator*() const
         {
             return ptr->data;
         }

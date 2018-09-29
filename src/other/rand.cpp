@@ -1,7 +1,5 @@
 #include "rand.h"
 
-#define DEBUG
-
 static randomizer defaultRandomizer;
 
 randomizer::randomizer() : randU64(UINT64_C(9316722631499553187))
