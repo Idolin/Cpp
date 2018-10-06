@@ -1,9 +1,9 @@
 #pragma once
 
-#define COUNTSWAPS
-
 #include "../other/rand.h"
 #include "../template/arraymethods.hpp"
+#include "../template/displaymethods.hpp"
+#include "../other/counter.h"
 
 #include <time.h>
 #include <unistd.h>
@@ -11,42 +11,26 @@
 
 extern unsigned long long swapscounter;
 
-unsigned checkArraySizes[] = {0, 1, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-unsigned sizesToCheck = 10;
+static unsigned checkArraySizes[] = {0, 1, 2, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+static unsigned sizesToCheck = 10;
+static unsigned long long total_ms;
 
-double getClocksPerCount()
+template<typename T, typename compare_func<T>::type compare = _less<T>, typename R>
+bool checksortfa(T *s, unsigned mas_len, R(*sortf)(T *, T *))
 {
-    unsigned countAmount = 940172481;
-    unsigned *t = new unsigned[1024];
-    unsigned s = 0;
-    clock_t start = clock();
-    for(unsigned i = 0; i < countAmount; i++)
-    {
-        t[i & 1023] = s++;
-    }
-    clock_t middle = clock();
-    for(unsigned i = 0; i < countAmount; i++)
-    {
-        t[i & 1023] = s;
-    }
-    clock_t end = clock();
-    return (double) (2 * middle - start - end) / countAmount;
-}
-
-template<typename T, typename compare_func<T>::type compare = _less<T>>
-bool checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.00071407856279258859)
-{
+    T *copy;
+    if(mas_len < 100)
+        copy = _new_copy(s, mas_len);
     T xor_val = 0;
     for(unsigned i = 0; i < mas_len; i++)
         xor_val ^= s[i];
     T *e = s + mas_len;
-    swapscounter = 0;
-    clock_t t = clock();
+    process_time_counter t;
+    t.start();
     sortf(s, e);
-    clock_t t2 = clock();
-    t2 -= t;
-    unsigned long long clocks = t2 - (clock_t) ((double) swapscounter * CPCI + 0.5);
-    printf("~%llu clocks, %llu swaps, ", clocks, swapscounter);
+    t.stop();
+    total_ms += t.getMilliseconds();
+    printf("~%llu ms, ", t.getMilliseconds());
     for(unsigned i = 0; i < mas_len; i++)
         xor_val ^= s[i];
     if((xor_val == 0) && _checksorted<T, compare>(s, e))
@@ -54,14 +38,22 @@ bool checksortfa(T *s, unsigned mas_len, void(sortf)(T *, T *), double CPCI = 0.
         printf("OK\n");
         return true;
     }
-    printf("Failed!!!\n");
+    printf("Failed!!!");
+    if(mas_len < 100)
+    {
+        putchar('{');
+        _display(copy, mas_len, _typeSeq<T>::specifier, ",");
+    }
+    else
+        putchar('\n');
     return false;
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
-void checksort(void(sortf)(T*, T*))
+template<typename T=int, typename compare_func<T>::type compare = _less<T>, typename R=void>
+void checksort(R(*sortf)(T*, T*))
 {
-    double CLOCKSPERCOUNTERINCREASE = getClocksPerCount();
+    total_ms = 0;
+    bool ok = true;
     T *t = new T[_max(checkArraySizes, sizesToCheck)];
     for(unsigned sizei = 0; sizei < sizesToCheck; sizei++)
     {
@@ -73,7 +65,7 @@ void checksort(void(sortf)(T*, T*))
             _vfill(t, size, r);
         }
         printf("\tOne value: ");
-        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        ok &= checksortfa<T, compare, R>(t, size, sortf);
         if(sizeof(T) >= 4)
             for(unsigned i = 0; i < size; i++)
                 t[i] = i;
@@ -81,7 +73,7 @@ void checksort(void(sortf)(T*, T*))
             for(unsigned i = 0; i < size; i++)
                 t[i] = (i * 63) << max_bit_pos(size);
         printf("\tSorted: ");
-        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        ok &= checksortfa<T, compare, R>(t, size, sortf);
         if(sizeof(T) >= 4)
             for(unsigned i = 0; i < size; i++)
                 t[i] = size - i;
@@ -89,13 +81,13 @@ void checksort(void(sortf)(T*, T*))
             for(unsigned i = 0; i < size; i++)
                 t[i] = ((size - i) * 63) << max_bit_pos(size);
         printf("\tInverted: ");
-        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        ok &= checksortfa<T, compare, R>(t, size, sortf);
         if(size >= 10)
         {
             for(unsigned i = 0; i < size; i++)
                 t[i] = randomA<T>() & 0x000f;
             printf("\tSixteen different elements: ");
-            checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+            ok &= checksortfa<T, compare>(t, size, sortf);
         }
         if(size >= 100)
         {
@@ -113,13 +105,14 @@ void checksort(void(sortf)(T*, T*))
                     t[k] = startR += randomA<T>() & 0xff;
                 blockStart = blockEnd;
             }
-            printf("\tPartically sorted: ");
-            checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+            printf("\tParticipially sorted: ");
+            ok &= checksortfa<T, compare, R>(t, size, sortf);
         }
         for(unsigned i = 0; i < size; i++)
             t[i] = randomA<T>();
         printf("\tFull random: ");
-        checksortfa<T, compare>(t, size, sortf, CLOCKSPERCOUNTERINCREASE);
+        ok &= checksortfa<T, compare, R>(t, size, sortf);
     }
     delete[] t;
+    printf("Result: ~%llu ms, %s\n", total_ms, ok ? "OK" : "Failed!!!");
 }
