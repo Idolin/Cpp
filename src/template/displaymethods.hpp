@@ -6,8 +6,8 @@
 #include "typemethods.hpp"
 
 template<typename T>
-inline void _display(const T *const start, const T *const end, const char *const prf = _typeSeq<T>::specifier,
-                     const char *const del = " ")
+inline void _display(const T *start, const T *end, const char *prf = _typeSeq<T>::specifier,
+                     const char *del = " ", const char *end_s = "\n")
 {
     ASSERT(start <= end);
     if(start == end)
@@ -18,11 +18,13 @@ inline void _display(const T *const start, const T *const end, const char *const
         fputs(del, stdout);
         printf(prf, *start);
     }
-    putchar('\n');
+    printf("%s", end_s);
 }
 
-template<typename T, typename SizeType = unsigned>
-inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>::specifier, const char *del = " ")
+template<typename T, typename SizeType = unsigned,
+        typename = typename std::enable_if<std::is_integral<SizeType>::value>::type>
+inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>::specifier, const char *del = " ",
+                     const char *end_s = "\n")
 {
     if(len == 0)
         return;
@@ -32,7 +34,7 @@ inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>
         fputs(del, stdout);
         printf(prf, *++start);
     }
-    putchar('\n');
+    printf("%s", end_s);
 }
 
 template<typename T, typename SizeTypeL = unsigned, typename SizeTypeH = unsigned>
@@ -148,7 +150,7 @@ inline void _tshow(const bool& x)
     x ? fputs("true", stdout) : fputs("false", stdout);
 }
 
-template<typename T, void (*show)(const T&) = &_tshow>
+template<typename T, void (*show)(const T&) = _tshow<T>>
 inline void _tdisplay(const T *a, unsigned long len, const char *del = ", ")
 {
     if(len--)
@@ -163,7 +165,7 @@ inline void _tdisplay(const T *a, unsigned long len, const char *del = ", ")
     putchar('\n');
 }
 
-template<typename T, void (*show)(const T&) = &_tshow>
+template<typename T, void (*show)(const T&) = _tshow<T>>
 inline void _tdisplay(const T *a, unsigned long start, unsigned long end, const char *del = ", ")
 {
     _tdisplay<T, show>(a + start, end - start, del);
