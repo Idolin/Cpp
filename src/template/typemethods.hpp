@@ -245,21 +245,27 @@ struct def_get_by_reference<T, typename std::enable_if<
 };
 
 template<typename T, typename Enable = void>
-struct compare_func
+struct def_get_by
 {};
 
 template<typename T>
-struct compare_func<T, typename std::enable_if<
+struct def_get_by<T, typename std::enable_if<
         std::is_integral<T>::value || std::is_pointer<T>::value>::type>
 {
-    typedef bool (*type)(T, T);
+    typedef T type;
 };
 
 template<typename T>
-struct compare_func<T, typename std::enable_if<
+struct def_get_by<T, typename std::enable_if<
         !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
 {
-    typedef bool (*type)(const T&, const T&);
+    typedef const T& type;
+};
+
+template<typename T>
+struct compare_func
+{
+    typedef bool (*type)(typename def_get_by<T>::type, typename def_get_by<T>::type);
 };
 
 template<typename T, typename R>
