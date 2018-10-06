@@ -1,36 +1,23 @@
 #pragma once
 
 #include "../sort/partition.hpp"
+#include "../other/rand.h"
 
 template<typename T>
-T kth(T *start, T *end, unsigned k, unsigned count = 0, T min = (T) 0)
+T kth(T *start, T *end, unsigned k)
 {
     if(k == 0)
     {
-        T min = *start;
-        for(T *sp = start + 1; sp <= end; sp++)
-            if(*sp < min)
-                min = *sp;
+        T min = *start++;
+        for(;start < end;start++)
+            if(*start < min)
+                min = *start;
         return min;
     }
-    T *sp = start + randm(end - start + 1), *ep = start + randm(end - start + 1);
-    T mid = *(start + (end - start) / 2);
-    if(*sp > *ep)
-    {
-        if(mid > *sp)
-            mid = *sp;
-        else if(mid < *ep)
-            mid = *ep;
-    } else if(mid > *ep)
-        mid = *ep;
-    else if(mid < *sp)
-        mid = *sp;
-    ep = start + count;
-    if(k < ep - start)
-        return min;
-    sp = partition(start, end, mid, count, min);
+    T mid = *(start + randomA(end - start));
+    T *sp = partition(start, end, mid);
     if(k < sp - start)
-        return kth(ep, sp - 1, k - (ep - start));
+        return kth(start, sp, k);
     else
-        return kth(sp, end, k - (sp - start), count, mid);
+        return kth(sp, end, k - (sp - start));
 }
