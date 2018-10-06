@@ -4,6 +4,9 @@
 
 #include <type_traits>
 
+struct HashableTag
+{};
+
 template<typename T = void>
 struct is_bit_movable;
 
@@ -30,7 +33,8 @@ struct is_bit_copyable<void>
 template<typename T>
 struct is_bit_copyable
 {
-    enum {
+    enum
+    {
         value = std::is_pod<T>::value || std::is_pointer<T>::value ||
                 std::is_base_of<is_bit_copyable<>, T>::value
     };
@@ -52,7 +56,8 @@ struct mergeable: mergeable<void>
 template<typename T>
 struct is_mergeable
 {
-    enum {
+    enum
+    {
         value = std::is_base_of<mergeable<T>, T>::value
     };
 };
@@ -82,5 +87,15 @@ public:
     enum
     {
         value = sizeof(test<>(_rank<1>())) == 2
+    };
+};
+
+template<typename T>
+struct is_hashable
+{
+    enum
+    {
+        value = std::is_base_of<HashableTag, T>::value || std::is_integral<T>::value
+            || std::is_pointer<T>::value
     };
 };
