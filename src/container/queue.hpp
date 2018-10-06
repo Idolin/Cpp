@@ -4,14 +4,17 @@
 #include "../other/defdef.h"
 #include "persistancequeue.hpp"
 #include "stack.hpp"
+#include "../other/hash.hpp"
+#include "../template/struct_tags.hpp"
+#include "../struct/optional.hpp"
 
 #include <algorithm>
 #include <cstdio>
 
 using std::pair;
 
-template<typename T>
-struct queue
+template<typename T, bool enable_hash_if_possible = false>
+struct queue: HashableStoredConditional<false, enable_hash_if_possible && is_hashable<T>::value>
 {
 private:
     struct block
@@ -38,10 +41,12 @@ private:
     block *head, *tail;
     unsigned headlast, taillast;
 
+    ConditionalStored<uint64_t, enable_hash_if_possible && is_hashable<T>::value> prev_hash;
+
 public:
     explicit queue(unsigned blocksize = 256):
             blocksize(blocksize), len(0), head(nullptr),
-            tail(nullptr), headlast(0), taillast(blocksize)
+            tail(nullptr), headlast(0), taillast(blocksize), prev_hash(0)
     {
         ASSERT(blocksize > 0);
     }
@@ -56,8 +61,14 @@ public:
         }
     }
 
-    void push(T x)
+    void push(typename def_get_by<T>::type x)
     {
+        if(enable_hash_if_possible && is_hashable<T>::value)
+        {
+            uint64_t element_hash = get_hash(x);
+            this->set_hash(this->get_hash_value() + (~prev_hash.get_value() ^ element_hash)),
+                    this->prev_hash.set_value(element_hash);
+        }
         if(taillast == blocksize)
         {
             auto *new_last = new block(blocksize);
@@ -72,7 +83,7 @@ public:
         len++;
     }
 
-    T&& pop()
+    T&& pop() //a
     {
         ASSERT(len > 0);
         ASSERT(head);
@@ -85,7 +96,25 @@ public:
             headlast = 0;
         }
         len--;
-        return std::move(head->array[headlast++]);
+        T &element = head->array[headlast++];
+        if(enable_hash_if_possible && is_hashable<T>::value)
+        {
+            uint64_t next_element_hash = 0;
+            if(len)
+            {
+                if(headlast == blocksize)
+                {
+                    auto *new_head = head->next;
+                    delete head;
+                    head = new_head;
+                    ASSERT(head);
+                    headlast = 0;
+                }
+                next_element_hash = get_hash(head->array[headlast]);
+            }
+            this->set_hash(this->get_hash_value() - (~get_hash(element) ^ next_element_hash));
+        }
+        return std::move(element);
     }
 
     unsigned long size() const
