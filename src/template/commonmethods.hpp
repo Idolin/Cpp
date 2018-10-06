@@ -55,23 +55,6 @@ struct def_comparator<T, typename std::enable_if<!is_less_comparable<T>::value, 
 
 #define _notmore(x, y) (not(_more(x, y)))
 
-#ifdef COUNTSWAPS
-
-unsigned long long swapscounter;
-
-#endif // COUNTSWAPS
-
-template<typename T>
-inline void _swap(T *x, T *y)
-{
-    T tmp = *x;
-    *x = *y;
-    *y = tmp;
-#ifdef COUNTSWAPS
-    swapscounter++;
-#endif // COUNTSWAPS
-}
-
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _min(const T& a, const T& b)
 {
@@ -95,6 +78,9 @@ inline T _max(T a, T b)
 {
     return compare(a, b) ? b : a;
 }
+
+namespace
+{
 
 template<typename T, typename T2, typename Enable = void>
 struct _getMMinType;
@@ -185,7 +171,10 @@ inline typename _getMMaxType<T, T2>::type _max(T a, T2 b)
            static_cast<maxType>(b) : static_cast<maxType>(a);
 }
 
-template<typename T>
+}
+
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
+                        std::is_pointer<T>::value>::type>
 T to2(T k)
 {
     if(k < 0)
@@ -194,6 +183,18 @@ T to2(T k)
     while((a < k) && (a > 0))
         a <<= 1;
     return a;
+}
+
+template<typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
+                        std::is_pointer<T>::value>::type> //mask = min(2^x - 1) | mask >= k
+T to_bit_mask(T k)
+{
+    if(k < 0)
+        return std::numeric_limits<T>::min();
+    T mask = 0;
+    while(mask < k)
+        mask = (mask << 1) + 1;
+    return mask;
 }
 
 template<typename T, typename = typename std::enable_if_t<std::is_integral<T>::value>>
