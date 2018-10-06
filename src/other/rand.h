@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
+#include "../debug/def_debug.h"
+#include "../template/commonmethods.hpp"
 
 class randomizer
 {
@@ -110,3 +113,6 @@ int64_t random64();
 
 template<typename T>
 T randomA();
+
+template<typename T>
+T randomA(T to);
