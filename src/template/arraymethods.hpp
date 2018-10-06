@@ -8,6 +8,7 @@
 #include "struct_tags.hpp"
 
 #include <cstring>
+#include <type_traits>
 
 template<typename T>
 inline void _vfill(T *start, T *end, const T x)
@@ -431,25 +432,6 @@ inline void _adswap(T1 *array1, T2 *array2, unsigned f, unsigned s)
     T2 tmp2 = array2[f];
     array2[f] = array2[s];
     array2[s] = tmp2;
-#ifdef COUNTSWAPS
-    swapscounter+=2;
-#endif // COUNTSWAPS
-#ifdef INDEXARRAY
-    unsigned tmpInd = indexArray[f];
-    indexArray[f] = indexArray[s];
-    indexArray[s] = tmpInd;
-#endif // INDEXARRAY
-}
-
-template<typename T>
-inline void _aswap(T *array, unsigned f, unsigned s)
-{
-    T tmp = array[f];
-    array[f] = array[s];
-    array[s] = tmp;
-#ifdef COUNTSWAPS
-    swapscounter++;
-#endif // COUNTSWAPS
 #ifdef INDEXARRAY
     unsigned tmpInd = indexArray[f];
     indexArray[f] = indexArray[s];
@@ -714,21 +696,26 @@ void merge_seq_two(const T* __restrict__ start, unsigned part_len1,
 
 //merge(first[0..part_len1], second[0..part_len2]) -> destination
 //sort_in_place = true => destination[part_len2..] = second[0..]
-template<typename T, bool (*compare)(T, T) = _less<T>,
-                bool sort_in_place = false>
-void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len2, T *destination)
+template<typename T, typename compare_func<T>::type compare = _less<T>,
+                bool sort_in_place = false, bool count_inversions = false,
+                typename SizeType = unsigned>
+typename std::conditional<count_inversions, unsigned long long, void>::type
+    merge_two_arrays(T *first, SizeType part_len1, T *second, SizeType part_len2, T *destination)
 {
+    unsigned long long inversions = 0;
     while((part_len1) && (part_len2))
     {
-        if(compare(*first, *second))
+        if(compare(*second, *first))
         {
-            *(destination++) = *(first++);
-            part_len1--;
+            *(destination++) = *(second++);
+            if(count_inversions)
+                inversions += part_len1;
+            part_len2--;
         }
         else
         {
-            *(destination++) = *(second++);
-            part_len2--;
+            *(destination++) = *(first++);
+            part_len1--;
         }
     }
     while(part_len1--)
@@ -736,9 +723,14 @@ void merge_two_arrays(T *first, unsigned part_len1, T *second, unsigned part_len
     if(!sort_in_place)
         while(part_len2--)
             *(destination++) = *(second++);
+    if(count_inversions)
+        return static_cast<typename std::conditional<count_inversions, unsigned long long, void>::type>(inversions);
+    else
+        return static_cast<typename std::conditional<count_inversions, unsigned long long, void>::type>(0);
 };
 
-template<typename T, bool (*compare)(T, T) = _less<T>, typename SizeType=unsigned>
+template<typename T, typename compare_func<T>::type compare = _less<T>, bool sort_in_place=false,
+    typename SizeType = unsigned>
 unsigned long long merge_with_inversions_count(const T* __restrict__ first, SizeType len1,
                             const T* __restrict__ second, SizeType len2, const T* __restrict__ destination)
 {
@@ -760,18 +752,4 @@ unsigned long long merge_with_inversions_count(const T* __restrict__ first, Size
         while(len2--)
             *(destination++) = *(second++);
         return swaps;
-}
-
-template<typename T>
-unsigned long long inversions_count(T *start, T *end)
-{
-    unsigned long long inversions = 0;
-    unsigned long block_size = 1, dif = end - start;
-    T *swp = new T[dif / 2];
-    while(block_size < dif)
-    {
-        _copy(start, dif / 2, swp);
-
-    }
-    return 0;
 }
