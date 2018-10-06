@@ -20,8 +20,6 @@
  * >: some helpful debug messages
 */
 
-#ifdef DEBUG
-
 class assert_failed: public std::exception
 {
 public:
@@ -35,6 +33,9 @@ private:
     const char *message;
     int error_code;
 };
+
+
+#ifdef DEBUG
 
 #ifndef DEBUG_LVL
 #define DEBUG_LVL 5
