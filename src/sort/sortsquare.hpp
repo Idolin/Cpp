@@ -14,7 +14,7 @@ void bubblesort(T *start, T *end)
             if(compare(*(k + 1), *k))
             {
                 f = false;
-                _swap(k, k + 1);
+                std::swap(*k, *(k + 1));
             }
         if(f)
             return;
@@ -32,13 +32,13 @@ void shakersort(T *start, T *end)
             if(compare(*(k + 1), *k))
             {
                 f = false;
-                _swap(k, k + 1);
+                std::swap(*k, *(k + 1));
             }
         for(T *k = end - i - 2;k > start + i;k--)
             if(compare(*k, *(k - 1)))
             {
                 f = false;
-                _swap(k - 1, k);
+                std::swap(*(k - 1), *k);
             }
         if(f)
             return;
@@ -53,7 +53,7 @@ void minmaxsort(T *start, T *end)
     for(unsigned i = 0; i < cnt; i++)
     {
         if(compare(*(start + 1), *start))
-            _swap(start, start + 1);
+            std::swap(*start, *(start + 1));
         emin = start;
         emax = emin + 1;
         for(T *k = start + 2; k < end; k++)
@@ -61,8 +61,8 @@ void minmaxsort(T *start, T *end)
                 emin = k;
             else if(compare(*emax, *k))
                 emax = k;
-        _swap(start++, emin);
-        _swap(--end, emax);
+        std::swap(*start++, *emin);
+        std::swap(--*end, *emax);
     }
 }
 
@@ -72,7 +72,7 @@ void insertionsort(T *start, T *end)
     for(T *t = start + 1; t < end; t++)
         for(T *p = t; p > start; p--)
             if(compare(*p, *(p - 1)))
-                _swap(p - 1, p);
+                std::swap(*(p - 1), *p);
             else
                 break;
 }
