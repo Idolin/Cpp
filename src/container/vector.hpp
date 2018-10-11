@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iterator>
 #include <stdio.h>
+#include <mutex>
 
 template<typename T>
 struct vect
@@ -132,6 +133,7 @@ struct vect
 protected:
     T *m;
     unsigned long v_size, max_used;
+    mutable std::recursive_mutex _lock;
 
 public:
     vect(unsigned size = 4): m(new T[size]), v_size(size), max_used(0)
@@ -144,7 +146,9 @@ public:
 
     vect(vect const &f): m(new T[f.v_size]), v_size(f.v_size), max_used(f.max_used)
     {
+        f.lock();
         _copy(m, v_size, f.m);
+        f.unlock();
     }
 
     vect(vect&& f): m(f.m), v_size(f.v_size), max_used(f.max_used)
@@ -158,10 +162,12 @@ public:
     {
         if(this != &f)
         {
+            f.lock();
             delete[] m;
             max_used = f.max_used;
             v_size = f.v_size;
             m = _new_copy(f.m, v_size);
+            f.unlock();
         }
         return *this;
     }
@@ -188,18 +194,25 @@ public:
 
     operator T*()
     {
-        return _new_copy(m, max_used);
+        _lock.lock();
+        T *copy = _new_copy(m, max_used);
+        _lock.unlock();
+        return copy;
     }
 
     T *toArray(unsigned long from = 0, unsigned long to = vect::last)
     {
+        _lock.lock();
         if(to == vect::last)
             to = max_used;
-        return _new_copy(m + from, m + to);
+        T *copy = _new_copy(m + from, m + to);
+        _lock.unlock();
+        return copy;
     }
 
     T& operator[](unsigned long index)
     {
+        _lock.lock();
         if(index >= v_size)
         {
             if(v_size == 0)
@@ -212,13 +225,19 @@ public:
             }
         }
         smax_(max_used, index + 1);
+        _lock.unlock();
+        return m[index];
+    }
+
+    const T& at(unsigned long index) const
+    {
+        ASSERT(index < max_used, "Vector: index %lu out of range(max set: %lu)", index, max_used);
         return m[index];
     }
 
     const T& operator[](unsigned long index) const
     {
-        ASSERT(index < max_used, "Vector: index %lu out of range(max set: %lu)", index, max_used);
-        return m[index];
+        return at(index);
     }
 
     unsigned long size() const
@@ -235,15 +254,19 @@ public:
     {
         DEBUGLVLIFMSG(3, k < max_used, "new size smaller than index of last element, "
                                    "some elements will be deleted!");
+        _lock.lock();
         m = _resize(m, max_used, k);
         v_size = k;
         smin_(max_used, v_size);
+        _lock.unlock();
     }
 
     void resizeUp(unsigned k = 1)
     {
+        _lock.lock();
         v_size = (v_size + (v_size == 0)) * (1 << k);
         m = _resize(m, max_used, v_size);
+        _lock.unlock();
     }
 
     void capacityEnsure(unsigned long k)
@@ -254,7 +277,9 @@ public:
 
     void clear()
     {
+        _lock.lock();
         max_used = 0;
+        _lock.unlock();
     }
 
     T& back()
@@ -271,15 +296,20 @@ public:
 
     void push(T x)
     {
+        _lock.lock();
         if(max_used == v_size)
             this->resizeUp();
         m[max_used++] = x;
+        _lock.unlock();
     }
 
     T&& pop()
     {
+        _lock.lock();
         ASSERT(max_used > 0);
-        return std::move(m[--max_used]);
+        max_used--;
+        _lock.unlock();
+        return std::move(m[max_used]);
     }
 
     iterator begin()
@@ -300,51 +330,71 @@ public:
 
     void swap(unsigned long first, unsigned long second)
     {
+        _lock.lock();
         ASSERT((first < max_used) && (second < max_used), "Vector: attempt to swap values "
                 "out of range(max set: %lu, first index: "
                 "%lu, second index: %lu)", max_used, first, second);
         std::swap(m + first, m + second);
+        _lock.unlock();
     }
 
     T& max()
     {
+        _lock.lock();
         ASSERT(max_used > 0);
-        return _max(m, max_used);
+        T &m = _max(m, max_used);
+        _lock.unlock();
+        return m;
     }
 
     T& min()
     {
+        _lock.lock();
         ASSERT(max_used > 0);
-        return _min(m, max_used);
+        T &m = _min(m, max_used);
+        _lock.unlock();
+        return m;
     }
 
     unsigned long minIndex()
     {
+        _lock.lock();
         ASSERT(max_used > 0);
-        return _minInd(m, max_used);
+        unsigned ind = _minInd(m, max_used);
+        _lock.unlock();
+        return ind;
     }
 
     unsigned long maxIndex()
     {
+        _lock.lock();
         ASSERT(max_used > 0);
-        return _maxInd(m, max_used);
+        unsigned ind = _maxInd(m, max_used);
+        _lock.unlock();
+        return ind;
     }
 
-    template<typename T2>
-    T2& sum(unsigned long from = 0, unsigned long to = vect::last)
+    template<typename R>
+    R sum(unsigned long from = 0, unsigned long to = vect::last)
     {
+        _lock.lock();
         if(to == vect::last)
             to = max_used;
         ASSERT(from <= to);
         ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
                                "to get sum up to %lu", max_used, to);
-        return _sum<T, T2>(m + from, m + to);
+        R r = _sum<R, T>(m + from, m + to);
+        _lock.unlock();
+        return r;
     }
 
     template<bool (*compare)(const T&, const T&) = _less<T>>
     bool checksorted()
     {
-        return _checksorted<T, compare>(m, m + max_used);
+        _lock.lock();
+        bool sorted = _checksorted<T, compare>(m, m + max_used);
+        _lock.unlock();
+        return sorted;
     }
 
     template<bool (*compare)(const T&, const T&) = _less<T>>
@@ -354,9 +404,12 @@ public:
         ASSERT(from <= to);
         if(to == vect::last)
             to = max_used;
+        _lock.lock();
         ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
                            "to check if is sorted up to %lu", max_used, to);
-        return _checksorted<T, compare>(m + from, m + to);
+        bool sorted = _checksorted<T, compare>(m + from, m + to);
+        _lock.unlock();
+        return sorted;
     }
 
     template<void (*show)(const T&) = &_tshow>
@@ -366,6 +419,7 @@ public:
         ASSERT(from <= to);
         if(to == vect::last)
             to = max_used;
+        _lock.lock();
         ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
                            "to print elements up to %lu", max_used, to);
         if(max_used == 0)
@@ -374,6 +428,22 @@ public:
         {
             _tdisplay<T, show>(m + from, to - from, del);
         }
+        _lock.unlock();
+    }
+
+    void lock() const
+    {
+        _lock.lock();
+    }
+
+    bool try_lock() const
+    {
+        return _lock.try_lock();
+    }
+
+    void unlock() const
+    {
+        _lock.unlock();
     }
 
     static const unsigned long last = std::numeric_limits<unsigned long>::max();
