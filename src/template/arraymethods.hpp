@@ -27,17 +27,15 @@ inline void _fill(T *start, T *end, const T x = 0)
         _vfill(start, end, x);
 }
 
-template<typename T, typename SizeType=unsigned>
-inline void _vfill(T *start, SizeType len, const T x)
+template<typename T>
+inline void _vfill(T *start, size_t len, const T x)
 {
     while(len-- > 0)
         *start++ = x;
 }
 
-template<typename T, typename SizeType=unsigned,
-        typename = typename std::enable_if<std::is_integral<T>::value ||
-        std::is_pointer<T>::value>::type>
-inline void _fill(T *start, SizeType len, const T x = 0)
+template<typename T>
+inline void _fill(T *start, size_t len, const T x = 0)
 {
     if(_valueMethods<T>::bytesEqual(x))
         memset(start, _valueMethods<T>::getFirstByte(x), len * sizeof(*start));
@@ -45,33 +43,32 @@ inline void _fill(T *start, SizeType len, const T x = 0)
         _vfill(start, len, x);
 }
 
-inline char *_readstr(unsigned &len)
+inline char* _readstr(size_t &len)
 {
     int c;
     char *str = new char[len];
-    unsigned i = 0;
+    len = 0;
     while(((c = getchar()) != -1) && (c != '\n'))
-        str[i++] = (char) c;
-    len = i;
+        str[len++] = (char) c;
     return str;
 }
 
-template<typename T = unsigned>
+template<typename T>
 inline void _read(T *start, T *end, const char *scf = _typeSeq<T>::specifier)
 {
     for(T *i = start; i < end; i++)
         scanf(scf, i);
 }
 
-template<typename T = unsigned, typename SizeType=unsigned>
-inline void _read(T *start, SizeType len, const char *scf = _typeSeq<T>::specifier)
+template<typename T>
+inline void _read(T *start, size_t len, const char *scf = _typeSeq<T>::specifier)
 {
-    for(unsigned i = 0; i < len; i++)
+    for(size_t i = 0; i < len; i++)
         scanf(scf, start++);
 }
 
-template<typename T = unsigned, typename SizeType=unsigned>
-inline T *_read(SizeType len, const char *scf = _typeSeq<T>::specifier)
+template<typename T>
+inline T* _read(size_t len, const char *scf = _typeSeq<T>::specifier)
 {
     T *r = new T[len];
     for(unsigned i = 0; i < len; i++)
@@ -94,39 +91,42 @@ inline typename std::enable_if<!is_bit_copyable<T>::value>::type
         *start++ = *source++;
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
+    _copy(T *__restrict__ start, size_t len, const T *__restrict__ source)
 {
+    ASSERT(static_cast<unsigned long long>(len * sizeof(T)) > 9223372036854775807,
+           "Specified size %llu exceeds maximum object size 9223372036854775807",
+                static_cast<unsigned long long>(len * sizeof(T)));
     memcpy(start, source, len * sizeof(T));
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, SizeType len, const T *__restrict__ source)
+    _copy(T *__restrict__ start, size_t len, const T *__restrict__ source)
 {
     while(len--)
         *start++ = *source++;
 }
 
 template<typename T>
-inline T *_new_copy(T *start, T *end)
+inline T *_new_copy(const T *start, const T *end)
 {
     T *new_array = new T[end - start];
     _copy(new_array, end - start, start);
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned>
-inline T *_new_copy(T *start, SizeType len)
+template<typename T>
+inline T *_new_copy(const T *start, size_t len)
 {
     T *new_array = new T[len];
     _copy(new_array, len, start);
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned>
-inline T *_new_copy(T *start, T *end, SizeType new_length)
+template<typename T>
+inline T* _new_copy(const T *start, const T *end, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements won't be copied!");
     T *new_array = new T[new_length];
@@ -141,12 +141,12 @@ inline T *_new_copy(T *start, T *end, SizeType new_length)
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned, typename SizeType2=unsigned>
-inline T *_new_copy(T *start, SizeType len, SizeType2 new_length)
+template<typename T>
+inline T* _new_copy(const T *start, size_t len, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < len, "new size lesser than old, some elements won't be copied!");
     T *new_array = new T[new_length];
-    if(len <= new_array)
+    if(new_length <= len)
         _copy(new_array, _min(len, new_length), start);
     else
     {
@@ -178,16 +178,16 @@ inline typename std::enable_if<!is_bit_copyable<T>::value>::type
     }
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy_a(T *start, SizeType len, const T *source)
+    _copy_a(T *start, size_t len, const T *source)
 {
     memmove(start, source, len * sizeof(T));
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy_a(T *start, SizeType len, const T *source)
+    _copy_a(T *start, size_t len, const T *source)
 {
     if(start < source)
         while(len--)
@@ -216,23 +216,23 @@ inline typename std::enable_if<!is_bit_movable<T>::value>::type
         *start++ = std::move(*source++);
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
+    _move(T *__restrict__ start, size_t len, T *__restrict__ source)
 {
     memcpy(start, source, len * sizeof(T));
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<!is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, SizeType len, T *__restrict__ source)
+    _move(T *__restrict__ start, size_t len, T *__restrict__ source)
 {
     while(len--)
         *start++ = std::move(*source++);
 }
 
-template<typename T, typename SizeType=unsigned>
-inline T* _resize(T *start, T *end, SizeType new_length)
+template<typename T>
+inline T* _resize(T *start, T *end, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
@@ -241,8 +241,8 @@ inline T* _resize(T *start, T *end, SizeType new_length)
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned, typename SizeType2=unsigned>
-inline T* _resize(T *start, SizeType now_length, SizeType2 new_length)
+template<typename T>
+inline T* _resize(T *start, size_t now_length, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
@@ -251,19 +251,19 @@ inline T* _resize(T *start, SizeType now_length, SizeType2 new_length)
     return new_array;
 }
 
-template<typename T, typename SizeType=unsigned>
+template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value, T*>::type
-_resize_alloc(T *start, SizeType new_length)
+_resize_alloc(T *start, size_t new_length)
 {
     return static_cast<T*>(realloc(start, new_length));
 }
 
-template<typename T, typename SizeType=unsigned>
-inline void _mult_array(T *const start, SizeType len, unsigned times)
+template<typename T>
+inline void _mult_array(T *const start, size_t len, unsigned times)
 {
     unsigned done = 1;
     unsigned times_shift = times >> 1;
-    SizeType clen = len;
+    size_t clen = len;
     while(done <= times_shift)
     {
         _copy_a(start + clen, clen, start);
@@ -285,7 +285,7 @@ inline T& _min(T *start, T *end)
 }
 
 template<typename T>
-inline T& _min(T *start, unsigned long len)
+inline T& _min(T *start, size_t len)
 {
     T *emin = start;
     while(len-- > 1)
@@ -305,7 +305,7 @@ inline T& _max(T *start, T *end)
 }
 
 template<typename T>
-inline T& _max(T *start, unsigned long len)
+inline T& _max(T *start, size_t len)
 {
     T *emax = start;
     while(len-- > 1)
@@ -315,11 +315,10 @@ inline T& _max(T *start, unsigned long len)
 }
 
 template<typename T>
-inline unsigned long _minInd(T *start, T *end)
+inline size_t _minInd(T *start, T *end)
 {
     T vmin = *start;
-    unsigned ind = 0;
-    unsigned len = end - start;
+    size_t ind = 0, len = end - start;
     while(len > 0)
         if(_more(vmin, start[--len]))
             vmin = start[ind = len];
@@ -327,10 +326,10 @@ inline unsigned long _minInd(T *start, T *end)
 }
 
 template<typename T>
-inline unsigned long _minInd(T *start, unsigned long len)
+inline size_t _minInd(T *start, size_t len)
 {
     T vmin = *start;
-    unsigned ind = 0;
+    size_t ind = 0;
     while(len > 0)
         if(_more(vmin, start[--len]))
             vmin = start[ind = len];
@@ -338,11 +337,10 @@ inline unsigned long _minInd(T *start, unsigned long len)
 }
 
 template<typename T>
-inline unsigned long _maxInd(T *start, T *end)
+inline size_t _maxInd(T *start, T *end)
 {
     T vmax = *start;
-    unsigned ind = 0;
-    unsigned len = end - start;
+    size_t ind = 0, len = end - start;
     while(len > 0)
         if(_more(start[--len], vmax))
             vmax = start[ind = len];
@@ -350,30 +348,30 @@ inline unsigned long _maxInd(T *start, T *end)
 }
 
 template<typename T>
-inline unsigned long _maxInd(T *start, unsigned long len)
+inline size_t _maxInd(T *start, size_t len)
 {
     T vmax = *start;
-    unsigned ind = 0;
+    size_t ind = 0;
     while(len > 0)
         if(_more(start[--len], vmax))
             vmax = start[ind = len];
     return ind;
 }
 
-template<typename Ta, typename Ts>
-inline Ts& _sum(Ta *start, unsigned long len)
+template<typename R, typename T>
+inline R _sum(const T *start, size_t len)
 {
-    Ts sum = 0;
+    R sum = 0;
     while(len-- > 0)
         sum += start[len];
     return sum;
 }
 
-template<typename Ta, typename Ts>
-inline Ts& _sum(Ta *start, Ta *end)
+template<typename R, typename T>
+inline R _sum(const T *start, const T *end)
 {
-    Ts sum = 0;
-    unsigned len = end - start;
+    R sum = 0;
+    size_t len = end - start;
     while(len-- > 0)
         sum += start[len];
     return sum;
@@ -389,7 +387,7 @@ inline bool _checksorted(T *start, T *end)
 }
 
 template<typename T, typename compare_func<T>::type compare = _less<T>>
-inline bool _checksorted(T *start, unsigned long len)
+inline bool _checksorted(T *start, size_t len)
 {
     while(len-- > 0)
     {
@@ -401,7 +399,7 @@ inline bool _checksorted(T *start, unsigned long len)
 }
 
 template<typename T>
-inline T **_newArray2d(unsigned long height, unsigned long lenght)
+inline T **_newArray2d(size_t height, size_t lenght)
 {
     T **array = new T *[height];
     while(height > 0)
@@ -410,42 +408,30 @@ inline T **_newArray2d(unsigned long height, unsigned long lenght)
 }
 
 template<typename T>
-inline void _deleteArray2d(T **array, unsigned long height)
+inline void _deleteArray2d(T **array, size_t height)
 {
     while(height > 0)
         delete[] array[--height];
     delete[] array;
 }
 
-#ifdef INDEXARRAY
-
-unsigned *indexArray;
-
-#endif // INDEXARRAY
-
-template<typename T1, typename T2>
-inline void _adswap(T1 *array1, T2 *array2, unsigned f, unsigned s)
+inline bool c_str_equals(const char *a, const char *b)
 {
-    T1 tmp1 = array1[f];
-    array1[f] = array1[s];
-    array1[s] = tmp1;
-    T2 tmp2 = array2[f];
-    array2[f] = array2[s];
-    array2[s] = tmp2;
-#ifdef INDEXARRAY
-    unsigned tmpInd = indexArray[f];
-    indexArray[f] = indexArray[s];
-    indexArray[s] = tmpInd;
-#endif // INDEXARRAY
-}
-
-inline bool c_str_equals(const char *const a, const char *const b)
-{
-    for(unsigned i = 0;; i++)
+    for(size_t i = 0;; i++)
         if(a[i] != b[i])
             return false;
         elif(a[i] == '\0')
             return true;
+}
+
+inline bool c_str_equals(const char *a, const char *b, size_t compare_to)
+{
+    for(size_t i = 0;i < compare_to;i++)
+        if(a[i] != b[i])
+            return false;
+        elif(a[i] == '\0')
+            return true;
+    return true;
 }
 
 template<typename T>
@@ -455,23 +441,23 @@ inline void _reverse(T *start, T *end)
         std::swap(*start++, *end);
 }
 
-template<typename T, typename SizeType=unsigned>
-inline void _reverse(T *start, SizeType length)
+template<typename T>
+inline void _reverse(T *start, size_t length)
 {
-    SizeType from = 0;
+    size_t from = 0;
     while(from < --length)
         std::swap(start[from++], start[length]);
 }
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-inline void shr_range(T *start, SizeType length, ShiftType shift);
+         && std::is_integral<ShiftType>::value>>
+inline void shr_range(T *start, size_t length, ShiftType shift);
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-inline void shl_range(T *start, SizeType length, ShiftType shift)
+         && std::is_integral<ShiftType>::value>>
+inline void shl_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
         return;
@@ -490,7 +476,7 @@ inline void shl_range(T *start, SizeType length, ShiftType shift)
     }
     if(shift)
     {
-        for(SizeType i = 0;i < length - shift;i++)
+        for(size_t i = 0;i < length - shift;i++)
             start[i] = start[i + shift];
         length -= shift;
         _fill(start + length, shift);
@@ -498,16 +484,16 @@ inline void shl_range(T *start, SizeType length, ShiftType shift)
     if(shift_in_cell)
     {
         unsigned char shift_right = _typeSeq<T>::bit_length - shift_in_cell;
-        for(SizeType i = 0;i < length - 1;i++)
+        for(size_t i = 0;i < length - 1;i++)
             start[i] = (start[i] << shift_in_cell) | (start[i + 1] >> shift_right);
         start[length - 1] <<= shift_in_cell;
     }
 }
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-inline void shr_range(T *start, SizeType length, ShiftType shift)
+         && std::is_integral<ShiftType>::value>>
+inline void shr_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
         return;
@@ -526,7 +512,7 @@ inline void shr_range(T *start, SizeType length, ShiftType shift)
     }
     if(shift)
     {
-        for(SizeType i = length - 1;i >= shift;i++)
+        for(size_t i = length - 1;i >= shift;i++)
             start[i] = start[i - shift];
         length -= shift;
         _fill(start, shift);
@@ -535,32 +521,32 @@ inline void shr_range(T *start, SizeType length, ShiftType shift)
     if(shift_in_cell)
     {
         unsigned char shift_left = _typeSeq<T>::bit_length - shift_in_cell;
-        for(SizeType i = length;i > 0;i--)
+        for(size_t i = length;i > 0;i--)
             start[i] = (start[i - 1] << shift_left) | (start[i] >> shift_in_cell);
         start[0] >>= shift_in_cell;
     }
 }
 
 template<typename T, typename ShiftType=unsigned>
-inline void shl_range(T *start,T *end, ShiftType shift)
+inline void shl_range(T *start, T *end, ShiftType shift)
 {
     shl_range(start, end - start, shift);
 }
 template<typename T, typename ShiftType=unsigned>
-inline void shr_range(T *start,T *end, ShiftType shift)
+inline void shr_range(T *start, T *end, ShiftType shift)
 {
     shr_range(start, end - start, shift);
 }
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-void ror_range(T *start, SizeType length, ShiftType shift);
+         && std::is_integral<ShiftType>::value>>
+void ror_range(T *start, size_t length, ShiftType shift);
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-void rol_range(T *start, SizeType length, ShiftType shift)
+         && std::is_integral<ShiftType>::value>>
+void rol_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
         return;
@@ -574,7 +560,7 @@ void rol_range(T *start, SizeType length, ShiftType shift)
     {
         T saved = start[0];
         unsigned char shift_right = _typeSeq<T>::bit_length - shift_in_cell;
-        for(SizeType i = 0;i < length - 1;i++)
+        for(size_t i = 0;i < length - 1;i++)
             start[i] = (start[i] << shift_in_cell) | (start[i + 1] >> shift_right);
         start[length - 1] = (start[length - 1] << shift_in_cell) | (saved >> shift_right);
     }
@@ -583,11 +569,11 @@ void rol_range(T *start, SizeType length, ShiftType shift)
         shift %= length;
     if(shift)
     {
-        SizeType left = length, initial = 0;
+        size_t left = length, initial = 0;
         do
         {
             T saved = start[initial];
-            SizeType i = initial, next = initial + shift;
+            size_t i = initial, next = initial + shift;
             if(next >= length)
                 next -= length;
             while(next != initial)
@@ -604,10 +590,10 @@ void rol_range(T *start, SizeType length, ShiftType shift)
     }
 }
 
-template<typename T, typename SizeType=unsigned, typename ShiftType=unsigned,
+template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
-        && std::is_integral<SizeType>::value && std::is_integral<ShiftType>::value>>
-void ror_range(T *start, SizeType length, ShiftType shift)
+         && std::is_integral<ShiftType>::value>>
+void ror_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
         return;
@@ -621,7 +607,7 @@ void ror_range(T *start, SizeType length, ShiftType shift)
     {
         T saved = start[length - 1];
         unsigned char shift_left = _typeSeq<T>::bit_length - shift_in_cell;
-        for(SizeType i = length;i > 0;i--)
+        for(size_t i = length;i > 0;i--)
             start[i] = (start[i - 1] << shift_left) | (start[i] >> shift_in_cell);
         start[0] = (saved << shift_left) | (start[0] >> shift_in_cell);
     }
@@ -630,11 +616,11 @@ void ror_range(T *start, SizeType length, ShiftType shift)
         shift %= length;
     if(shift)
     {
-        SizeType left = length, initial = length - 1, len_sub_shift = length - shift;
+        size_t left = length, initial = length - 1, len_sub_shift = length - shift;
         do
         {
             T saved = start[initial];
-            SizeType i = initial, next = initial;
+            size_t i = initial, next = initial;
             if(next < shift)
                 next += len_sub_shift;
             else
@@ -667,40 +653,38 @@ inline void ror_range(T *start, T *end, ShiftType shift)
     ror_range(start, end - start, shift);
 }
 
-
 //merge(start[0..part_len1], start[part_len1..part_len1 + part_len2]) -> destination
 template<typename T, bool (*compare)(T, T) = _less<T>>
-void merge_seq_two(const T* __restrict__ start, unsigned part_len1,
-                   unsigned part_len2, T* __restrict__ destination)
+void merge_seq_two(const T* __restrict__ start, size_t part_len1,
+                   size_t part_len2, T* __restrict__ destination)
 {
-    unsigned i = 0, i1 = 0, i2 = part_len1;
+    size_t i_dest = 0, i1 = 0, i2 = part_len1;
     while((part_len1) && (part_len2))
     {
         if(compare(start[i1], start[i2]))
         {
-            destination[i++] = start[i1++];
+            destination[i_dest++] = start[i1++];
             part_len1--;
         }
         else
         {
-            destination[i++] = start[i2++];
+            destination[i_dest++] = start[i2++];
             part_len2--;
         }
     }
     while(part_len1--)
-        destination[i++] = start[i1++];
+        destination[i_dest++] = start[i1++];
     while(part_len2--)
-        destination[i++] = start[i2++];
+        destination[i_dest++] = start[i2++];
 };
 
 
 //merge(first[0..part_len1], second[0..part_len2]) -> destination
 //sort_in_place = true => destination[part_len2..] = second[0..]
 template<typename T, typename compare_func<T>::type compare = _less<T>,
-                bool sort_in_place = false, bool count_inversions = false,
-                typename SizeType = unsigned>
+                bool sort_in_place = false, bool count_inversions = false>
 typename std::conditional<count_inversions, unsigned long long, void>::type
-    merge_two_arrays(T *first, SizeType part_len1, T *second, SizeType part_len2, T *destination)
+    merge_two_arrays(T *first, size_t part_len1, T *second, size_t part_len2, T *destination)
 {
     unsigned long long inversions = 0;
     while((part_len1) && (part_len2))
@@ -728,28 +712,3 @@ typename std::conditional<count_inversions, unsigned long long, void>::type
     else
         return static_cast<typename std::conditional<count_inversions, unsigned long long, void>::type>(0);
 };
-
-template<typename T, typename compare_func<T>::type compare = _less<T>, bool sort_in_place=false,
-    typename SizeType = unsigned>
-unsigned long long merge_with_inversions_count(const T* __restrict__ first, SizeType len1,
-                            const T* __restrict__ second, SizeType len2, const T* __restrict__ destination)
-{
-    unsigned long long swaps = 0;
-    while((len1) && (len2))
-        if(compare(*second, *first))
-        {
-            *(destination++) = *(second++);
-            swaps += len1;
-            len2--;
-        }
-        else
-        {
-            *(destination++) = *(first++);
-            len1--;
-        }
-        while(len1--)
-            *(destination++) = *(first++);
-        while(len2--)
-            *(destination++) = *(second++);
-        return swaps;
-}
