@@ -8,11 +8,26 @@
 #include "../container/const_array.hpp"
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
+#include "../other/singleton.hpp"
 
 #include <string>
 
 struct str: Hashable
 {
+    struct no_copy
+    {
+        char *s;
+
+        explicit no_copy(char *s);
+    };
+
+    struct to_own
+    {
+        char *s;
+
+        explicit to_own(char *s);
+    };
+
 protected:
     struct str_info: HashableStored<true>
     {
@@ -37,7 +52,7 @@ protected:
 
         void update_hash() const;
         void update_hash(unsigned long cell) const;
-        virtual uint64_t hash_recalc() const override;
+        uint64_t hash_recalc() const override;
     };
 
     struct str_info_subs: str_info
@@ -74,14 +89,13 @@ protected:
         void copy_to_array(char *dst, unsigned long from, unsigned long to) const override;
         bool is_owner() const override;
 
-        virtual uint64_t hash_recalc() const override;
+        uint64_t hash_recalc() const override;
     };
 
     char *s;
     str_info *info;
 
 private:
-    static str_info empty;
     static const uint64_t hash_mult = 137;
 
 protected:
@@ -179,13 +193,17 @@ public:
                                                  !std::is_same<I, bool>::value>>
     str(I x); // NOLINT
 
-    str(const char *); // NOLINT
+    str(const char*); // NOLINT
 
     str(const char*, unsigned long);
 
-    str(char *); // NOLINT
+    str(no_copy); // NOLINT
 
-    str(char*, unsigned long);
+    str(no_copy, unsigned long);
+
+    str(to_own); // NOLINT
+
+    str(to_own, unsigned long);
 
     str(const std::string&); // NOLINT
 
@@ -281,7 +299,12 @@ public:
 protected:
     void unlink() const noexcept;
 
+    void unlink(str_info*) const noexcept;
+
     uint64_t hash() const noexcept override;
+
+private:
+    static str_info& empty();
 };
 
 str operator+(str a, const str& b);

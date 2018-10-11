@@ -1,5 +1,11 @@
 #include "str.h"
 
+str::no_copy::no_copy(char *s): s(s)
+{}
+
+str::to_own::to_own(char *s): s(s)
+{}
+
 str::const_iterator::const_iterator(const str& s, unsigned long i): s(s), i(i)
 {}
 
@@ -318,9 +324,9 @@ uint64_t str::str_info_cnct::hash_recalc() const
     return lpart->hash() + rpart->hash() * pwr(str::hash_mult, lpart->len);
 }
 
-str::str(): s(empty.block), info(&empty)
+str::str(): s(empty().block), info(&empty())
 {
-    empty.links++;
+    empty().links++;
 }
 
 str::str(bool f): s(new char[6]), info(new str_info(s, 4))
@@ -387,24 +393,37 @@ template str::str<long long, void>(long long);
 
 template str::str<unsigned long long, void>(unsigned long long);
 
-str::str(const char *const s)
+str::str(const char *s)
 {
     unsigned len = 0;
     while(s[len++] != '\0');
-    this->s = new char[len];
-    _copy(this->s, len, s);
+    this->s = _new_copy(s, len);
     info = new str_info(this->s, --len);
 }
 
-str::str(const char *const s, unsigned long len)
+str::str(const char *s, unsigned long len)
 {
-    this->s = new char[len + 1];
-    _copy(this->s, len, s);
-    this->s[len] = '\0';
+    this->s = _new_copy(s, len, len + 1);
     info = new str_info(this->s, len);
 }
 
-str::str(char *const s): s(s)
+str::str(no_copy c): s(c.s)
+{
+    unsigned len = 0;
+    while(s[len] != '\0')
+        len++;
+    info = new str_info(s, len);
+    info -> links++;    //we not own this resource
+}
+
+str::str(no_copy c, unsigned long len): s(c.s)
+{
+    ASSERT(s[len] == '\0');
+    info = new str_info(s, len);
+    info -> links++;    //we not own this resource
+}
+
+str::str(to_own c): s(c.s)
 {
     unsigned len = 0;
     while(s[len] != '\0')
@@ -412,7 +431,7 @@ str::str(char *const s): s(s)
     info = new str_info(s, len);
 }
 
-str::str(char *const s, unsigned long len): s(s)
+str::str(to_own c, unsigned long len): s(c.s)
 {
     ASSERT(s[len] == '\0');
     info = new str_info(s, len);
@@ -433,8 +452,8 @@ str::str(std::string&& s): str(s.c_str(), static_cast<unsigned long>(s.length())
 
 str::str(str&& s) noexcept: s(s.s), info(s.info)
 {
-    s.s = empty.block;
-    s.info = &empty;
+    s.s = empty().block;
+    s.info = &empty();
     s.info->links++;
 }
 
@@ -459,14 +478,15 @@ str& str::operator=(const str& b)
     return *this;
 }
 
-str& str::operator=(str&& b) noexcept
+str& str::operator=(str &&b) noexcept
 {
-    unlink();
+    str_info *tmp = info;
     info = b.info;
     s = b.s;
-    b.info = &empty;
-    b.s = empty.block;
+    b.info = &empty();
+    b.s = empty().block;
     b.info->links++;
+    unlink(tmp);
     return *this;
 }
 
@@ -497,7 +517,7 @@ char& str::operator[](unsigned long i)
     return s[i];
 }
 
-str& str::operator+=(const str& b)
+str& str::operator+=(const str &b)
 {
     s = nullptr;
     info = new str_info_cnct(info, b.info);
@@ -532,9 +552,9 @@ str& str::operator*=(unsigned times)
         return *this;
     if(times == 0)
     {
-        s = empty.block;
+        s = empty().block;
         unlink();
-        info = &empty;
+        info = &empty();
         info->links++;
         return *this;
     }
@@ -675,7 +695,7 @@ str::operator char*() const
 
 str::operator std::string() const
 {
-    return std::string(static_cast<char*>(*this));
+    return std::string(const_array<char>(static_cast<char*>(*this)));
 }
 
 str str::copy() const
@@ -683,7 +703,7 @@ str str::copy() const
     auto *s_new = new char[info->len + 1];
     info->copy_to_array(s_new);
     s_new[info->len] = '\0';
-    return str(s_new, info->len);
+    return str(to_own(s_new), info->len);
 }
 
 str str::invert() const
@@ -692,7 +712,7 @@ str str::invert() const
     for(unsigned i = 0; i < info->len; i++)
         s_inv[i] = s[info->len - i - 1];
     s_inv[info->len] = '\0';
-    return str(s_inv, info->len);
+    return str(to_own(s_inv), info->len);
 }
 
 template<bool copy_sub>
@@ -718,7 +738,7 @@ str str::operator()(unsigned long from, unsigned long to) const
         char *new_array = new char[to - from + 1];
         new_array[to - from] = '\0';
         info->copy_to_array(new_array, from, to);
-        return str(new_array, to - from);
+        return str(to_own(new_array), to - from);
     }
 }
 
@@ -825,26 +845,26 @@ unsigned long str::rfind(const str& o, unsigned long from) const
     if(o.length() == 0)
         return from;
     if(s)
-        for(unsigned long i = from, k = o.length() - 1;i >= o.length();)
+        for(unsigned long i = from, k = o.length();i >= o.length();)
         {
-            if(s[i + k] != o[k])
+            if(s[i - k] != o[o.length() - k])
             {
                 i--;
-                k = o.length() - 1;
+                k = o.length();
             }
             elif(--k == 0)
-                return i;
+                return i - o.length();
         }
     else
         for(unsigned long i = from, k = o.length();i >= o.length();)
         {
-            if((*info)[i + k] != o[k])
+            if((*info)[i - k] != o[o.length() - k])
             {
                 i--;
-                k = o.length() - 1;
+                k = o.length();
             }
             elif(--k == 0)
-                return i;
+                return i - o.length();
         }
     return str::not_found;
 }
@@ -865,12 +885,19 @@ void str::unlink() const noexcept
         delete info;
 }
 
+void str::unlink(str_info *inf) const noexcept
+{
+    if(--inf->links == 0)
+        delete inf;
+}
+
+
 uint64_t str::hash() const noexcept
 {
     return info->hash();
 }
 
-str::str_info str::empty = str::str_info(new char[1](), 0);
+STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
 
 str operator+(str a, const str &b)
 {
