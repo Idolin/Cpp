@@ -41,11 +41,11 @@ bool checksortfa(T *s, unsigned mas_len, R(*sortf)(T *, T *))
     printf("Failed!!!");
     if(mas_len < 100)
     {
-        putchar('{');
-        _display(copy, mas_len, _typeSeq<T>::specifier, ",");
+        fputs(" {", stdout);
+        _display(copy, mas_len, _typeSeq<T>::specifier, ",", "} -> {");
+        _display(s, mas_len, _typeSeq<T>::specifier, ",", "}");
     }
-    else
-        putchar('\n');
+    putchar('\n');
     return false;
 }
 
