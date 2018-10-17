@@ -49,8 +49,8 @@ template<typename T, typename compare_func<T>::type compare = _less<T>>
 void minmaxsort(T *start, T *end)
 {
     T *emin, *emax;
-    unsigned cnt = (end - start) / 2;
-    for(unsigned i = 0; i < cnt; i++)
+    unsigned len_div2 = (end - start) / 2;
+    for(unsigned i = 0; i < len_div2; i++)
     {
         if(compare(*(start + 1), *start))
             std::swap(*start, *(start + 1));
@@ -62,7 +62,7 @@ void minmaxsort(T *start, T *end)
             else if(compare(*emax, *k))
                 emax = k;
         std::swap(*start++, *emin);
-        std::swap(--*end, *emax);
+        std::swap(*--end, *emax);
     }
 }
 

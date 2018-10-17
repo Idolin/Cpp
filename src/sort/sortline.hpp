@@ -85,8 +85,7 @@ struct make_getter<RType, RNow, T, get, parts, typename std::enable_if<
 template<typename T, typename R, typename getter_func<T, R>::type getter,
         unsigned short parts,
         typename compare_func<T>::type compare, typename E>
-static void bucketsort_impl(T *start, T *end, unsigned short from = 0,
-                            T *copy_array = nullptr)
+static void bucketsort_impl(T *start, T *end, T *copy, unsigned short from = 0)
 {
     typedef typename std::conditional<(sizeof(R) * parts == 1), uint8_t, uint16_t>::type GR;
     typename getter_func<T, GR>::type get_f = make_getter<GR, R, T, getter, parts>::getter();
@@ -95,38 +94,48 @@ static void bucketsort_impl(T *start, T *end, unsigned short from = 0,
     E length = end - start;
     E *items_in_bucket = new E[std::numeric_limits<GR>::max() + 1];
     _fill(items_in_bucket, std::numeric_limits<GR>::max() + 1);
-    const E index_to = (sizeof(E) == sizeof(GR)) ? 0 :
+    E index_to = (sizeof(E) == sizeof(GR)) ? 0 :
                        static_cast<E>(std::numeric_limits<GR>::max()) + 1;
 
     for(E i = 0;i < length;i++)
         items_in_bucket[get_f(start[i], from)]++;
     for(E i = 1;i != index_to;i++)
         items_in_bucket[i] += items_in_bucket[i - 1];
-    T *copy = (copy_array) ? copy_array : new T[length];
     _move(start, length, copy);
     for(E i = 0;i < length;i++)
         start[--items_in_bucket[get_f(copy[i], from)]] = std::move(copy[i]);
     if(from < parts_new - 1)
     {
         if(compare)
-            for(E i = 1; i != index_to; i++)
-                if(items_in_bucket[i] - items_in_bucket[i - 1] < 256)
-                    minmaxsort<T, compare>(start + items_in_bucket[i - 1],
-                                           start + items_in_bucket[i]);
-                else
-                    bucketsort_impl<T, R, getter, parts, compare, E>(
-                            start + items_in_bucket[i - 1], start + items_in_bucket[i],
-                            from + 1, copy);
+            for(E i = index_to - 1;;i--)
+            {
+                if(length - items_in_bucket[i] > 1)
+                {
+                    if(length - items_in_bucket[i] < 256)
+                        minmaxsort<T, compare>(start + items_in_bucket[i],
+                                           start + length);
+                    else
+                        bucketsort_impl<T, R, getter, parts, compare, E>(
+                            start + items_in_bucket[i], start + length, copy,
+                            from + 1);
+                }
+                if(i == 0)
+                    break;
+                length = items_in_bucket[i];
+            }
         else
-            for(E i = 1; i != index_to; i++)
-                if(items_in_bucket[i] - items_in_bucket[i - 1] > 1)
+            for(E i = index_to - 1;;i--)
+            {
+                if(length - items_in_bucket[i] > 1)
                     bucketsort_impl<T, R, getter, parts, compare, E>(
-                            start + items_in_bucket[i - 1], start + items_in_bucket[i],
-                            from + 1, copy);
+                            start + items_in_bucket[i], start + length, copy,
+                            from + 1);
+                if(i == 0)
+                    break;
+                length = items_in_bucket[i];
+            }
     }
     delete[] items_in_bucket;
-    if(!(copy_array))
-        delete[] copy;
 }
 
 template<typename T, typename R = typename getter_func<T>::RType,
@@ -135,8 +144,10 @@ template<typename T, typename R = typename getter_func<T>::RType,
         typename compare_func<T>::type compare = _less<T>>
 void bucketsort(T *start, T *end)
 {
+    T *copy = new T[end - start];
     if(end - start < ((1 << 16) - 1))
-        bucketsort_impl<T, R, getter, parts, compare, uint16_t>(start, end);
+        bucketsort_impl<T, R, getter, parts, compare, uint16_t>(start, end, copy);
     else
-        bucketsort_impl<T, R, getter, parts, compare, uint32_t>(start, end);
+        bucketsort_impl<T, R, getter, parts, compare, uint32_t>(start, end, copy);
+    delete [] copy;
 }
