@@ -303,6 +303,8 @@ protected:
 
     uint64_t hash() const noexcept override;
 
+    unsigned char cmp_call(const str &b) const;
+
 private:
     static str_info& empty();
 };

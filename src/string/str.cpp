@@ -1,5 +1,24 @@
 #include "str.h"
 
+#include "../debug/def_debug.h"
+
+template<typename S1, typename S2>
+static inline unsigned char cmp(S1 s1, S2 s2, unsigned long len)
+{
+    for(unsigned i = 0; i < len; i++)
+        if(s1[i] != s2[i]) //should work, as s2[last] is '\NUL'
+            return (s1[i] > s2[i]);
+    return ((s2[len] == '\0')) * 2;
+}
+
+template unsigned char cmp(const str::str_info_cnct&, const str::str_info_cnct&, unsigned long);
+
+template unsigned char cmp(const str::str_info_cnct&, const char*, unsigned long);
+
+template unsigned char cmp(const char*, const str::str_info_cnct&, unsigned long);
+
+template unsigned char cmp(const char*, const char*, unsigned long);
+
 str::no_copy::no_copy(char *s): s(s)
 {}
 
@@ -569,23 +588,11 @@ str& str::operator*=(unsigned times)
     return *this;
 }
 
-bool str::operator==(const str& b) const
+bool str::operator==(const str &b) const
 {
     if(info->len != b.length() || !this->hash_equals(b))
         return false;
-    if(s)
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if(s[i] != b[i])
-                return false;
-    }
-    else
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if((*info)[i] != b[i])
-                return false;
-    }
-    return true;
+    return (cmp_call(b) == 2);
 }
 
 bool str::operator!=(const str &b) const
@@ -595,70 +602,22 @@ bool str::operator!=(const str &b) const
 
 bool str::operator<(const str& b) const
 {
-    if(s)
-    {
-        for(unsigned i = 0; i < info->len; i++) //should work, as b[last] is '\NUL'
-            if(s[i] != b[i])
-                return (s[i] < b[i]);
-    }
-    else
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if((*info)[i] != b[i])
-                return ((*info)[i] < b[i]);
-    }
-    return (info -> len < b.length());
+    return (cmp_call(b) == 0);
 }
 
 bool str::operator<=(const str& b) const
 {
-    if(s)
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if(s[i] != b[i])
-                return (s[i] < b[i]);
-    }
-    else
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if((*info)[i] != b[i])
-                return ((*info)[i] < b[i]);
-    }
-    return (info -> len <= b.length());
+    return (cmp_call(b) != 1);
 }
 
 bool str::operator>(const str& b) const
 {
-    if(s)
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if(s[i] != b[i])
-                return (s[i] > b[i]);
-    }
-    else
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if((*info)[i] != b[i])
-                return ((*info)[i] > b[i]);
-    }
-    return (info -> len > b.length());
+    return (cmp_call(b) == 1);
 }
 
 bool str::operator>=(const str& b) const
 {
-    if(s)
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if(s[i] != b[i])
-                return (s[i] >= b[i]);
-    }
-    else
-    {
-        for(unsigned i = 0; i < info->len; i++)
-            if((*info)[i] != b[i])
-                return ((*info)[i] >= b[i]);
-    }
-    return (info -> len >= b.length());
+    return (cmp_call(b) != 0);
 }
 
 unsigned long str::length() const
@@ -891,10 +850,25 @@ void str::unlink(str_info *inf) const noexcept
         delete inf;
 }
 
-
 uint64_t str::hash() const noexcept
 {
     return info->hash();
+}
+
+unsigned char str::cmp_call(const str &b) const
+{
+    if(s)
+    {
+        if((b.s) && (b.s[b.info -> len] == '\0'))
+            return cmp<const char*, const char*>(s, b.s, info->len);
+        else
+            return cmp<const char*, const str::str_info_cnct&>(s, *static_cast<str::str_info_cnct*>(b.info), info->len);
+    }
+    if((b.s) && (b.s[b.info->len] == '\0'))
+        return cmp<const str::str_info_cnct&, const char*>(*static_cast<str::str_info_cnct*>(info), b.s, info->len);
+    else
+        return cmp<const str::str_info_cnct&, const str::str_info_cnct&>(*static_cast<str::str_info_cnct*>(info),
+                                                                *static_cast<str::str_info_cnct*>(b.info), info->len);
 }
 
 STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
