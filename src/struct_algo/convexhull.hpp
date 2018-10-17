@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../container/stack.hxx"
+#include "../container/stack.hpp"
 
 template<typename T>
 struct convexHull

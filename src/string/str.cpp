@@ -171,7 +171,7 @@ str::str_info::str_info(str::str_info *copy_from): HashableStored<true>(*copy_fr
     block(new char[copy_from->len + 1]), len(copy_from->len), links(1),
     cell_changed(copy_from->cell_changed)
 {
-    _copy(block, len + 1, copy_from->block);
+    _copy(copy_from->block, len + 1, block);
 }
 
 str::str_info::~str_info()
@@ -187,14 +187,14 @@ char str::str_info::operator[](unsigned long i) const
 
 void str::str_info::copy_to_array(char *dst) const
 {
-    _copy(dst, len, block); //caller needs to care about null char in the end
+    _copy(block, len, dst); //caller needs to care about null char in the end
 }
 
 void str::str_info::copy_to_array(char *dst, unsigned long from, unsigned long to) const
 {
     ASSERT(from < to);
     ASSERT(to <= len);
-    _copy(dst, to - from, block + from);
+    _copy(block + from, to - from, dst);
 }
 
 bool str::str_info::is_owner() const

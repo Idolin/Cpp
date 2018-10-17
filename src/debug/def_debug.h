@@ -82,12 +82,12 @@ private:
 #define ASSERT(cond, ...) ASSERT_ERR(cond, -1, ## __VA_ARGS__)
 
 #else
-#define DEBUGLVLMSG_N(...)
-#define DEBUGLVLMSG(...)
-#define DEBUGMSG(...)
-#define DEBUGLVLIFMSG(...)
-#define DEBUGIFMSG(...)
-#define ASSERT_ERR(...)
-#define ASSERT(...)
+#define DEBUGLVLMSG_N(...) {}
+#define DEBUGLVLMSG(...) {}
+#define DEBUGMSG(...) {}
+#define DEBUGLVLIFMSG(...) {}
+#define DEBUGIFMSG(...) {}
+#define ASSERT_ERR(...) {}
+#define ASSERT(...) {}
 #endif
 

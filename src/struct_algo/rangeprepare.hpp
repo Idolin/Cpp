@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../container/vector.hxx"
+#include "../container/vector.hpp"
 
 template<typename T>
 struct crga

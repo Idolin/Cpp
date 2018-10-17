@@ -78,184 +78,170 @@ inline T* _read(size_t len, const char *scf = _typeSeq<T>::specifier)
 
 template<typename T>
 inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
+    _copy(const T *__restrict__ source, T *end, T *__restrict__ destination)
 {
-    memcpy(start, source, (end - start) * sizeof(T));
+    memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, T *end, const T *__restrict__ source)
+    _copy(const T *__restrict__ source, T *end, T *__restrict__ destination)
 {
-    while(start < end)
-        *start++ = *source++;
+    while(source < end)
+        *destination++ = *source++;
 }
 
 template<typename T>
 inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, size_t len, const T *__restrict__ source)
+    _copy(const T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
-    ASSERT(static_cast<unsigned long long>(len * sizeof(T)) > 9223372036854775807,
+    ASSERT(static_cast<unsigned long long>(len * sizeof(T)) < 9223372036854775807,
            "Specified size %llu exceeds maximum object size 9223372036854775807",
                 static_cast<unsigned long long>(len * sizeof(T)));
-    memcpy(start, source, len * sizeof(T));
+    memcpy(destination, source, len * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy(T *__restrict__ start, size_t len, const T *__restrict__ source)
+    _copy(const T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     while(len--)
-        *start++ = *source++;
+        *destination++ = *source++;
 }
 
 template<typename T>
-inline T *_new_copy(const T *start, const T *end)
+inline T *_new_copy(const T *source, const T *end)
 {
-    T *new_array = new T[end - start];
-    _copy(new_array, end - start, start);
+    T *new_array = new T[end - source];
+    _copy(source, end - source, new_array);
     return new_array;
 }
 
 template<typename T>
-inline T *_new_copy(const T *start, size_t len)
+inline T *_new_copy(const T *source, size_t len)
 {
     T *new_array = new T[len];
-    _copy(new_array, len, start);
+    _copy(source, len, new_array);
     return new_array;
 }
 
 template<typename T>
-inline T* _new_copy(const T *start, const T *end, size_t new_length)
-{
-    DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements won't be copied!");
-    T *new_array = new T[new_length];
-    unsigned long len = end - start;
-    if(new_length <= len)
-        _copy(new_array, new_length, start);
-    else
-    {
-        _copy(new_array, len, start);
-        _fill(new_array + len, new_length - len);
-    }
-    return new_array;
-}
-
-template<typename T>
-inline T* _new_copy(const T *start, size_t len, size_t new_length)
+inline T* _new_copy(const T *source, size_t len, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < len, "new size lesser than old, some elements won't be copied!");
     T *new_array = new T[new_length];
     if(new_length <= len)
-        _copy(new_array, _min(len, new_length), start);
+        _copy(source, _min(len, new_length), new_array);
     else
     {
-        _copy(new_array, len, start);
+        _copy(source, len, new_array);
         _fill(new_array + len, new_length - len);
     }
     return new_array;
 }
 
 template<typename T>
-inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy_a(T *start, T *end, const T *source)
+inline T* _new_copy(const T *source, const T *end, size_t new_length)
 {
-    memmove(start, source, (end - start) * sizeof(T));
+    return _new_copy(source, end - source, new_length);
+}
+
+template<typename T>
+inline typename std::enable_if<is_bit_copyable<T>::value>::type
+    _copy_a(const T *source, T *end, T *destination)
+{
+    memmove(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy_a(T *start, T *end, const T *source)
+    _copy_a(const T *source, T *end, T *destination)
 {
-    if(start < source)
-        while(start < end)
-            *start++ = *source++;
+    if(destination < source)
+        while(source < end)
+            *destination++ = *source++;
     else
     {
-        source += end - start;
-        while(start < end)
-            *--end = *--source;
+        destination += end - source;
+        while(source < end)
+            *destination-- = *--end;
     }
 }
 
 template<typename T>
 inline typename std::enable_if<is_bit_copyable<T>::value>::type
-    _copy_a(T *start, size_t len, const T *source)
+    _copy_a(const T *source, size_t len, T *destination)
 {
-    memmove(start, source, len * sizeof(T));
+    memmove(destination, source, len * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy_a(T *start, size_t len, const T *source)
+    _copy_a(const T *source, size_t len, T *destination)
 {
-    if(start < source)
+    if(destination < source)
         while(len--)
-            *start++ = *source++;
+            *destination++ = *source++;
     else
     {
         source += len;
-        start += len;
+        destination += len;
         while(len--)
-            *--start = *--source;
+            *--destination = *--source;
     }
 }
 
 template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, T *end, T *__restrict__ source)
+    _move(T *__restrict__ source, T *end, T *__restrict__ destination)
 {
-    memcpy(start, source, (end - start) * sizeof(T));
+    memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, T *end, T *__restrict__ source)
+    _move(T *__restrict__ source, T *end, T *__restrict__ destination)
 {
-    while(start < end)
-        *start++ = std::move(*source++);
+    while(source < end)
+        *destination++ = std::move(*source++);
 }
 
 template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, size_t len, T *__restrict__ source)
+    _move(T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
-    memcpy(start, source, len * sizeof(T));
+    memcpy(destination, source, len * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_movable<T>::value>::type
-    _move(T *__restrict__ start, size_t len, T *__restrict__ source)
+    _move(T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     while(len--)
-        *start++ = std::move(*source++);
+        *destination++ = std::move(*source++);
 }
 
 template<typename T>
-inline T* _resize(T *start, T *end, size_t new_length)
-{
-    DEBUGLVLIFMSG(3, new_length < (end - start), "new size lesser than old, some elements will be deleted!");
-    T *new_array = new T[new_length];
-    _move(new_array, _min(end - start, new_length), start);
-    delete [] start;
-    return new_array;
-}
-
-template<typename T>
-inline T* _resize(T *start, size_t now_length, size_t new_length)
+inline T* _resize(T *source, size_t now_length, size_t new_length)
 {
     DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
-    _move(new_array, _min(now_length, new_length), start);
-    delete [] start;
+    _move(source, _min(now_length, new_length), new_array);
+    delete [] source;
     return new_array;
+}
+
+template<typename T>
+inline T* _resize(T *source, T *end, size_t new_length)
+{
+    return _resize(source, end - source, new_length);
 }
 
 template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value, T*>::type
-_resize_alloc(T *start, size_t new_length)
+_resize_alloc(T *source, size_t new_length)
 {
-    return static_cast<T*>(realloc(start, new_length));
+    return static_cast<T*>(realloc(source, new_length));
 }
 
 template<typename T>
@@ -266,12 +252,12 @@ inline void _mult_array(T *const start, size_t len, unsigned times)
     size_t clen = len;
     while(done <= times_shift)
     {
-        _copy_a(start + clen, clen, start);
+        _copy_a(start, clen, start + clen);
         clen <<= 1;
         done <<= 1;
     }
     if(times -= done)
-        _copy_a(start + clen, len * times, start);
+        _copy_a(start, len * times, start + clen);
 }
 
 template<typename T>
@@ -653,60 +639,60 @@ inline void ror_range(T *start, T *end, ShiftType shift)
     ror_range(start, end - start, shift);
 }
 
-//merge(start[0..part_len1], start[part_len1..part_len1 + part_len2]) -> destination
+//merge(source[0..part_len1], source[part_len1..part_len1 + part_len2]) -> destination
 template<typename T, bool (*compare)(T, T) = _less<T>>
-void merge_seq_two(const T* __restrict__ start, size_t part_len1,
+void merge_seq_two(const T* __restrict__ source, size_t part_len1,
                    size_t part_len2, T* __restrict__ destination)
 {
     size_t i_dest = 0, i1 = 0, i2 = part_len1;
     while((part_len1) && (part_len2))
     {
-        if(compare(start[i1], start[i2]))
+        if(compare(source[i1], source[i2]))
         {
-            destination[i_dest++] = start[i1++];
+            destination[i_dest++] = source[i1++];
             part_len1--;
         }
         else
         {
-            destination[i_dest++] = start[i2++];
+            destination[i_dest++] = source[i2++];
             part_len2--;
         }
     }
     while(part_len1--)
-        destination[i_dest++] = start[i1++];
+        destination[i_dest++] = source[i1++];
     while(part_len2--)
-        destination[i_dest++] = start[i2++];
+        destination[i_dest++] = source[i2++];
 };
 
 
-//merge(first[0..part_len1], second[0..part_len2]) -> destination
-//sort_in_place = true => destination[part_len2..] = second[0..]
+//merge(source1[0..part_len1], source2[0..part_len2]) -> destination
+//sort_in_place = true => destination[part_len2..] = source2[0..]
 template<typename T, typename compare_func<T>::type compare = _less<T>,
                 bool sort_in_place = false, bool count_inversions = false>
 typename std::conditional<count_inversions, unsigned long long, void>::type
-    merge_two_arrays(T *first, size_t part_len1, T *second, size_t part_len2, T *destination)
+    merge_two_arrays(T *source1, size_t part_len1, T *source2, size_t part_len2, T *destination)
 {
     unsigned long long inversions = 0;
     while((part_len1) && (part_len2))
     {
-        if(compare(*second, *first))
+        if(compare(*source2, *source1))
         {
-            *(destination++) = *(second++);
+            *(destination++) = *(source2++);
             if(count_inversions)
                 inversions += part_len1;
             part_len2--;
         }
         else
         {
-            *(destination++) = *(first++);
+            *(destination++) = *(source1++);
             part_len1--;
         }
     }
     while(part_len1--)
-        *(destination++) = *(first++);
+        *(destination++) = *(source1++);
     if(!sort_in_place)
         while(part_len2--)
-            *(destination++) = *(second++);
+            *(destination++) = *(source2++);
     if(count_inversions)
         return static_cast<typename std::conditional<count_inversions, unsigned long long, void>::type>(inversions);
     else

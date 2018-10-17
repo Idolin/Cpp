@@ -1,7 +1,7 @@
 #include <cassert>
 #include <string>
 #include <iostream>
-#include "../other/arraymethods.hxx"
+#include "../other/arraymethods.hpp"
 
 using std::string;
 using std::cout;

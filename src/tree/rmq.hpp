@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/commonmethods.hxx"
+#include "../other/commonmethods.hpp"
 
 #include <algorithm>
 

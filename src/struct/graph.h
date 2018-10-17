@@ -16,8 +16,7 @@ struct graph
 {
     template<bool, typename dummy = void>
     struct gt
-    {
-    };
+    {};
 
     template<typename dummy>
     struct gt<true, dummy>

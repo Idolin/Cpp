@@ -103,7 +103,7 @@ static void bucketsort_impl(T *start, T *end, unsigned short from = 0,
     for(E i = 1;i != index_to;i++)
         items_in_bucket[i] += items_in_bucket[i - 1];
     T *copy = (copy_array) ? copy_array : new T[length];
-    _move(copy, length, start);
+    _move(start, length, copy);
     for(E i = 0;i < length;i++)
         start[--items_in_bucket[get_f(copy[i], from)]] = std::move(copy[i]);
     if(from < parts_new - 1)
@@ -138,5 +138,5 @@ void bucketsort(T *start, T *end)
     if(end - start < ((1 << 16) - 1))
         bucketsort_impl<T, R, getter, parts, compare, uint16_t>(start, end);
     else
-        bucketsort_impl<T, R, getter, parts, compare, u_int32_t>(start, end);
+        bucketsort_impl<T, R, getter, parts, compare, uint32_t>(start, end);
 }

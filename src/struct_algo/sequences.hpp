@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/arraymethods.hxx"
+#include "../other/arraymethods.hpp"
 #include "../algo/binarysearch.hxx"
 #include "../other/commonmethods.hxx"
 #include "../sort/sortlog.hxx"
@@ -12,7 +12,7 @@ lcs(unsigned *firstSequence, unsigned firstSequenceLen, unsigned *secondSequence
     unsigned *indexArray = new unsigned[firstSequenceLen];
     for(unsigned i = 0; i < firstSequenceLen; i++)
         indexArray[i] = i;
-    _copy(firstSorted, firstSequenceLen, firstSequence);
+    _copy(firstSequence, firstSequenceLen, firstSorted);
     quicksort(firstSorted, firstSorted + firstSequenceLen);
     secondSequence[0] = 0;
     sequenceLen = 0;

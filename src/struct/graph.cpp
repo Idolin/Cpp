@@ -184,7 +184,8 @@ long *graph::shortestWay(unsigned node)
                                                            distance[_uatmp[i]] + waysGo[_uatmp[i]][k].weight);
         delete[] _uatmp;
         return distance;
-    } elif(!negative)
+    }
+    elif(!negative)
         return dijkstra(node);
     else
         return nullptr;
@@ -217,7 +218,8 @@ unsigned *graph::strongcc()
             }
         waysGo = waysFrom;
         delete[] order;
-    } else
+    }
+    else
     {
         _uatmp = new unsigned[gLen];
         for(unsigned i = 0; i < gLen; i++)
@@ -305,7 +307,8 @@ bool graph::_draw(unsigned node, unsigned char color)
         {
             if(!_draw(waysFrom[node][i].node, color ^ 3))
                 return false;
-        } else if(_tmp[waysFrom[node][i].node] == color)
+        }
+        else if(_tmp[waysFrom[node][i].node] == color)
             return false;
     return true;
 }
@@ -355,7 +358,7 @@ unsigned graph::max_matching(bool *color, unsigned *matching)
             _fill(_tmp, gLen);
         }
     if(matching)
-        _copy(matching, gLen, _uatmp);
+        _copy(_uatmp, gLen, matching);
     delete[] _uatmp;
     return _utmp;
 }

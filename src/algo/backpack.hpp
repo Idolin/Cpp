@@ -62,7 +62,7 @@ unsigned *backpackNW(unsigned backpackCapacity, unsigned *weights, unsigned *val
         if(weights[i] <= backpackCapacity)
         {
             unsigned k = backpackCapacity - weights[i];
-            _copy(backpack[i + 1], weights[i], backpack[i]);
+            _copy(backpack[i], weights[i], backpack[i + 1]);
             while(k-- > 0)
                 if(backpack[i][k + weights[i]] < backpack[i][k] + values[i])
                 {
@@ -71,7 +71,7 @@ unsigned *backpackNW(unsigned backpackCapacity, unsigned *weights, unsigned *val
                 } else
                     backpack[i + 1][k + weights[i]] = backpack[i][k + weights[i]];
         } else
-            _copy(backpack[i + 1], backpackCapacity, backpack[i]);
+            _copy(backpack[i], backpackCapacity, backpack[i + 1]);
     unsigned w = --backpackCapacity, k = amount;
     unsigned i = amountToGet[backpackCapacity];
     unsigned *backpackItems = new unsigned[i];

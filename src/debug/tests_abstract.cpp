@@ -89,7 +89,7 @@ namespace _test_abstract_class_
         set_term_color(color, DEBUG_OUTPUT_STREAM);
         for(unsigned i = 0;i < this -> test_with.size();i++)
             if(i + 1 == this -> test_with.size())
-                DEBUGLVLMSG_N(5, "with %s", this -> test_with[i]);
+                DEBUGLVLMSG_N(5, "with %s", this -> test_with[i])
             else
                 DEBUGLVLMSG_N(5, "with %s, ", this -> test_with[i]);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);

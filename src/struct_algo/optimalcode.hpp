@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/arraymethods.hxx"
+#include "../other/arraymethods.hpp"
 #include "rangeprepare.hxx"
 
 void showCodeSO(unsigned **cutPoint, unsigned y, unsigned x, char *code, char *codePos)

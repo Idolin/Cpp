@@ -147,7 +147,7 @@ public:
     vect(vect const &f): m(new T[f.v_size]), v_size(f.v_size), max_used(f.max_used)
     {
         f.lock();
-        _copy(m, v_size, f.m);
+        _copy(f.m, v_size, m);
         f.unlock();
     }
 
@@ -317,7 +317,7 @@ public:
         return iterator(m);
     }
 
-    iterator at(unsigned long index)
+    iterator iterator_at(unsigned long index)
     {
         ASSERT(index <= max_used);
         return iterator(m + index);

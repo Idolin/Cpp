@@ -39,7 +39,8 @@ bool fsm::checkAccept(const char *s, unsigned len)
             if(not _transition(state, s[i]))
                 return false;
         return accept[state];
-    } else
+    }
+    else
     {
         _fill(tmp, states * 2);
         tmp[start] = true;

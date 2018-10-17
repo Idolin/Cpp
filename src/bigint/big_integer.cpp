@@ -51,8 +51,7 @@ big_integer::big_integer_container::big_integer_container(unsigned size, bool) :
 big_integer::big_integer_container::big_integer_container(const big_integer::big_integer_container &c) :
         sign(c.sign), size(c.size), max_set(c.max_set)
 {
-    number = new uint32_t[c.size];
-    _copy(number, size, c.number); //?
+    number = _new_copy(c.number, c.size);
 }
 
 big_integer::big_integer_container::~big_integer_container()
@@ -117,7 +116,7 @@ void big_integer::big_integer_container::fill(unsigned from, unsigned length, un
 void big_integer::big_integer_container::copy(unsigned from_index, unsigned length,
                                               const big_integer::big_integer_container &c, unsigned int c_index_from)
 {
-    _copy(number + from_index, length, c.number + c_index_from);
+    _copy(c.number + c_index_from, length, number + from_index);
 }
 
 
@@ -132,12 +131,10 @@ void big_integer::big_integer_container::resize(unsigned int new_size)
         return;
     if((new_size > size) && (new_size < size * 2))
         new_size = size * 2;
-    auto *n = new uint32_t[new_size];
-    _copy(n, min(new_size, max_set + 1), number);
+    _copy(number, new_size, number);
+    number = ::_resize(number, max_set + 1, new_size); //wtf it's not copmiling without ::
     if(new_size > max_set + 1)
-        _fill(n + max_set + 1, new_size - max_set - 1);
-    delete[] number;
-    number = n;
+        _fill(number + max_set + 1, new_size - max_set - 1);
     size = new_size;
 }
 

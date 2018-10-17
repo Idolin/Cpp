@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../container/vector.hxx"
-#include "rmq.hxx"
+#include "../container/vector.hpp"
+#include "rmq.hpp"
 
 template<typename T>
 struct heavyLightNodes

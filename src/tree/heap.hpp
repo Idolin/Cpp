@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../template/arraymethods.hpp"
-
 #include <algorithm>
 
 using std::swap;
