@@ -21,7 +21,7 @@ TEST_PACK(str)
         UNUSED(c);
         const str d = b;
         const char *e = d;
-        const char *f = d.c_str_ptr();
+        const char *f = d.c_str();
         EXPECT_STRING_EQ(e, f);
         delete [] c;
         delete [] e; //convert to char* always creates new array(use c_str instead)

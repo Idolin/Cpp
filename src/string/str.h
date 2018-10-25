@@ -5,7 +5,6 @@
 #include "../template/arraymethods.hpp"
 #include "../container/vector.hpp"
 #include "../template/displaymethods.hpp"
-#include "../container/const_array.hpp"
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
 #include "../other/singleton.hpp"
@@ -92,8 +91,8 @@ protected:
         uint64_t hash_recalc() const override;
     };
 
-    char *s;
-    str_info *info;
+    mutable char *s;
+    mutable str_info *info;
 
 private:
     static const uint64_t hash_mult = 137;
@@ -253,9 +252,7 @@ public:
 
     unsigned long length() const;
 
-    const_array<char> c_str_ptr() const;
-
-    const char *c_str();
+    const char *c_str() const;
 
     operator char*() const;
 
@@ -266,7 +263,7 @@ public:
     str invert() const;
 
     template<bool copy_sub = false>
-    str& compact();
+    str compact() const;
 
     str operator()(unsigned long, unsigned long) const;
 
@@ -316,45 +313,46 @@ bool check_eof();
 
 str read_str();
 
-inline bool operator==(const str& a, const char *const b)
+inline bool operator==(const str& a, const char *b)
 {
+    a.compact();
     for(unsigned i = 0; i < a.length(); i++)
         if(a[i] != b[i])
             return false;
     return (b[a.length()] == '\0');
 }
 
-inline bool operator==(const char *const a, const str& b)
+inline bool operator==(const char *a, const str& b)
 {
     return (b == a);
 }
 
-inline bool operator==(const str &a, char *const b)
+inline bool operator==(const str &a, char *b)
 {
-    return (a == static_cast<const char* const>(b));
+    return (a == const_cast<const char*>(b));
 }
 
-inline bool operator==(char *const a, const str& b)
+inline bool operator==(char *a, const str& b)
 {
     return (b == a);
 }
 
-inline bool operator!=(const str& a, const char *const b)
+inline bool operator!=(const str& a, const char *b)
 {
-    return not(a == b);
+    return !(a == b);
 }
 
-inline bool operator!=(const char *const a, const str& b)
+inline bool operator!=(const char *a, const str& b)
 {
-    return not(b == a);
+    return !(b == a);
 }
 
-inline bool operator!=(const str& a, char *const b)
+inline bool operator!=(const str& a, char *b)
 {
-    return not(a != static_cast<const char* const>(b));
+    return !(a != const_cast<const char*>(b));
 }
 
-inline bool operator!=(char *const a, const str& b)
+inline bool operator!=(char *a, const str& b)
 {
     return (b != a);
 }
@@ -363,6 +361,7 @@ inline bool operator==(const str& a, const std::string& b)
 {
     if(a.length() != b.length())
         return false;
+    a.compact();
     for(unsigned i = 0; i < a.length(); i++)
         if(a[i] != b[i])
             return false;
@@ -376,12 +375,12 @@ inline bool operator==(const std::string& a, const str& b)
 
 inline bool operator!=(const str& a, const std::string& b)
 {
-    return not(a == b);
+    return !(a == b);
 }
 
 inline bool operator!=(const std::string& a, const str& b)
 {
-    return not(b == a);
+    return !(b == a);
 }
 
 template<>

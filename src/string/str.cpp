@@ -2,22 +2,13 @@
 
 #include "../debug/def_debug.h"
 
-template<typename S1, typename S2>
-static inline unsigned char cmp(S1 s1, S2 s2, unsigned long len)
+static inline unsigned char cmp(const char *s1, const char *s2, unsigned long len)
 {
     for(unsigned i = 0; i < len; i++)
         if(s1[i] != s2[i]) //should work, as s2[last] is '\NUL'
             return (s1[i] > s2[i]);
     return ((s2[len] == '\0')) * 2;
 }
-
-template unsigned char cmp(const str::str_info_cnct&, const str::str_info_cnct&, unsigned long);
-
-template unsigned char cmp(const str::str_info_cnct&, const char*, unsigned long);
-
-template unsigned char cmp(const char*, const str::str_info_cnct&, unsigned long);
-
-template unsigned char cmp(const char*, const char*, unsigned long);
 
 str::no_copy::no_copy(char *s): s(s)
 {}
@@ -625,22 +616,15 @@ unsigned long str::length() const
     return info->len;
 }
 
-const_array<char> str::c_str_ptr() const
+const char *str::c_str() const
 {
     if((!s) || (s[info->len] != '\0'))
     {
-        char *array = new char[info -> len + 1];
-        info->copy_to_array(array);
-        array[info -> len] = '\0';
-        return const_array<char>(array);
+        s = new char[info->len + 1];
+        info->copy_to_array(s);
+        s[info->len] = '\0';
+        info = new str_info(s, info->len);
     }
-    return const_array<char>(s, false);
-}
-
-const char *str::c_str()
-{
-    if((!s) || (s[info->len] != '\0'))
-        *this = copy();
     return s;
 }
 
@@ -654,7 +638,7 @@ str::operator char*() const
 
 str::operator std::string() const
 {
-    return std::string(const_array<char>(static_cast<char*>(*this)));
+    return std::string(this->c_str());
 }
 
 str str::copy() const
@@ -675,16 +659,21 @@ str str::invert() const
 }
 
 template<bool copy_sub>
-str& str::compact()
+str str::compact() const
 {
     if((!s) || (copy_sub && s[info->len] != '\0'))
-        *this = copy();
+    {
+        s = new char[info->len + 1];
+        info->copy_to_array(s);
+        s[info->len] = '\0';
+        info = new str_info(s, info->len);
+    }
     return *this;
 }
 
-template str& str::compact<false>();
+template str str::compact<false>() const;
 
-template str& str::compact<true>();
+template str str::compact<true>() const;
 
 str str::operator()(unsigned long from, unsigned long to) const
 {
@@ -857,18 +846,9 @@ uint64_t str::hash() const noexcept
 
 unsigned char str::cmp_call(const str &b) const
 {
-    if(s)
-    {
-        if((b.s) && (b.s[b.info -> len] == '\0'))
-            return cmp<const char*, const char*>(s, b.s, info->len);
-        else
-            return cmp<const char*, const str::str_info_cnct&>(s, *static_cast<str::str_info_cnct*>(b.info), info->len);
-    }
-    if((b.s) && (b.s[b.info->len] == '\0'))
-        return cmp<const str::str_info_cnct&, const char*>(*static_cast<str::str_info_cnct*>(info), b.s, info->len);
-    else
-        return cmp<const str::str_info_cnct&, const str::str_info_cnct&>(*static_cast<str::str_info_cnct*>(info),
-                                                                *static_cast<str::str_info_cnct*>(b.info), info->len);
+    compact();
+    b.compact<true>();
+    return cmp(s, b.s, info->len);
 }
 
 STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
