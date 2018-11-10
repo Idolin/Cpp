@@ -20,6 +20,11 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_integral<T>::value 
         return static_cast<unsigned char>(x);
     }
 
+    constexpr static unsigned char getNthByte(T x, unsigned char byte)
+    {
+        return (byte) ? getNthByte(x >> 8, byte - 1) : getFirstByte(x);
+    }
+
     constexpr static T rol(T x, unsigned char shift)
     {
         shift &= (4 << sizeof(T)) - 1;
@@ -46,6 +51,11 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &
     {
         return static_cast<unsigned char>(to_unsigned(x));
     }
+
+    constexpr static unsigned char getNthByte(T x, unsigned char byte)
+    {
+        return _valueOtherMethods<uint32_t>::getNthByte(to_unsigned(x), byte);
+    }
 };
 
 template<typename T>
@@ -61,6 +71,11 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &
     {
         return static_cast<unsigned char>(to_unsigned(x));
     }
+
+    constexpr static unsigned char getNthByte(T x, unsigned char byte)
+    {
+        return _valueOtherMethods<uint64_t>::getNthByte(to_unsigned(x), byte);
+    }
 };
 
 template<>
@@ -74,6 +89,11 @@ struct _valueOtherMethods<bool>
     constexpr static unsigned char getFirstByte(bool x)
     {
         return static_cast<unsigned char>(x);
+    }
+
+    constexpr static unsigned char getNthByte(bool x, unsigned char byte)
+    {
+        return (byte) ? 0 : to_unsigned(x);
     }
 };
 
