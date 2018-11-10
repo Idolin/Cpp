@@ -22,6 +22,7 @@ namespace _test_abstract_class_
         bool test_ok, exception_expected, exception_occured;
         vect<const char*> test_with;
         vect<std::pair<const char*, process_time_counter>> subtests;
+        vect<const char*> subtests_failed;
 
         explicit _test_class_abstract(const char *test_name);
 

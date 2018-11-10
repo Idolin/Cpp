@@ -40,6 +40,7 @@ namespace _test_abstract_class_
         exception_occured = false;
         errors_occured = 0;
         test_ok = true;
+        subtests_failed.clear();
         counter.start();
         try
         {
@@ -107,13 +108,14 @@ namespace _test_abstract_class_
     bool _test_class_abstract::new_subtest(const char *subtest_name)
     {
         subtests.push(std::make_pair(subtest_name, process_time_counter()));
-        subtests.back().second.start();
+        subtests_failed.push(subtest_name);
         set_term_color(term_color::MAGENTA, DEBUG_OUTPUT_STREAM);
         fputc('\n', DEBUG_OUTPUT_STREAM);
         print_level();
         fprintf(DEBUG_OUTPUT_STREAM, " Subtest: %s\n", subtests.back().first);
         bool saved = this -> test_ok;
         test_ok = true;
+        subtests.back().second.start();
         return saved;
     }
 
@@ -122,9 +124,15 @@ namespace _test_abstract_class_
         subtests.back().second.stop();
         unsigned long long time = subtests.back().second.getMilliseconds();
         if(!this -> test_ok)
+        {
             set_term_color(term_color::RED, DEBUG_OUTPUT_STREAM);
+            subtests_failed.push(nullptr);
+        }
         else
+        {
             set_term_color(term_color::MAGENTA, DEBUG_OUTPUT_STREAM);
+            subtests_failed.pop();
+        }
         print_level();
         fprintf(DEBUG_OUTPUT_STREAM, " Subtest %s: %s ", subtests.pop().first,
                 this -> test_ok ? "succeeded" : "failed");
@@ -160,6 +168,7 @@ bool _test_pack_class_abstract::test(str mask)
     milliseconds = 0;
     errors_occured = 0;
     bool at_least_one_test_run = false;
+    test_failed.clear();
     for(unsigned i = 0; i < test_classes.size(); i++)
     {
         if(mask == "*" || mask == test_classes[i]->test_name)
@@ -199,7 +208,26 @@ bool _test_pack_class_abstract::test(str mask)
         fprintf(DEBUG_OUTPUT_STREAM, "%d test%s failed:\n", this->errors_occured,
                 (this->errors_occured > 1 ? "s" : ""));
         for(unsigned i = 0; i < this->errors_occured; i++)
-            fprintf(DEBUG_OUTPUT_STREAM, "\t%s\n", test_classes[test_failed[i]]->test_name);
+        {
+            fprintf(DEBUG_OUTPUT_STREAM, "\t%s", test_classes[test_failed[i]]->test_name);
+            if(test_classes[test_failed[i]]->subtests_failed.size() == 0)
+                fputc('\n', DEBUG_OUTPUT_STREAM);
+            else
+            {
+                fputs(" with failed subtests:\n", DEBUG_OUTPUT_STREAM);
+                unsigned level = 1;
+                for(const char *s : test_classes[test_failed[i]]->subtests_failed)
+                    if(s)
+                    {
+                        level++;
+                        for(unsigned j = 0;j < level;j++)
+                            fputc('\t', DEBUG_OUTPUT_STREAM);
+                        fprintf(DEBUG_OUTPUT_STREAM, "%s\n", s);
+                    }
+                    else
+                        level--;
+            }
+        }
     }
     fputc('\n', DEBUG_OUTPUT_STREAM);
     return test_ok;
