@@ -21,13 +21,25 @@ struct NoHashable: AnyHashable
 
 struct Hashable: HashableTag, AnyHashable
 {
-    virtual uint64_t hash() const = 0;
+    virtual uint64_t hash() const noexcept = 0;
 
     virtual bool hash_equals(const Hashable &b) const final
     {
         return (hash() == b.hash());
     }
 };
+
+namespace std
+{
+    template <>
+    struct hash<Hashable>
+    {
+        size_t operator()(const Hashable &s) const noexcept
+        {
+            return static_cast<size_t>(s.hash());
+        }
+    };
+}
 
 template<bool enabled=true>
 using HashableConditional = std::conditional<enabled, Hashable, NoHashable>;
@@ -89,7 +101,7 @@ protected:
     }
 
 public:
-    uint64_t hash() const final
+    uint64_t hash() const noexcept final
     {
         if(changed)
             hash_value = hash_recalc(), changed = false;
@@ -123,7 +135,7 @@ protected:
     }
 
 public:
-    uint64_t hash() const final
+    uint64_t hash() const noexcept final
     {
         return hash_value;
     }
