@@ -187,7 +187,7 @@ T to2(T k)
 
 template<typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
                         std::is_pointer<T>::value>::type> //mask = min(2^x - 1) | mask >= k
-T to_bit_mask(T k)
+constexpr T to_bit_mask(T k)
 {
     if(k < 0)
         return std::numeric_limits<T>::min();
