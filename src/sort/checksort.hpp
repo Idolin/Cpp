@@ -42,8 +42,8 @@ bool checksortfa(T *s, unsigned mas_len, R(*sortf)(T *, T *))
     if(mas_len < 100)
     {
         fputs(" {", stdout);
-        _display(copy, mas_len, _typeSeq<T>::specifier, ",", "} -> {");
-        _display(s, mas_len, _typeSeq<T>::specifier, ",", "}");
+        _display(copy, mas_len, _typeSeq<T>::specifier, ", ", "} -> {");
+        _display(s, mas_len, _typeSeq<T>::specifier, ", ", "}");
     }
     putchar('\n');
     return false;
