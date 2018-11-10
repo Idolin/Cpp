@@ -113,19 +113,19 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
             throw; \
         } \
     }
-#define EXPECT_TRUE(a, ...) _EXPECT_TRUE(a, GET_ARG_DEF_II("Check(true) failed", ## __VA_ARGS__))
-#define EXPECT_FALSE(a, ...) EXPECT_TRUE(!(a), GET_ARG_DEF("Check(false) failed", ## __VA_ARGS__))
-#define EXPECT_LT(a, b, ...) EXPECT_TRUE((a) < (b), GET_ARG_DEF("Check(lower) failed", ## __VA_ARGS__))
-#define EXPECT_LE(a, b, ...) EXPECT_TRUE((a) <= (b), GET_ARG_DEF("Check(lower ot equals) failed", ## __VA_ARGS__))
-#define EXPECT_EQ(a, b, ...) EXPECT_TRUE((a) == (b), GET_ARG_DEF("Check(equals) failed", ## __VA_ARGS__))
-#define EXPECT_GE(a, b, ...) EXPECT_TRUE((a) >= (b), GET_ARG_DEF("Check(greater or equals) failed", ## __VA_ARGS__))
-#define EXPECT_GT(a, b, ...) EXPECT_TRUE((a) > (b), GET_ARG_DEF("Check(greater) failed", ## __VA_ARGS__))
-#define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF("Check(not equals) failed", ## __VA_ARGS__))
-#define EXPECT_NEAR(a, b, d, ...) EXPECT_TRUE((((a) - (b)) < (d)) && (((b) - (a)) < (d)), GET_ARG_DEF_I("Check(not near) failed", ## __VA_ARGS__))
-#define EXPECT_IN_RANGE(a, l, r, ...) EXPECT_TRUE(((a) >= (l)) && ((a) <= (r)), GET_ARG_DEF("Check(in range) failed", ## __VA_ARGS__))
-#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<typeof(a)>::epsilon(), GET_ARG_DEF("Check(equals floating point) failed", ## __VA_ARGS__))
-#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<float>::epsilon(), GET_ARG_DEF("Check(equals float) failed", ## __VA_ARGS__))
-#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<double>::epsilon(), GET_ARG_DEF("Check(equals double) failed", ## __VA_ARGS__))
+#define EXPECT_TRUE(a, ...) _EXPECT_TRUE(a, GET_ARG_DEF_II("Check(" #a ") failed", ## __VA_ARGS__))
+#define EXPECT_FALSE(a, ...) EXPECT_TRUE(!(a), GET_ARG_DEF("Check(!(" #a ")) failed", ## __VA_ARGS__))
+#define EXPECT_LT(a, b, ...) EXPECT_TRUE((a) < (b), GET_ARG_DEF("Check((" #a ") < (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_LE(a, b, ...) EXPECT_TRUE((a) <= (b), GET_ARG_DEF("Check((" #a ") <= (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_EQ(a, b, ...) EXPECT_TRUE((a) == (b), GET_ARG_DEF("Check((" #a ") == (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_GE(a, b, ...) EXPECT_TRUE((a) >= (b), GET_ARG_DEF("Check((" #a ") >= (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_GT(a, b, ...) EXPECT_TRUE((a) > (b), GET_ARG_DEF("Check((" #a ") > (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF("Check((" #a ") != (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_NEAR(a, b, d, ...) EXPECT_TRUE((((a) - (b)) < (d)) && (((b) - (a)) < (d)), GET_ARG_DEF_I("Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__))
+#define EXPECT_IN_RANGE(a, l, r, ...) EXPECT_TRUE(((a) >= (l)) && ((a) <= (r)), GET_ARG_DEF("Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__))
+#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<typeof(a)>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<float>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<double>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_STRING_EQ(a, b, ...) \
     { \
         unsigned long i = 0; \
@@ -134,7 +134,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                 break; \
             else \
                 i++; \
-        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check(string equals) failed", ## __VA_ARGS__)); \
+        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check((" #a " == " #b ")) failed", ## __VA_ARGS__)); \
     }
 #define _LAST_COMPOSE_EQ(msg, a, b) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")")
 #define COMPOSE_EQ(a, b, ...) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")"); __VA_ARGS__
@@ -185,6 +185,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, auto class_name, ## __VA_ARGS__) \
 }
 
+// using cycle for to work with brackets
 #define SUB_TEST(subtest_name) \
 for(bool saved = new_subtest(#subtest_name), _si = false; \
     _si == false; \
