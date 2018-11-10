@@ -274,12 +274,12 @@ constexpr inline unsigned short getter_parts()
     return (sizeof(T) + sizeof(R) - 1) / sizeof(R);
 };
 
-template<typename T, typename R = typename _getMinType<uint16_t,
-        typename std::make_unsigned<typename clear_type<T>::type>::type>::type,
+//T - any type, R - unsigned, returns from lowest(least matters) parts to highest(most matters) parts
+template<typename T, typename R = uint8_t,
     typename = typename std::enable_if<std::is_unsigned<R>::value>::type>
 struct getter_func
 {
-    typedef R (*type)(T, unsigned short);
+    typedef R (*type)(typename def_get_by<T>::type, unsigned short);
 
     typedef R RType;
 
