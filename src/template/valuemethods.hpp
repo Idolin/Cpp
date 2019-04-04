@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <stdint.h>
 
 template<typename T, typename Enable = void>
 struct _valueOtherMethods
@@ -55,6 +56,26 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &
     constexpr static unsigned char getNthByte(T x, unsigned char byte)
     {
         return _valueOtherMethods<uint32_t>::getNthByte(to_unsigned(x), byte);
+    }
+};
+
+template<typename T>
+struct _valueOtherMethods<T, typename std::enable_if<std::is_floating_point<T>::value &&
+        (sizeof(T) == 4)>::type>
+{
+    constexpr static uint32_t to_unsigned(T x)
+    {
+        return *reinterpret_cast<uint32_t*>(&x);
+    }
+};
+
+template<typename T>
+struct _valueOtherMethods<T, typename std::enable_if<std::is_floating_point<T>::value &&
+        (sizeof(T) == 8)>::type>
+{
+    constexpr static uint64_t to_unsigned(T x)
+    {
+        return *reinterpret_cast<uint64_t*>(&x);
     }
 };
 
