@@ -32,28 +32,17 @@ inline bool _more(const T& x1, const T& x2)
     return _less(x2, x1);
 }
 
-template<typename T, typename Enable = void>
-struct def_comparator;
-
-template<typename T>
-struct def_comparator<T, typename def_get_by_value<T>::type>
+template<typename T, typename compare_func<T>::type compare>
+inline bool _swap_comp(typename def_get_by<T>::type x1, typename def_get_by<T>::type x2)
 {
-    bool (*comparator)(T, T) = &_less<T>;
-};
+    return compare(x2, x1);
+}
 
-template<typename T>
-struct def_comparator<T, typename std::enable_if<is_less_comparable<T>::value, typename def_get_by_reference<T>::type>::type>
+template<typename T, typename compare_func<T>::type compare>
+inline bool _not_comp(typename def_get_by<T>::type x1, typename def_get_by<T>::type x2)
 {
-    bool (*comparator)(const T&, const T&) = &_less<T>;
-};
-
-template<typename T>
-struct def_comparator<T, typename std::enable_if<!is_less_comparable<T>::value, typename def_get_by_reference<T>::type>::type>
-{
-    bool (*comparator)(const T&, const T&) = nullptr;
-};
-
-#define _notmore(x, y) (not(_more(x, y)))
+    return !compare(x1, x2);
+}
 
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
 inline T& _min(const T& a, const T& b)
