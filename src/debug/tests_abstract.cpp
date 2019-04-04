@@ -1,6 +1,6 @@
 #include "tests_abstract.h"
 
-void fprinttime(FILE *SOUT, unsigned long long milliseconds)
+void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str)
 {
     const char* identifier[5] = {"day", "hour", "minute", "second", "millisecond"};
     const unsigned coefficient[4] = {24, 60, 60, 1000};
@@ -22,6 +22,11 @@ void fprinttime(FILE *SOUT, unsigned long long milliseconds)
             fputc('s', SOUT);
         if(i < 4)
             fputc(' ', SOUT);
+    }
+    if(add_str)
+    {
+        fputc(' ', SOUT);
+        fputs(add_str, SOUT);
     }
     fputs("]\n", SOUT);
 }
@@ -81,6 +86,11 @@ namespace _test_abstract_class_
         color_fprintf((test_ok ? term_color::GREEN : term_color::RED), DEBUG_OUTPUT_STREAM, "> Test %s ",
                       (test_ok ? "succeeded" : "failed!"));
         fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds());
+        if(test_ok && (test_repeat_amount > 1))
+        {
+            putchar(' ');
+            fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds() / test_repeat_amount, "per run");
+        }
         fputc('\n', DEBUG_OUTPUT_STREAM);
         return test_ok;
     }

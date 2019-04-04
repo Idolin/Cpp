@@ -8,7 +8,7 @@
 
 #include <exception>
 
-void fprinttime(FILE *SOUT, unsigned long long milliseconds);
+void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str = nullptr);
 
 namespace _test_abstract_class_
 {
