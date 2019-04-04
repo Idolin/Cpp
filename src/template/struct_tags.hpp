@@ -62,33 +62,30 @@ struct is_mergeable
     };
 };
 
-template<typename T, typename Enable = void>
-struct is_less_comparable;
 
-template<typename T>
-struct is_less_comparable<T, typename std::enable_if<std::is_integral<T>::value || std::is_pointer<T>::value>::type>
-{
-    enum {
-        value = true
+#define STRUCT_IS(name, ...) \
+    template<typename T, typename Enable = void> \
+    struct is_ ## name \
+    { \
+        enum \
+        { \
+            value = false \
+        }; \
+    }; \
+    \
+    template<typename T> \
+    struct is_ ## name<T, typename std::enable_if_t<__VA_ARGS__>> \
+    { \
+        enum \
+        { \
+            value = true \
+        }; \
     };
-};
 
-template<typename T>
-struct is_less_comparable<T, typename std::enable_if<!std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
-{
-private:
-    static uint8_t test(_rank<0>);
+STRUCT_IS(less_comparable, std::is_same<decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
+                                 std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>()), bool>::value)
 
-    template<typename = decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
-                                 std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>())>
-    static uint16_t test(_rank<1>);
-
-public:
-    enum
-    {
-        value = sizeof(test<>(_rank<1>())) == 2
-    };
-};
+STRUCT_IS(dereferencable, std::is_lvalue_reference<decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
 
 template<typename T>
 struct is_hashable
