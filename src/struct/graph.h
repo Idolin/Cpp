@@ -61,6 +61,8 @@ struct graph
 
     int *bellman_ford(unsigned node);
 
+    long **floyd_warshall();
+
     long *shortestWay(unsigned node1);
 
     unsigned *topsort();
