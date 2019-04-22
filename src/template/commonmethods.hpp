@@ -45,7 +45,7 @@ inline bool _not_comp(typename def_get_by<T>::type x1, typename def_get_by<T>::t
 }
 
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
-inline T& _min(const T& a, const T& b)
+inline const T& _min(const T& a, const T& b)
 {
     return compare(a, b) ? a : b;
 }
@@ -57,7 +57,7 @@ inline T _min(T a, T b)
 }
 
 template<typename T, bool(*compare)(const T&, const T&) = _less<T>>
-inline T& _max(const T& a, const T& b)
+inline const T& _max(const T& a, const T& b)
 {
     return compare(a, b) ? b : a;
 }
@@ -190,8 +190,8 @@ template<typename T, typename = typename std::enable_if_t<std::is_integral<T>::v
 constexpr unsigned char max_bit_pos(T value)
 {
     if(value < 0)
-        return _typeSeq<T>::bit_length - 1;
-    T mask = ~0;
+        return _typeSeq<T>::bit_length - static_cast<unsigned char>(1);
+    T mask = ~static_cast<T>(0);
     unsigned char ans = 255;
     while(mask & value)
         mask <<= 1, ans++;
@@ -212,7 +212,7 @@ constexpr unsigned char min_bit_pos(T value)
 }
 
 template<typename T,
-    typename = typename std::enable_if<std::is_integral<T>::value>::type>
+    typename = typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value>::type>
 constexpr inline T sqr(T value)
 {
     return value * value;
