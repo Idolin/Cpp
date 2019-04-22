@@ -7,7 +7,7 @@
 
 #include <algorithm>
 #include <iterator>
-#include <stdio.h>
+#include <cstdio>
 #include <mutex>
 
 template<typename T>
@@ -334,7 +334,7 @@ public:
         ASSERT((first < max_used) && (second < max_used), "Vector: attempt to swap values "
                 "out of range(max set: %lu, first index: "
                 "%lu, second index: %lu)", max_used, first, second);
-        std::swap(m + first, m + second);
+        std::swap(m[first], m[second]);
         _lock.unlock();
     }
 
