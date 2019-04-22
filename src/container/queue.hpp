@@ -278,7 +278,7 @@ struct prqueue
         while(p > 0)
         {
             p2 = (p - 1) / 3;
-            if(q.get(p2).first < q.get(p).first)
+            if(q[p2].first < q[p].first)
             {
                 linkl.swap(linka[p], linka[p2]);
                 linka.swap(p, p2);
@@ -297,12 +297,12 @@ struct prqueue
         {
             if(++p2 <= len)
             {
-                if(q.get(p2).first > q.get(p3).first)
+                if(q[p2].first > q[p3].first)
                     p3 = p2;
-                if((++p2 <= len) and (q.get(p2).first > q.get(p3).first))
+                if((++p2 <= len) and (q[p2].first > q[p3].first))
                     p3 = p2;
             }
-            if(q.get(p3).first > q.get(p).first)
+            if(q[p3].first > q[p].first)
             {
                 linkl.swap(linka[p], linka[p3]);
                 linka.swap(p, p3);
@@ -316,7 +316,7 @@ struct prqueue
 
     void push(T c, int priority = 0)
     {
-        q.set(len, make_pair(priority, c));
+        q[len] = std::make_pair(priority, c);
         linka[posn] = len;
         linkl[len] = posn++;
         this->moveup(len++);
@@ -326,10 +326,10 @@ struct prqueue
     {
         if(len > 0)
         {
-            c = q.get(0).second;
-            int ret = q.get(0).first;
+            c = q[0].second;
+            int ret = q[0].first;
             linkl[0] = linkl[--len];
-            q[0] = q.get(len);
+            q[0] = q[len];
             this->movedown();
             return ret;
         } else
@@ -340,8 +340,8 @@ struct prqueue
     {
         if(len > 0)
         {
-            c = q.get(0).second;
-            return q.get(0).first;
+            c = q[0].second;
+            return q[0].first;
         } else
             return -1;
     }
@@ -349,7 +349,7 @@ struct prqueue
     void setPriority(unsigned n, int prioritydif)
     {
         unsigned pos = linkl[n];
-        q.set(pos, make_pair(q.get(pos).first + prioritydif, q.get(pos).second));
+        q[pos] = std::make_pair(q[pos].first + prioritydif, q[pos].second);
         if(prioritydif > 0)
             this->moveup(pos);
         else
