@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG
+//#define DEBUG
 
 #define DEBUG_LVL 5
 #define DEBUG_OUTPUT_STREAM stderr
@@ -68,7 +68,7 @@ private:
             DEBUGLVLMSG(level, ## __VA_ARGS__); \
     }
 #define DEBUGIFMSG(cond, ...) DEBUGLVLIFMSG(4, cond, ## __VA_ARGS__)
-#define ASSERT_ERR(cond, err_code, ...) \
+#define ASSERT_NO_THROW(cond, ...) \
     { \
         if(!(cond)) \
         { \
@@ -76,18 +76,28 @@ private:
             DEBUGLVLMSG(1, "%s %d in file %s!", "Assertion failed at line", __LINE__, __FILE__); \
             set_term_color(term_color::DEFAULT, stderr); \
             START_IF_ARGS_NDEF(DEBUGLVLMSG, 1, 1, ## __VA_ARGS__); \
-            throw assert_failed("Assertion failed!", err_code); \
+            fflush(DEBUG_OUTPUT_STREAM); \
         } \
     }
+#define ASSERT_ERR(cond, err_code, ...) \
+    { \
+        ASSERT_NO_THROW(cond, ## __VA_ARGS__); \
+        throw assert_failed("Assertion failed!", err_code); \
+    }
 #define ASSERT(cond, ...) ASSERT_ERR(cond, -1, ## __VA_ARGS__)
+#define ASSERT_CODE_NOT(func, fail_code, ...) ASSERT(func != fail_code, ## __VA_ARGS__)
+#define ASSERT_CODE_OK(func, ...) ASSERT(func >= 0, ## __VA_ARGS__)
 
 #else
-#define DEBUGLVLMSG_N(...) {}
-#define DEBUGLVLMSG(...) {}
+#define DEBUGLVLMSG_N(level, ...) {}
+#define DEBUGLVLMSG(level, ...) {}
 #define DEBUGMSG(...) {}
-#define DEBUGLVLIFMSG(...) {}
-#define DEBUGIFMSG(...) {}
-#define ASSERT_ERR(...) {}
-#define ASSERT(...) {}
+#define DEBUGLVLIFMSG(level, cond, ...) {}
+#define DEBUGIFMSG(cond, ...) {}
+#define ASSERT_NO_THROW(cond, ...) {}
+#define ASSERT_ERR(cond, err_code, ...) {}
+#define ASSERT(cond, ...) {}
+#define ASSERT_CODE_NOT(func, fail_code, ...) func;
+#define ASSERT_CODE_OK(func, ...) func;
 #endif
 
