@@ -117,7 +117,7 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
         DEBUGLVLMSG(7, "AVL Tree: Searching for node");
         this->_lock.lock();
         avl_node *node = this->root;
-        while(node != 0)
+        while(node != nullptr)
             if(node->key > key)
                 node = node->left;
             elif(node->key < key)
@@ -147,11 +147,11 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
             swap_node_and_list(node, swap);
         }
         if(!(node->parent))
-            this->root = 0;
+            this->root = nullptr;
         elif(node->parent->left == node)
-            node->parent->left = 0;
+            node->parent->left = nullptr;
         else
-            node->parent->right = 0;
+            node->parent->right = nullptr;
         TData &data = node->data;
         balance(node);
         delete node;
@@ -265,8 +265,8 @@ private:
         }
         list->height = node->height;
         node->height = 0;
-        node->left = 0;
-        node->right = 0;
+        node->left = nullptr;
+        node->right = nullptr;
         if(list->parent)
         {
             if(list->parent->left == node)
