@@ -19,6 +19,7 @@ struct counter
     virtual void start() = 0; // begin time measurement
     virtual void cont() = 0; // continue measure after stop
     virtual void stop() = 0; // stop/pause timer
+    virtual void clear() = 0;
     virtual unsigned long long getMilliseconds() const = 0;
     virtual unsigned long long getMicroseconds() const = 0;
 };
@@ -33,6 +34,7 @@ public:
     void start() override;
     void cont() override;
     void stop() override;
+    void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
 };
@@ -52,6 +54,7 @@ public:
     void start() override;
     void cont() override;
     void stop() override;
+    void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
 };
@@ -65,6 +68,7 @@ public:
     void start() override;
     void cont() override;
     void stop() override;
+    void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
 };

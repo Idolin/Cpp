@@ -20,6 +20,11 @@ void time_counter::stop()
                     std::chrono::steady_clock::now() - time).count());
 }
 
+void time_counter::clear()
+{
+    saved = 0;
+}
+
 unsigned long long time_counter::getMilliseconds() const
 {
     return saved / 1000;
@@ -38,11 +43,11 @@ void process_time_counter::start()
     FILETIME createTime;
     FILETIME exitTime;
     FILETIME kernelTime;
-    ASSERT(GetProcessTimes(GetCurrentProcess(),
-        &createTime, &exitTime, &kernelTime, &time) != -1);
+    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+        &createTime, &exitTime, &kernelTime, &time));
     milliseconds = 0;
 #else
-    ASSERT(getrusage(RUSAGE_SELF, &time) != -1);
+    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &time));
     microseconds = 0;
 #endif
 }
@@ -53,10 +58,10 @@ void process_time_counter::cont()
     FILETIME createTime;
     FILETIME exitTime;
     FILETIME kernelTime;
-    ASSERT(GetProcessTimes(GetCurrentProcess(),
-        &createTime, &exitTime, &kernelTime, &time) != -1);
+    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+        &createTime, &exitTime, &kernelTime, &time));
 #else
-    ASSERT(getrusage(RUSAGE_SELF, &time) != -1);
+    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &time));
 #endif
 }
 
@@ -67,12 +72,12 @@ void process_time_counter::stop()
     FILETIME exitTime;
     FILETIME kernelTime;
     FILETIME userTime;
-    ASSERT(GetProcessTimes(GetCurrentProcess(),
-        &createTime, &exitTime, &kernelTime, &userTime) != -1);
+    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+        &createTime, &exitTime, &kernelTime, &userTime));
     SYSTEMTIME userSystemTime;
     SYSTEMTIME userSystemTimeNow;
-    ASSERT(FileTimeToSystemTime(&userTime, &userSystemTime) != -1);
-    ASSERT(FileTimeToSystemTime(&userTime, &userSystemTimeNow) != -1);
+    ASSERT_CODE_OK(FileTimeToSystemTime(&userTime, &userSystemTime));
+    ASSERT_CODE_OK(FileTimeToSystemTime(&userTime, &userSystemTimeNow));
     milliseconds += static_cast<unsigned long long>(
             userSystemTimeNow.wHour - userSystemTime.wHour) * 3600000 +
         static_cast<unsigned long long>(
@@ -83,10 +88,19 @@ void process_time_counter::stop()
             userSystemTimeNow.wMilliseconds - userSystemTime.wMilliseconds);
 #else
     rusage now;
-    ASSERT(getrusage(RUSAGE_SELF, &now) != -1);
+    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &now));
     microseconds += static_cast<unsigned long long>(now.ru_utime.tv_sec -
                                                     time.ru_utime.tv_sec) * 1000000 +
             static_cast<unsigned long long>(now.ru_utime.tv_usec - time.ru_utime.tv_usec);
+#endif
+}
+
+void process_time_counter::clear()
+{
+#ifdef _WIN32
+    milliseconds = 0;
+#else
+    microseconds = 0;
 #endif
 }
 
@@ -123,6 +137,11 @@ void clocks_counter::cont()
 void clocks_counter::stop()
 {
     clocks = std::clock() - clocks;
+}
+
+void clocks_counter::clear()
+{
+    clocks = 0;
 }
 
 unsigned long long clocks_counter::getMilliseconds() const
