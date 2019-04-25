@@ -155,3 +155,8 @@ unsigned long long clocks_counter::getMicroseconds() const
     return (static_cast<unsigned long long>(clocks) / CLOCKS_PER_SEC) * 1000000 +
            ((static_cast<unsigned long long>(clocks) % CLOCKS_PER_SEC) * 1000000) / CLOCKS_PER_SEC;
 }
+
+unsigned long long clocks_counter::getClocks() const
+{
+    return clocks;
+}

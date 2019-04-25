@@ -71,4 +71,5 @@ public:
     void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
+    unsigned long long getClocks() const;
 };
