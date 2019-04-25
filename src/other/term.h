@@ -23,7 +23,7 @@ void set_term_color(char color = term_color::DEFAULT, FILE *ostream = stdout);
 { \
     set_term_color(color); \
     printf(__VA_ARGS__); \
-    if(color != term_color::KEEP) \
+    if((color) != term_color::KEEP) \
         set_term_color(); \
 }
 
@@ -31,7 +31,7 @@ void set_term_color(char color = term_color::DEFAULT, FILE *ostream = stdout);
 { \
     set_term_color(color, ostream); \
     fprintf(ostream, __VA_ARGS__); \
-    if(color != term_color::KEEP) \
+    if((color) != term_color::KEEP) \
         set_term_color(term_color::DEFAULT, ostream); \
 }
 
