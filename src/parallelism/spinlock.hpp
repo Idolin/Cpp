@@ -43,6 +43,111 @@ public:
 };
 
 template<>
+struct spinlock<true, false, false>
+{
+private:
+    std::atomic_flag flag = ATOMIC_FLAG_INIT;
+    thread_local static unsigned nesting_level;
+
+public:
+    ~spinlock()
+    {
+        ASSERT_NO_THROW(!flag.test_and_set(std::memory_order_acquire));
+    }
+
+    void lock()
+    {
+        if(nesting_level++ == 0)
+            while(flag.test_and_set(std::memory_order_acquire))
+                std::this_thread::yield();
+    }
+
+    bool try_lock()
+    {
+        if(nesting_level > 0 || !flag.test_and_set(std::memory_order_acquire))
+        {
+            nesting_level++;
+            return true;
+        }
+        return false;
+    }
+
+    void unlock()
+    {
+        if(--nesting_level == 0)
+            flag.clear(std::memory_order_release);
+    }
+};
+
+thread_local unsigned spinlock<true, false, false>::nesting_level = 0;
+
+template<>
+struct spinlock<false, true, false>
+{
+private:
+    std::atomic<bool> r_flag = {true}; //read allow
+    std::atomic<unsigned> r_counter = {0};
+
+public:
+    ~spinlock()
+    {
+        ASSERT_NO_THROW(r_flag.load() && r_counter.load() == 0);
+    }
+
+    void lock()
+    {
+        while(!r_flag.exchange(false, std::memory_order_acquire)) //wait for previous write_unlock
+            std::this_thread::yield();
+        while(r_counter.load(std::memory_order_acquire)) //wait for all read_unlocks
+            std::this_thread::yield();
+    }
+
+    void rLock()
+    {
+        while(!r_flag.exchange(false, std::memory_order_acquire)) //wait for previous write_unlock
+            std::this_thread::yield();
+        r_counter++;
+        r_flag.store(true, std::memory_order_acq_rel);
+    }
+
+    bool try_lock()
+    {
+        if(r_flag.exchange(false, std::memory_order_acquire))
+        {
+            if(r_counter.load(std::memory_order_acquire) == 0)
+                return true;
+            r_flag.store(true, std::memory_order_acq_rel);
+        }
+        return false;
+    }
+
+    bool try_rLock()
+    {
+        if(r_flag.exchange(false, std::memory_order_acquire))
+        {
+            r_counter++;
+            r_flag.store(true, std::memory_order_acq_rel);
+            return true;
+        }
+        return false;
+    }
+
+    void shift_to_rLock()
+    {
+        r_counter++;
+        r_flag.store(true, std::memory_order_release);
+    }
+
+    void unlock()
+    {
+        if(r_counter.load(std::memory_order_release))
+            r_counter--;
+        else
+            r_flag.store(true);
+    }
+};
+
+template<>
 struct spinlock<false, false, true>
 {
     struct q_node
@@ -53,6 +158,7 @@ struct spinlock<false, false, true>
 
 private:
     std::atomic<q_node*> tail = {nullptr};
+    thread_local static q_node node;
 
 public:
     ~spinlock()
@@ -89,8 +195,6 @@ public:
             node.next.load(std::memory_order_acquire)->flag.clear(std::memory_order_release);
         }
     }
-
-    thread_local static q_node node;
 };
 
 thread_local typename spinlock<false, false, true>::q_node spinlock<false, false, true>::node;
