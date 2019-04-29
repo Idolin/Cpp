@@ -581,7 +581,7 @@ TEST_PACK(big_integer)
         EXPECT_EQ(to_string(big_integer("0")), "0");
         EXPECT_EQ(to_string(big_integer("-0")), "0");
         EXPECT_EQ(to_string(big_integer("-1000000000000000")), "-1000000000000000");
-        EXPECT_EXCEPTION(to_string(big_integer("")));
+        EXPECT_EXCEPTION_ANY(to_string(big_integer("")));
     }
 
     TEST(add_long)
