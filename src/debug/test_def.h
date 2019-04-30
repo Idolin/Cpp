@@ -20,6 +20,9 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 
 #ifndef DEBUG
     #define DEBUG
+    #ifndef DEBUG_OUTPUT_STREAM
+        #define DEBUG_OUTPUT_STREAM stderr
+    #endif // DEBUG_OUTPUT_STREAM
 #endif
 
 #define EXCEPTION_EXPECTED this -> exception_expected = true;
@@ -144,7 +147,20 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     { \
         MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ, GET_123, SKIP2_1, "Check(equals all) failed", a, ## __VA_ARGS__); \
     }
-#define EXPECT_EXCEPTION(a, ...) \
+#define EXPECT_EXCEPTION(a, exception, ...) \
+    { \
+        this -> test_ok = false; \
+        try \
+        { \
+            a; \
+        } \
+        catch(const exception&) \
+        { \
+            this -> test_ok = true; \
+        } \
+        EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_EXCEPTION_ANY(a, ...) \
     { \
         this -> test_ok = false; \
         try \
@@ -155,7 +171,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         { \
             this -> test_ok = true; \
         } \
-        EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception) failed", ## __VA_ARGS__)); \
+        EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception_any) failed", ## __VA_ARGS__)); \
     }
 
 #define COMPOSE_TEST(B, A, X,  ...) \
