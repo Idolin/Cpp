@@ -10,6 +10,18 @@
 
 #include "../debug/def_debug.h"
 
+namespace __internal
+{
+
+    template<bool enable = true>
+    struct recursive
+    {
+        thread_local static unsigned nesting_level;
+    };
+
+    template<bool enable> thread_local unsigned recursive<enable>::nesting_level = 0;
+}
+
 template<bool recursive=false, bool read_lock=false, bool queued = false>
 struct spinlock;
 
@@ -43,11 +55,10 @@ public:
 };
 
 template<>
-struct spinlock<true, false, false>
+struct spinlock<true, false, false>: protected __internal::recursive<true>
 {
 private:
     std::atomic_flag flag = ATOMIC_FLAG_INIT;
-    thread_local static unsigned nesting_level;
 
 public:
     ~spinlock()
@@ -78,8 +89,6 @@ public:
             flag.clear(std::memory_order_release);
     }
 };
-
-thread_local unsigned spinlock<true, false, false>::nesting_level = 0;
 
 template<>
 struct spinlock<false, true, false>
@@ -144,6 +153,89 @@ public:
             r_counter--;
         else
             r_flag.store(true);
+    }
+};
+
+template<> //calling lock after rLock is UB
+struct spinlock<true, true, false>: __internal::recursive<true>
+{
+private:
+    std::atomic<bool> r_flag = {true}; //read allow
+    std::atomic<unsigned> r_counter = {0};
+
+public:
+    ~spinlock()
+    {
+        ASSERT_NO_THROW(r_flag.load() && r_counter.load() == 0);
+    }
+
+    void lock()
+    {
+        if(nesting_level++ == 0)
+        {
+            while(!r_flag.exchange(false, std::memory_order_acquire)) //wait for previous write_unlock
+                std::this_thread::yield();
+            while(r_counter.load(std::memory_order_acquire)) //wait for all read_unlocks
+                std::this_thread::yield();
+        }
+    }
+
+    void rLock()
+    {
+        if(nesting_level++ == 0)
+        {
+            while(!r_flag.exchange(false, std::memory_order_acquire)) //wait for previous write_unlock
+                std::this_thread::yield();
+            r_counter++;
+            r_flag.store(true, std::memory_order_acq_rel);
+        }
+    }
+
+    bool try_lock()
+    {
+        if(nesting_level > 0)
+            return true;
+        if(r_flag.exchange(false, std::memory_order_acquire))
+        {
+            if(r_counter.load(std::memory_order_acquire) == 0)
+            {
+                nesting_level++;
+                return true;
+            }
+            r_flag.store(true, std::memory_order_acq_rel);
+        }
+        return false;
+    }
+
+    bool try_rLock()
+    {
+        if(nesting_level > 0)
+            return true;
+        if(r_flag.exchange(false, std::memory_order_acquire))
+        {
+            r_counter++;
+            r_flag.store(true, std::memory_order_acq_rel);
+            nesting_level++;
+            return true;
+        }
+        return false;
+    }
+
+    void shift_to_rLock()
+    {
+        r_counter++;
+        r_flag.store(true, std::memory_order_release);
+    }
+
+    void unlock()
+    {
+        if(--nesting_level == 0)
+        {
+            if(r_counter.load(std::memory_order_release))
+                r_counter--;
+            else
+                r_flag.store(true);
+        }
     }
 };
 
