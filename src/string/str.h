@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../debug/def_debug.h"
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
 #include "../container/vector.hpp"
@@ -10,6 +9,7 @@
 #include "../other/singleton.hpp"
 
 #include <string>
+#include <type_traits>
 
 struct str: Hashable
 {
@@ -39,7 +39,7 @@ protected:
         mutable unsigned long cell_changed;
 
         str_info(char *s, unsigned long len) noexcept;
-        str_info(str_info *lpart, unsigned long len);
+        str_info(str_info *lpart, unsigned long len) noexcept;
         str_info(str_info *copy_from);
 
         virtual ~str_info();
@@ -290,9 +290,15 @@ public:
 
     unsigned long count_char(char) const;
 
+    unsigned long find_char(char, unsigned long from = 0) const;
+
+    vect<unsigned long> find_all_char(char) const;
+
     unsigned long count(const str&) const;
 
     unsigned long find(const str&, unsigned long from = 0) const;
+
+    vect<unsigned long> find_all(const str&) const;
 
     unsigned long rfind(const str&, unsigned long from = str::last) const;
 
@@ -315,18 +321,26 @@ protected:
 
     unsigned char cmp_call(const str &b) const;
 
+    template<unsigned char count_find_all,
+        typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
+    RType count_find_char(char ch, unsigned long from = 0) const;
+
+    template<unsigned char count_find_all, bool intersect,
+        typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
+    RType count_find(const str &o, unsigned long from = 0) const;
+
 private:
     static str_info& empty();
 };
 
-str operator+(str a, const str& b);
+str operator+(str a, const str &b);
 str operator*(str a, unsigned times);
 
 bool check_eof();
 
 str read_str();
 
-inline bool operator==(const str& a, const char *b)
+inline bool operator==(const str &a, const char* b)
 {
     a.compact();
     for(unsigned i = 0; i < a.length(); i++)

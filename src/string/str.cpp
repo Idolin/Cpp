@@ -2,6 +2,110 @@
 
 #include "../debug/def_debug.h"
 
+namespace
+{
+    template<unsigned char count_find_def_vect>
+    struct CFDef;
+
+    template<>
+    struct CFDef<0>
+    {
+        static unsigned long v()
+        {
+            return 0;
+        }
+    };
+
+    template<>
+    struct CFDef<1>
+    {
+        static unsigned long v()
+        {
+            return str::not_found;
+        }
+    };
+
+    template<>
+    struct CFDef<2>
+    {
+        static vect<unsigned long>&& v()
+        {
+            return std::move(vect<unsigned long>(0));
+        }
+    };
+
+    template<unsigned char count_find_var_type>
+    struct CFVT;
+
+    template<>
+    struct CFVT<0>
+    {
+        unsigned long var = 0;
+
+        void inc()
+        {
+            var++;
+        }
+
+        void push(unsigned long i)
+        {}
+
+        unsigned long result()
+        {
+            return var;
+        }
+
+        unsigned long result(unsigned long i)
+        {
+            return 0;
+        }
+    };
+
+    template<>
+    struct CFVT<1>
+    {
+        void inc()
+        {}
+
+        void push(unsigned long i)
+        {}
+
+        unsigned long result()
+        {
+            return str::not_found;
+        }
+
+        unsigned long result(unsigned long i)
+        {
+            return i;
+        }
+    };
+
+    template<>
+    struct CFVT<2>
+    {
+        vect<unsigned long> var = vect<unsigned long>();
+
+        void inc()
+        {}
+
+        void push(unsigned long i)
+        {
+            var.push(i);
+        }
+
+        vect<unsigned long>&& result()
+        {
+            return std::move(var);
+        }
+
+        vect<unsigned long>&& result(unsigned long i)
+        {
+            return std::move(var);
+        }
+    };
+}
+
 static inline unsigned char cmp(const char *s1, const char *s2, unsigned long len)
 {
     for(unsigned i = 0; i < len; i++)
@@ -746,69 +850,32 @@ bool str::endswith(const str& suffix) const
 
 unsigned long str::count_char(char ch) const
 {
-    unsigned long c = 0;
-    compact();
-    for(unsigned long i = 0; i < info->len; i++)
-        if(s[i] == ch)
-            c++;
-    return c;
+    return count_find_char<0>(ch);
+}
+
+unsigned long str::find_char(char ch, unsigned long from) const
+{
+    return count_find_char<1>(ch, from);
+}
+
+vect<unsigned long> str::find_all_char(char ch) const
+{
+    return count_find_char<2>(ch);
 }
 
 unsigned long str::count(const str& o) const
 {
-    if(o.length() == 0)
-        return 0;
-    if(o.length() == 1)
-        return count_char(o[0]);
-    if(typeid(info) != typeid(str_info_find*))
-    {
-        o.compact();
-        info = new str_info_find(info);
-    }
-    unsigned long *pi = static_cast<str_info_find*>(o.info)->pi;
-    unsigned long c = 0;
-    compact();
-    for(unsigned long i = 0, k = 0; i < info->len; i++)
-    {
-        while((k > 0) && (s[i] != o.s[k]))
-            k = pi[k - 1];
-        if(s[i] == o.s[k])
-            if(++k == o.length())
-            {
-                c++;
-                k = pi[k - 1];
-            }
-    }
-    return c;
+    return count_find<0, false>(o);
 }
 
 unsigned long str::find(const str& o, unsigned long from) const
 {
-    if(o.length() == 0)
-        return from;
-    if(s)
-        for(unsigned long i = from, k = 0;i <= info -> len - o.length();)
-        {
-            if(s[i + k] != o[k])
-            {
-                i++;
-                k = 0;
-            }
-            elif(++k == o.length())
-                return i;
-        }
-    else
-        for(unsigned long i = from, k = 0;i <= info -> len - o.length();)
-        {
-            if((*info)[i + k] != o[k])
-            {
-                i++;
-                k = 0;
-            }
-            elif(++k == o.length())
-                return i;
-        }
-    return str::not_found;
+    return count_find<1, false>(o, from);
+}
+
+vect<unsigned long> str::find_all(const str& o) const
+{
+    return count_find<2, false>(o);
 }
 
 unsigned long str::rfind(const str& o, unsigned long from) const
@@ -874,6 +941,63 @@ unsigned char str::cmp_call(const str &b) const
     compact();
     b.compact<true>();
     return cmp(s, b.s, info->len);
+}
+
+template<unsigned char count_find_all,
+    typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
+RType str::count_find_char(char ch, unsigned long from) const
+{
+    CFVT<count_find_all> v;
+    compact();
+    for(unsigned long i = from; i < info->len; i++)
+        if(s[i] == ch)
+        {
+            if(count_find_all == 0)
+                v.inc();
+            elif(count_find_all == 1)
+                return v.result(i);
+            else
+                v.push(i);
+        }
+    return v.result();
+}
+
+template<unsigned char count_find_all, bool intersect,
+    typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
+RType str::count_find(const str &o, unsigned long from) const
+{
+    if(o.length() < 2)
+    {
+        if(o.length() == 0)
+            return CFDef<count_find_all>::v();
+        else
+            return count_find_char<count_find_all>(o[0], from);
+    }
+    if(typeid(info) != typeid(str_info_find*))
+    {
+        o.compact();
+        info = new str_info_find(info);
+    }
+    unsigned long *pi = static_cast<str_info_find*>(o.info)->pi;
+    CFVT<count_find_all> v;
+    compact();
+    for(unsigned long i = from, k = 0; i < info->len; i++)
+    {
+        while((k > 0) && (s[i] != o.s[k]))
+            k = pi[k - 1];
+        if(s[i] == o.s[k])
+            if(++k == o.length())
+            {
+                if(count_find_all == 0)
+                    v.inc();
+                elif(count_find_all == 1)
+                    return v.result(i + 1 - o.length());
+                else
+                    v.push(i + 1 - o.length());
+                k = intersect ? pi[k - 1] : 0;
+            }
+    }
+    return v.result();
 }
 
 STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
