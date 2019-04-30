@@ -18,16 +18,20 @@
 
 static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_sequence;
 
-#ifndef DEBUG
-    #define DEBUG
-    #ifndef DEBUG_OUTPUT_STREAM
-        #define DEBUG_OUTPUT_STREAM stderr
-    #endif // DEBUG_OUTPUT_STREAM
-#endif
+//#ifndef DEBUG
+//    #define DEBUG
+//    #ifndef DEBUG_OUTPUT_STREAM
+//        #define DEBUG_OUTPUT_STREAM stderr
+//    #endif // DEBUG_OUTPUT_STREAM
+//#endif
+
+//#define TESTS_ENABLED
 
 #define EXCEPTION_EXPECTED this -> exception_expected = true;
 #define STOP_AFTER_ERROR(n) this -> errors_to_stop = n;
 #define REPEAT(n) this -> test_repeat_amount = n;
+
+#ifdef TESTS_ENABLED
 
 #define TEST_PACK(pack_name, ...) \
     struct _test_pack_ ## pack_name: _test_pack_class_abstract \
@@ -59,6 +63,27 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     test_ ## test_name test_ ## test_name_single_class_ ## test_name; \
     \
     void test_ ## test_name::test_body()
+
+#else
+
+#define TEST_PACK(pack_name, ...) namespace test_namespace_ ## pack_name
+
+#define TEST(test_name, ...) \
+    struct test_ ## test_name: _test_abstract_class_::_test_class_abstract \
+    { \
+        test_ ## test_name(): _test_class_abstract((char*)#test_name) \
+        { \
+            _test_classes_main_sequence -> push(this); \
+            __VA_ARGS__; \
+        } \
+        ~test_ ## test_name() = default; \
+        void test_body(); \
+    }; \
+    \
+    void test_ ## test_name::test_body()
+
+#endif // TESTS_ENABLED
+
 
 #define _EXPECT_TRUE(a, ...) \
     { \
