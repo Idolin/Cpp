@@ -91,6 +91,17 @@ protected:
         uint64_t hash_recalc() const override;
     };
 
+    struct str_info_find: str_info //for faster find/replace
+    {
+        unsigned long* pi;
+
+        str_info_find(str_info*);
+
+        ~str_info_find() override;
+
+        bool is_owner() const override;
+    };
+
     mutable char *s;
     mutable str_info *info;
 
@@ -276,6 +287,8 @@ public:
     bool startswith(const str&) const;
 
     bool endswith(const str&) const;
+
+    unsigned long count_char(char) const;
 
     unsigned long count(const str&) const;
 

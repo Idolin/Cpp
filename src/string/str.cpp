@@ -173,7 +173,7 @@ str::str_info::str_info(char *s, unsigned long len) noexcept:
         block(s), len(len), links(1), cell_changed(std::numeric_limits<unsigned long>::max())
 {}
 
-str::str_info::str_info(str::str_info *lpart, unsigned long len):
+str::str_info::str_info(str::str_info *lpart, unsigned long len) noexcept:
     lpart(lpart), len(len), links(1), cell_changed(std::numeric_limits<unsigned long>::max())
 {}
 
@@ -303,13 +303,13 @@ char str::str_info_cnct::operator[](unsigned long i) const
     return (*rpart)[i - lpart->len];
 }
 
-void str::str_info_cnct::copy_to_array(char *dst) const
+void str::str_info_cnct::copy_to_array(char* dst) const
 {
     lpart->copy_to_array(dst);
     rpart->copy_to_array(dst + lpart->len);
 }
 
-void str::str_info_cnct::copy_to_array(char *dst, unsigned long from, unsigned long to) const
+void str::str_info_cnct::copy_to_array(char* dst, unsigned long from, unsigned long to) const
 {
     ASSERT(from < to);
     ASSERT(to <= len);
@@ -333,6 +333,31 @@ uint64_t str::str_info_cnct::hash_recalc() const
 {
     return lpart->hash() + rpart->hash() * pwr(str::hash_mult, lpart->len);
 }
+
+str::str_info_find::str_info_find(str::str_info* s):
+        str_info(s, s->len), pi(new unsigned long[s->len])
+{
+    pi[0] = 0; //str_info_find is called only if len > 1
+    for(unsigned long i = 1, k = 0; i < s->len; i++)
+    {
+        while((k > 0) && (block[i] != block[k]))
+            k = pi[k - 1];
+        if(block[i] == block[k])
+            k++;
+        pi[i] = k;
+    }
+}
+
+str::str_info_find::~str_info_find()
+{
+    delete[] pi;
+}
+
+bool str::str_info_find::is_owner() const
+{
+    return false;
+}
+
 
 str::str(): s(empty().block), info(&empty())
 {
@@ -719,41 +744,41 @@ bool str::endswith(const str& suffix) const
     return (suffix == subStr(length() - suffix.length()));
 }
 
+unsigned long str::count_char(char ch) const
+{
+    unsigned long c = 0;
+    compact();
+    for(unsigned long i = 0; i < info->len; i++)
+        if(s[i] == ch)
+            c++;
+    return c;
+}
+
 unsigned long str::count(const str& o) const
 {
     if(o.length() == 0)
         return 0;
+    if(o.length() == 1)
+        return count_char(o[0]);
+    if(typeid(info) != typeid(str_info_find*))
+    {
+        o.compact();
+        info = new str_info_find(info);
+    }
+    unsigned long *pi = static_cast<str_info_find*>(o.info)->pi;
     unsigned long c = 0;
-    if(s)
-        for(unsigned long i = 0, k = 0;i <= info->len - o.length();)
-        {
-            if(s[i + k] != o[k])
-            {
-                i++;
-                k = 0;
-            }
-            elif(++k == o.length())
+    compact();
+    for(unsigned long i = 0, k = 0; i < info->len; i++)
+    {
+        while((k > 0) && (s[i] != o.s[k]))
+            k = pi[k - 1];
+        if(s[i] == o.s[k])
+            if(++k == o.length())
             {
                 c++;
-                i += k;
-                k = 0;
+                k = pi[k - 1];
             }
-        }
-    else
-        for(unsigned long i = 0, k = 0;i <= info->len - o.length();)
-        {
-            if((*info)[i + k] != o[k])
-            {
-                i++;
-                k = 0;
-            }
-            elif(++k == o.length())
-            {
-                c++;
-                i += k;
-                k = 0;
-            }
-        }
+    }
     return c;
 }
 
