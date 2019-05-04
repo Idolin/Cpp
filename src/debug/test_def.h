@@ -18,20 +18,20 @@
 
 static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_sequence;
 
-//#ifndef DEBUG
-//    #define DEBUG
-//    #ifndef DEBUG_OUTPUT_STREAM
-//        #define DEBUG_OUTPUT_STREAM stderr
-//    #endif // DEBUG_OUTPUT_STREAM
-//#endif
-
-//#define TESTS_ENABLED
+#define TESTS_ENABLED
 
 #define EXCEPTION_EXPECTED this -> exception_expected = true;
 #define STOP_AFTER_ERROR(n) this -> errors_to_stop = n;
 #define REPEAT(n) this -> test_repeat_amount = n;
 
 #ifdef TESTS_ENABLED
+
+#ifndef DEBUG
+    #define DEBUG
+    #ifndef DEBUG_OUTPUT_STREAM
+        #define DEBUG_OUTPUT_STREAM stderr
+    #endif // DEBUG_OUTPUT_STREAM
+#endif
 
 #define TEST_PACK(pack_name, ...) \
     struct _test_pack_ ## pack_name: _test_pack_class_abstract \
@@ -162,15 +162,28 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                 break; \
             else \
                 i++; \
-        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check((" #a " == " #b ")) failed", ## __VA_ARGS__)); \
+        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check strings((" #a ") == (" #b ")) failed", ## __VA_ARGS__)); \
     }
 #define _LAST_COMPOSE_EQ(msg, a, b) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")")
-#define COMPOSE_EQ(a, b, ...) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")"); __VA_ARGS__
+#define COMPOSE_EQ(msg, a, b, ...) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")"); __VA_ARGS__
 #define GET_123(msg, a, b, ...) msg, a, b
 #define SKIP2_1(a, b, ...) a, ## __VA_ARGS__
 #define EXPECT_EQ_ALL(a, ...) \
     { \
         MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ, GET_123, SKIP2_1, "Check(equals all) failed", a, ## __VA_ARGS__); \
+    }
+#define EXPECT_EQ_RA(a, b, len, ...) \
+    { \
+        for(size_t i = 0;i < (len);i++) \
+            EXPECT_EQ((a)[i], (b)[i], GET_ARG_DEF("Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len ")) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_EQ_RA_LEN(a, b, len1, len2, ...) \
+    { \
+        auto len = (len1); \
+        if(len != (len2)) \
+            EXPECT_TRUE(false, GET_ARG_DEF("Check((" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
+        else \
+            EXPECT_EQ_RA(a, b, len, GET_ARG_DEF("Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
     }
 #define EXPECT_EXCEPTION(a, exception, ...) \
     { \
