@@ -1,5 +1,6 @@
 #include "../debug/test_def.h"
 #include "str.h"
+#include "../other/defdef.h"
 #include "../other/rand.h"
 
 TEST_PACK(str)
@@ -207,6 +208,16 @@ TEST_PACK(str)
         EXPECT_EQ(p, "21111111");
     }
 
+    TEST(write_speed)
+    {
+        str a = "0123456789";
+        for(unsigned long i = 0;i < 10000000;i++)
+            a[randomUL() % 10] = '0' + (randomUC() % 10);
+        EXPECT_EQ(a.length(), 10);
+        for(unsigned i = 0;i < a.length();i++)
+            EXPECT_IN_RANGE(a.at(i), '0', '9', "%c not in 0..9", a.at(i));
+    }
+
     TEST(char_append)
     {
         str d = ">";
@@ -310,5 +321,187 @@ TEST_PACK(str)
             EXPECT_LT(a, b);
             EXPECT_NE(a, b);
         }
+    }
+
+    TEST(find_char)
+    {
+        str a = "aabaa.baaz..a..";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.find_char('a'), 0);
+            EXPECT_EQ(a.find_char('a', 1), 1);
+            EXPECT_EQ(a.find_char('a', 2), 3);
+            EXPECT_EQ(a.find_char('a', 5), 7);
+            EXPECT_EQ(a.find_char('a', 13), str::not_found);
+            EXPECT_EQ(a.find_char('a', 19), str::not_found);
+            EXPECT_EQ(a.find_char('.', 14), 14);
+            EXPECT_EQ(a.find_char('x'), str::not_found);
+        }
+    }
+
+    TEST(rfind_char)
+    {
+        str a = "aabaa.baaz..a..";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.rfind_char('.'), 14);
+            EXPECT_EQ(a.rfind_char('.', 14), 13);
+            EXPECT_EQ(a.rfind_char('.', 13), 11);
+            EXPECT_EQ(a.rfind_char('.', 7), 5);
+            EXPECT_EQ(a.rfind_char('.', 5), str::not_found);
+            EXPECT_EQ(a.rfind_char('.', 0), str::not_found);
+            EXPECT_EQ(a.rfind_char('a', 1), 0);
+            EXPECT_EQ(a.rfind_char('a', 0), str::not_found);
+            EXPECT_EQ(a.rfind_char('x'), str::not_found);
+        }
+    }
+
+    TEST(find_all_char)
+    {
+        str a = "aabaa.baaz..a..";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            for(char c : "abxz.")
+            {
+                auto v = a.find_all_char(c);
+                for(unsigned long t = 0, p = 0;;t++)
+                    if(a.at(t) == '\0')
+                    {
+                        EXPECT_EQ(v.size(), p, "Char: %c", c);
+                        break;
+                    }
+                    elif(a.at(t) == c)
+                    {
+                        EXPECT_NE(v.size(), p, "Char: %c", c);
+                        EXPECT_EQ(v[p++], t, "Char: %c", c);
+                    }
+
+            }
+        }
+    }
+
+    TEST(count_char)
+    {
+        str a = "aabaa.baaz..a..";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            for(char c : "abxz.")
+            {
+                unsigned long v = a.count_char(c);
+                unsigned long ct = 0;
+                for(unsigned long t = 0;t < a.length();t++)
+                    if(a.at(t) == c)
+                        ct++;
+                EXPECT_EQ(v, ct);
+            }
+        }
+    }
+
+    TEST(find)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.find(b), a.find_char('.'));
+            EXPECT_EQ(a.find(c), a.find_char('b') - 1);
+            EXPECT_EQ(a.find(d), 0);
+            EXPECT_EQ(a.find(e), 0);
+            EXPECT_EQ(a.find(f), a.find_char('b') - 3);
+
+            EXPECT_EQ(a.find(b, 3), a.find_char('.', 3));
+            EXPECT_EQ(a.find(c, 3), a.find_char('b', 3) - 1);
+            EXPECT_EQ(a.find(d, 3), 3);
+            EXPECT_EQ(a.find(e, 3), str::not_found);
+            EXPECT_EQ(a.find(f, 3), a.find_char('b', 3) - 3);
+
+            unsigned long p = a.find_char('.') + 1;
+            EXPECT_EQ(a.find(b, p), a.find_char('.', p));
+            EXPECT_EQ(a.find(c, p), p + 9);
+            EXPECT_EQ(a.find(d, p), p + 1);
+            EXPECT_EQ(a.find(e, p), str::not_found);
+            EXPECT_EQ(a.find(f, p), p + 7);
+
+            EXPECT_EQ(a.find(b, a.length()), str::not_found);
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(rfind)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.rfind(b), a.rfind_char('.'));
+            EXPECT_EQ(a.rfind(c), a.rfind_char('b') - 1);
+            EXPECT_EQ(a.rfind(d), a.rfind_char('b') - 2);
+            EXPECT_EQ(a.rfind(e), 0);
+            EXPECT_EQ(a.rfind(f), a.rfind_char('b') - 3);
+
+            EXPECT_EQ(a.rfind(b, 3), a.rfind_char('.', 3));
+            EXPECT_EQ(a.rfind(c, 3), str::not_found);
+            EXPECT_EQ(a.rfind(d, 3), 1);
+            EXPECT_EQ(a.rfind(e, 3), str::not_found);
+            EXPECT_EQ(a.rfind(f, 3), str::not_found);
+
+            unsigned long p = a.find_char('.') + 1;
+            EXPECT_EQ(a.rfind(b, p), a.rfind_char('.', p));
+            EXPECT_EQ(a.rfind(c, p), p - 4);
+            EXPECT_EQ(a.rfind(d, p), p - 5);
+            EXPECT_EQ(a.rfind(e, p), str::not_found);
+            EXPECT_EQ(a.rfind(f, p), p - 6);
+
+            EXPECT_EQ(a.rfind(b, a.length()), a.rfind_char('.'));
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(action_sequence)
+    {
+        str a = "aax";
+        str b = "bbx";
+        str c = a + a + b;
+        c += '0';
+        c += '0';
+        c += a;
+        c += '0';
+        c += b;
+        c += '0';
+        EXPECT_EQ(c.find(b), 6);
+        EXPECT_EQ(c.rfind(b), 15);
+        c += '0';
+        EXPECT_EQ(c.rfind("00"), 18);
+        c *= 2;
+        c += c;
+        c += '0';
+        c += '0';
+        EXPECT_EQ(c.rfind("00"), 80);
     }
 }
