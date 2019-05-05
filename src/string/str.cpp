@@ -481,7 +481,6 @@ uint64_t str::str_info_cnct::hash_recalc() const
 
 str::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)
 {
-    lpart->links++;
     const char *s = lpart->block;
     pi = new unsigned long[len];
     pi[0] = 0;
