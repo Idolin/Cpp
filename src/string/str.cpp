@@ -28,6 +28,15 @@ namespace
     template<>
     struct CFDef<2>
     {
+        static unsigned long v()
+        {
+            return str::not_found;
+        }
+    };
+
+    template<>
+    struct CFDef<3>
+    {
         static vect<unsigned long>&& v()
         {
             return std::move(vect<unsigned long>(0));
@@ -64,6 +73,30 @@ namespace
     template<>
     struct CFVT<1>
     {
+        unsigned long last = str::not_found;
+
+        void inc()
+        {}
+
+        void push(unsigned long i)
+        {
+            last = i;
+        }
+
+        unsigned long result()
+        {
+            return last;
+        }
+
+        unsigned long result(unsigned long i)
+        {
+            return i;
+        }
+    };
+
+    template<>
+    struct CFVT<2>
+    {
         void inc()
         {}
 
@@ -82,7 +115,7 @@ namespace
     };
 
     template<>
-    struct CFVT<2>
+    struct CFVT<3>
     {
         vect<unsigned long> var = vect<unsigned long>();
 
@@ -288,6 +321,14 @@ str::str_info::str_info(str::str_info *copy_from): HashableStored<true>(*copy_fr
     _copy(copy_from->block, len + 1, block);
 }
 
+str::str_info::str_info(unsigned long new_len, str_info *copy_from):
+    HashableStored<true>(*copy_from), block(new char[new_len]),
+    len(copy_from->len), links(1), cell_changed(copy_from->cell_changed)
+{
+    copy_from->copy_to_array(block);
+    _fill(block + len, new_len - len);
+}
+
 str::str_info::~str_info()
 {
     delete[] block;
@@ -311,9 +352,9 @@ void str::str_info::copy_to_array(char *dst, unsigned long from, unsigned long t
     _copy(block + from, to - from, dst);
 }
 
-bool str::str_info::is_owner() const
+unsigned char str::str_info::cannot_change() const
 {
-    return (links == 1);
+    return (links != 1);
 }
 
 void str::str_info::update_hash() const
@@ -363,13 +404,13 @@ char str::str_info_subs::operator[](unsigned long i) const
     return '\0';
 }
 
-bool str::str_info_subs::is_owner() const
+unsigned char str::str_info_subs::cannot_change() const
 {
-    return ((links | parent->links) == 1);
+    return ((links | parent->links) != 1);
 }
 
 str::str_info_cnct_char::str_info_cnct_char(str::str_info *s):
-        str_info(s), size(s->len + 1)
+        str_info(s->len + 10, s), size(s->len + 10)
 {}
 
 void str::str_info_cnct_char::operator+=(char c)
@@ -428,9 +469,9 @@ void str::str_info_cnct::copy_to_array(char* dst, unsigned long from, unsigned l
         rpart->copy_to_array(dst, from - lpart->len, to - lpart->len);
 }
 
-bool str::str_info_cnct::is_owner() const
+unsigned char str::str_info_cnct::cannot_change() const
 {
-    return false;
+    return 1;
 }
 
 uint64_t str::str_info_cnct::hash_recalc() const
@@ -438,30 +479,34 @@ uint64_t str::str_info_cnct::hash_recalc() const
     return lpart->hash() + rpart->hash() * pwr(str::hash_mult, lpart->len);
 }
 
-str::str_info_find::str_info_find(str::str_info* s):
-        str_info(s, s->len), pi(new unsigned long[s->len])
+str::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)
 {
-    pi[0] = 0; //str_info_find is called only if len > 1
-    for(unsigned long i = 1, k = 0; i < s->len; i++)
+    lpart->links++;
+    const char *s = lpart->block;
+    pi = new unsigned long[len];
+    pi[0] = 0;
+    for(unsigned long i = 1, k = 0; i < len; i++)
     {
-        while((k > 0) && (block[i] != block[k]))
+        while((k > 0) && (s[i] != s[k]))
             k = pi[k - 1];
-        if(block[i] == block[k])
+        if(s[i] == s[k])
             k++;
         pi[i] = k;
     }
 }
 
-str::str_info_find::~str_info_find()
+str::str_info_pi::~str_info_pi()
 {
+    if(--lpart->links == 0)
+        delete lpart;
+    block = nullptr;
     delete[] pi;
 }
 
-bool str::str_info_find::is_owner() const
+unsigned char str::str_info_pi::cannot_change() const
 {
-    return false;
+    return 2 - lpart->cannot_change() == 0;
 }
-
 
 str::str(): s(empty().block), info(&empty())
 {
@@ -645,8 +690,7 @@ char str::operator[](unsigned long i) const
 char& str::operator[](unsigned long i)
 {
     ASSERT(i < info->len);
-    if(!info -> is_owner())
-        *this = copy();
+    prepare_change();
     if(!info -> is_changed() || info->cell_changed != std::numeric_limits<unsigned long>::max())
     {
         if(info -> is_changed())
@@ -665,23 +709,22 @@ str& str::operator+=(const str &b)
 
 str& str::operator+=(char c)
 {
-    if(s || (typeid(static_cast<str_info_cnct*>(info)->rpart) == //NOLINT
-            typeid(str_info_cnct_char*)))
+    if(typeid(info) == typeid(str_info_pi*))
     {
-        if(typeid(info) == typeid(str_info_cnct_char*) && info->links == 1)
-            static_cast<str_info_cnct_char*>(info)->operator+=(c); //NOLINT
-        else
-        {
-            auto new_info = new str_info_cnct_char(info);
-            new_info->operator+=(c); //NOLINT
-            if(--info->links == 0)
-                delete info;
-            info = new_info;
-        }
-        s = info->block;
+        auto new_info = info->lpart;
+        unlink();
+        info = new_info;
     }
+    if(info->links == 1 && typeid(*info) == typeid(str_info_cnct_char))
+        static_cast<str_info_cnct_char*>(info)->operator+=(c); //NOLINT
     else
-        info = new str_info_cnct(info, new str_info(new char[2]{c}, 1));
+    {
+        auto new_info = new str_info_cnct_char(info);
+        new_info->operator+=(c); //NOLINT
+        unlink();
+        info = new_info;
+    }
+    s = info->block;
     return *this;
 }
 
@@ -752,6 +795,7 @@ const char *str::c_str() const
         s = new char[info->len + 1];
         info->copy_to_array(s);
         s[info->len] = '\0';
+        unlink();
         info = new str_info(s, info->len);
     }
     return s;
@@ -795,7 +839,9 @@ str str::compact() const
         s = new char[info->len + 1];
         info->copy_to_array(s);
         s[info->len] = '\0';
-        info = new str_info(s, info->len);
+        auto new_info = new str_info(s, info->len);
+        unlink();
+        info = new_info;
     }
     return *this;
 }
@@ -850,63 +896,52 @@ bool str::endswith(const str& suffix) const
 
 unsigned long str::count_char(char ch) const
 {
-    return count_find_char<0>(ch);
+    return count_r_find_char<0>(ch);
+}
+
+unsigned long str::rfind_char(char ch, unsigned long to) const
+{
+    return count_r_find_char<1>(ch, to);
 }
 
 unsigned long str::find_char(char ch, unsigned long from) const
 {
-    return count_find_char<1>(ch, from);
+    return count_r_find_char<2>(ch, from);
 }
 
 vect<unsigned long> str::find_all_char(char ch) const
 {
-    return count_find_char<2>(ch);
+    return count_r_find_char<3>(ch);
 }
 
 unsigned long str::count(const str& o) const
 {
-    return count_find<0, false>(o);
+    return count_r_find<0, false>(o);
+}
+
+unsigned long str::count_intersect(const str& o) const
+{
+    return count_r_find<0, true>(o);
+}
+
+unsigned long str::rfind(const str& o, unsigned long to) const
+{
+    return count_r_find<1, true>(o, to);
 }
 
 unsigned long str::find(const str& o, unsigned long from) const
 {
-    return count_find<1, false>(o, from);
+    return count_r_find<2, false>(o, from);
 }
 
 vect<unsigned long> str::find_all(const str& o) const
 {
-    return count_find<2, false>(o);
+    return count_r_find<3, false>(o);
 }
 
-unsigned long str::rfind(const str& o, unsigned long from) const
+vect<unsigned long> str::find_all_intersect(const str& o) const
 {
-    if(from == str::last)
-        from = info -> len;
-    if(o.length() == 0)
-        return from;
-    if(s)
-        for(unsigned long i = from, k = o.length();i >= o.length();)
-        {
-            if(s[i - k] != o[o.length() - k])
-            {
-                i--;
-                k = o.length();
-            }
-            elif(--k == 0)
-                return i - o.length();
-        }
-    else
-        for(unsigned long i = from, k = o.length();i >= o.length();)
-        {
-            if((*info)[i - k] != o[o.length() - k])
-            {
-                i--;
-                k = o.length();
-            }
-            elif(--k == 0)
-                return i - o.length();
-        }
-    return str::not_found;
+    return count_r_find<3, true>(o);
 }
 
 str::const_iterator str::begin() const
@@ -931,6 +966,21 @@ void str::unlink(str_info *inf) const noexcept
         delete inf;
 }
 
+void str::prepare_change()
+{
+    switch(info->cannot_change())
+    {
+        case 1:
+            *this = copy();
+            break;
+        case 2:
+            info->block = nullptr;
+            unsigned long len = info->len;
+            unlink();
+            info = new str_info(s, len);
+    }
+}
+
 uint64_t str::hash() const noexcept
 {
     return info->hash();
@@ -943,54 +993,67 @@ unsigned char str::cmp_call(const str &b) const
     return cmp(s, b.s, info->len);
 }
 
-template<unsigned char count_find_all,
-    typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
-RType str::count_find_char(char ch, unsigned long from) const
+template<unsigned char count_r_find_all,
+    typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+RType str::count_r_find_char(char ch, unsigned long from) const
 {
-    CFVT<count_find_all> v;
+    CFVT<count_r_find_all> v;
     compact();
-    for(unsigned long i = from; i < info->len; i++)
-        if(s[i] == ch)
+    for(unsigned long i = (count_r_find_all == 1 ? std::min(from, info->len) : from);
+        count_r_find_all == 1 && i > 0 || count_r_find_all != 1 && i < info->len;
+        i += (count_r_find_all != 1 ? 1 : 0))
         {
-            if(count_find_all == 0)
-                v.inc();
-            elif(count_find_all == 1)
-                return v.result(i);
-            else
-                v.push(i);
+            i -= (count_r_find_all == 1 ? 1 : 0);
+            if(s[i] == ch)
+            {
+                if(count_r_find_all == 0)
+                    v.inc();
+                elif(count_r_find_all < 3)
+                    return v.result(i);
+                else
+                    v.push(i);
+            }
         }
     return v.result();
 }
 
-template<unsigned char count_find_all, bool intersect,
-    typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
-RType str::count_find(const str &o, unsigned long from) const
+template<unsigned char count_r_find_all, bool intersect,
+    typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+RType str::count_r_find(const str &o, unsigned long from) const
 {
     if(o.length() < 2)
     {
         if(o.length() == 0)
-            return CFDef<count_find_all>::v();
+            return CFDef<count_r_find_all>::v();
         else
-            return count_find_char<count_find_all>(o[0], from);
+            return count_r_find_char<count_r_find_all>(o[0], from);
     }
-    if(typeid(info) != typeid(str_info_find*))
+    if(typeid(*o.info) != typeid(str_info_pi))
     {
         o.compact();
-        info = new str_info_find(info);
+        o.info = new str_info_pi(o.info);
     }
-    unsigned long *pi = static_cast<str_info_find*>(o.info)->pi;
-    CFVT<count_find_all> v;
+    unsigned long *pi = static_cast<str_info_pi*>(o.info)->pi;
+    CFVT<count_r_find_all> v;
     compact();
-    for(unsigned long i = from, k = 0; i < info->len; i++)
+    for(unsigned long i = (count_r_find_all == 1 ? 0 : from), k = 0;
+        i < (count_r_find_all == 1 ? std::min(from, info->len) : info->len); i++)
     {
-        while((k > 0) && (s[i] != o.s[k]))
-            k = pi[k - 1];
+        if((k > 0) && (s[i] != o.s[k]))
+        {
+            do
+            {
+                k = pi[k - 1];
+            } while((k > 0) && (s[i] != o.s[k]));
+            if(i + o.length() - k > (count_r_find_all == 1 ? from : info->len))
+                break;
+        }
         if(s[i] == o.s[k])
             if(++k == o.length())
             {
-                if(count_find_all == 0)
+                if(count_r_find_all == 0)
                     v.inc();
-                elif(count_find_all == 1)
+                elif(count_r_find_all == 2)
                     return v.result(i + 1 - o.length());
                 else
                     v.push(i + 1 - o.length());

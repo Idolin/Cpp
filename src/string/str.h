@@ -41,13 +41,14 @@ protected:
         str_info(char *s, unsigned long len) noexcept;
         str_info(str_info *lpart, unsigned long len) noexcept;
         str_info(str_info *copy_from);
+        str_info(unsigned long new_len, str_info *copy_from);
 
         virtual ~str_info();
 
         virtual char operator[](unsigned long) const;
         virtual void copy_to_array(char *dst) const;
         virtual void copy_to_array(char *dst, unsigned long from, unsigned long to) const;
-        virtual bool is_owner() const;
+        virtual unsigned char cannot_change() const; //0 - OK, 1 - only copy, 2 - can move block
 
         void update_hash() const;
         void update_hash(unsigned long cell) const;
@@ -63,7 +64,7 @@ protected:
         ~str_info_subs() override;
 
         char operator[](unsigned long) const override;
-        bool is_owner() const override;
+        unsigned char cannot_change() const override;
     };
 
     struct str_info_cnct_char: str_info
@@ -86,20 +87,20 @@ protected:
         char operator[](unsigned long) const override;
         void copy_to_array(char *dst) const override;
         void copy_to_array(char *dst, unsigned long from, unsigned long to) const override;
-        bool is_owner() const override;
+        unsigned char cannot_change() const override;
 
         uint64_t hash_recalc() const override;
     };
 
-    struct str_info_find: str_info //for faster find/replace
+    struct str_info_pi: str_info
     {
-        unsigned long* pi;
+        unsigned long *pi;
 
-        str_info_find(str_info*);
+        str_info_pi(str_info*);
 
-        ~str_info_find() override;
+        ~str_info_pi() override;
 
-        bool is_owner() const override;
+        unsigned char cannot_change() const override; //0 - OK, 1 - only copy, 2 - can move block
     };
 
     mutable char *s;
@@ -294,13 +295,19 @@ public:
 
     vect<unsigned long> find_all_char(char) const;
 
+    unsigned long rfind_char(char, unsigned long to = str::last) const;
+
     unsigned long count(const str&) const;
+
+    unsigned long count_intersect(const str&) const;
+
+    unsigned long rfind(const str&, unsigned long to = str::last) const;
 
     unsigned long find(const str&, unsigned long from = 0) const;
 
     vect<unsigned long> find_all(const str&) const;
 
-    unsigned long rfind(const str&, unsigned long from = str::last) const;
+    vect<unsigned long> find_all_intersect(const str&) const;
 
     str_iterable& split(const str&) const;
 
@@ -317,17 +324,19 @@ protected:
 
     void unlink(str_info*) const noexcept;
 
+    void prepare_change();
+
     uint64_t hash() const noexcept override;
 
     unsigned char cmp_call(const str &b) const;
 
-    template<unsigned char count_find_all,
-        typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
-    RType count_find_char(char ch, unsigned long from = 0) const;
+    template<unsigned char count_r_find_all,
+        typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+    RType count_r_find_char(char ch, unsigned long from = 0) const;
 
-    template<unsigned char count_find_all, bool intersect,
-        typename RType = typename std::conditional_t<count_find_all == 2, vect<unsigned long>, unsigned long>>
-    RType count_find(const str &o, unsigned long from = 0) const;
+    template<unsigned char count_r_find_all, bool intersect,
+        typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+    RType count_r_find(const str &o, unsigned long from = 0) const;
 
 private:
     static str_info& empty();

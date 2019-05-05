@@ -1,6 +1,6 @@
 #pragma once
 
-//#define DEBUG
+#define DEBUG
 
 #define DEBUG_LVL 5
 #define DEBUG_OUTPUT_STREAM stderr
@@ -23,15 +23,18 @@
 class assert_failed: public std::exception
 {
 public:
-    explicit assert_failed(const char *s, int err_code = -1);
+    explicit assert_failed(const char *s, const char *file = nullptr, unsigned long line = 0, int err_code = -1);
+
+    ~assert_failed();
 
     const char *what() const noexcept override;
 
     int err_code() const noexcept;
 
 private:
-    const char *message;
+    mutable const char *message;
     int error_code;
+    bool allocated;
 };
 
 
@@ -81,8 +84,11 @@ private:
     }
 #define ASSERT_ERR(cond, err_code, ...) \
     { \
-        ASSERT_NO_THROW(cond, ## __VA_ARGS__); \
-        throw assert_failed("Assertion failed!", err_code); \
+        if(!(cond)) \
+        { \
+            ASSERT_NO_THROW(false, ## __VA_ARGS__); \
+            throw assert_failed("Assertion failed!", __FILE__, __LINE__, err_code); \
+        } \
     }
 #define ASSERT(cond, ...) ASSERT_ERR(cond, -1, ## __VA_ARGS__)
 #define ASSERT_CODE_NOT(func, fail_code, ...) ASSERT(func != fail_code, ## __VA_ARGS__)
