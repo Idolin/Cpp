@@ -114,5 +114,5 @@ int64_t random64();
 template<typename T>
 T randomA();
 
-template<typename T>
+template<typename T, typename = typename std::enable_if_t<std::is_unsigned<T>::value>>
 T randomA(T to);
