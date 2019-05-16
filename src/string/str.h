@@ -281,9 +281,9 @@ public:
 
     str operator()(unsigned long) const;
 
-    str subStr(unsigned long, unsigned long) const;
+    str substr(unsigned long, unsigned long) const;
 
-    str subStr(unsigned long) const;
+    str substr(unsigned long) const;
 
     bool startswith(const str&) const;
 

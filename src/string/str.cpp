@@ -284,8 +284,8 @@ str str::str_iterable::str_iterator::operator*() const
 {
     unsigned long t = s.find("|", l);
     if(t == str::not_found)
-        return s.subStr(l);
-    return s.subStr(l, t);
+        return s.substr(l);
+    return s.substr(l, t);
 }
 
 str::str_iterable::str_iterator::operator bool() const
@@ -792,11 +792,16 @@ const char *str::c_str() const
 {
     if((!s) || (s[info->len] != '\0'))
     {
-        s = new char[info->len + 1];
-        info->copy_to_array(s);
-        s[info->len] = '\0';
-        unlink();
-        info = new str_info(s, info->len);
+        if(info->cannot_change() != 1)
+            s[info->len] = '\0';
+        else
+        {
+            s = new char[info->len + 1];
+            info->copy_to_array(s);
+            s[info->len] = '\0';
+            unlink();
+            info = new str_info(s, info->len);
+        }
     }
     return s;
 }
@@ -870,12 +875,12 @@ str str::operator()(unsigned long from) const
     return (*this)(from, info->len);
 }
 
-str str::subStr(unsigned long from, unsigned long to) const
+str str::substr(unsigned long from, unsigned long to) const
 {
     return (*this)(from, to);
 }
 
-str str::subStr(unsigned long from) const
+str str::substr(unsigned long from) const
 {
     return (*this)(from);
 }
@@ -884,14 +889,14 @@ bool str::startswith(const str& prefix) const
 {
     if(prefix.length() > length())
         return false;
-    return (prefix == subStr(0, prefix.length()));
+    return (prefix == substr(0, prefix.length()));
 }
 
 bool str::endswith(const str& suffix) const
 {
     if(suffix.length() > length())
         return false;
-    return (suffix == subStr(length() - suffix.length()));
+    return (suffix == substr(length() - suffix.length()));
 }
 
 unsigned long str::count_char(char ch) const
