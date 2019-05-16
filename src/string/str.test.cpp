@@ -621,23 +621,26 @@ TEST_PACK(str)
 
     TEST(action_sequence)
     {
-        str a = "aax";
-        str b = "bbx";
-        str c = a + a + b;
-        c += '0';
-        c += '0';
-        c += a;
-        c += '0';
-        c += b;
-        c += '0';
-        EXPECT_EQ(c.find(b), 6);
-        EXPECT_EQ(c.rfind(b), 15);
-        c += '0';
-        EXPECT_EQ(c.rfind("00"), 18);
-        c *= 2;
-        c += c;
-        c += '0';
-        c += '0';
-        EXPECT_EQ(c.rfind("00"), 80);
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            str a = "aax";
+            str b = "bbx";
+            str c = a + a + b;
+            c += '0';
+            c += '0';
+            c += a;
+            c += '0';
+            c += b;
+            c += '0';
+            EXPECT_EQ(c.find(b), 6);
+            EXPECT_EQ(c.rfind(b), 15);
+            c += '0';
+            EXPECT_EQ(c.rfind("00"), 18);
+            c *= 2;
+            c += c;
+            c += '0';
+            c += '0';
+            EXPECT_EQ(c.rfind("00"), 80);
+        }
     }
 }

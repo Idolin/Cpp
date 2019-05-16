@@ -95,7 +95,7 @@ namespace
     template<typename T>
     typename def_get_by<T>::type _get_random(const T *start, const T *end)
     {
-        return *(start + randomA(end - start));
+        return *(start + randomA<unsigned long>(end - start));
     }
 }
 

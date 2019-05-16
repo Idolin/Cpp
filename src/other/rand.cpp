@@ -382,7 +382,7 @@ int64_t random64()
     return defaultRandomizer.random64();
 }
 
-template<typename T>
+template<typename T, typename = typename std::enable_if_t<std::is_unsigned<T>::value>>
 T randomA(T to)
 {
     ASSERT(to > 0);
@@ -393,12 +393,7 @@ T randomA(T to)
 }
 
 template unsigned char randomA<unsigned char>(unsigned char);
-template char randomA<char>(char);
 template unsigned short randomA<unsigned short>(unsigned short);
-template short randomA<short>(short);
 template unsigned randomA<unsigned>(unsigned);
-template int randomA<int>(int);
 template unsigned long randomA<unsigned long>(unsigned long);
-template long randomA<long>(long);
 template unsigned long long randomA<unsigned long long>(unsigned long long);
-template long long randomA<long long>(long long);
