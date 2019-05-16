@@ -42,7 +42,7 @@
 //returns CE on zero amount of arguments or MS otherwise
 #define CEE(...) MSS(__VA_ARGS__)MC(CEE_, GET_ARGS_COUNT_2(__VA_ARGS__))
 
-//CEE shouldn't influence on macro expansion except for the extra spaces after commas
+//CEE shouldn't influence on macro expansion except for the extra space after commas
 #define MULT_ARG_R_0(C, G, N, ...)
 #define MULT_ARG_R_1(C, G, N, ...) CALL(_LAST_ ## C, (__VA_ARGS__))
 #define MULT_ARG_R_2(C, G, N, ...) \
@@ -219,6 +219,7 @@
 
 //returns amount of arguments - N
 #define GET_ARGS_COUNT_2MN(N, ...) SELF(TAKE53 SELF() (1, ## __VA_ARGS__, MULT_ARG_50_MN(N, 1), 1, 0, 0, 0))
+
 #define _START_IF_ARGS_NDEF__0(...)
 #define _START_IF_ARGS_NDEF__1(f, ...) f(__VA_ARGS__)
 #define _START_IF_ARGS_NDEF__2(f, ...) _START_IF_ARGS_NDEF__1(f, ## __VA_ARGS__)
@@ -283,3 +284,63 @@
 
 //returns sequence of T_n where t_i = 10^i, 0 <= i < length
 #define SEQ_10_POW(N) REVERSE(MULT_ARG_R_N(N, POW_10, EMPTY, EMPTY))
+
+#define MULT_ARG_I_0(...)
+#define MULT_ARG_I_1(...) __VA_ARGS__
+#define MULT_ARG_I_2(...) MULT_ARG_I_1(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_3(...) MULT_ARG_I_2(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_4(...) MULT_ARG_I_3(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_5(...) MULT_ARG_I_4(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_6(...) MULT_ARG_I_5(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_7(...) MULT_ARG_I_6(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_8(...) MULT_ARG_I_7(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_9(...) MULT_ARG_I_8(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_10(...) MULT_ARG_I_9(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_11(...) MULT_ARG_I_10(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_12(...) MULT_ARG_I_11(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_13(...) MULT_ARG_I_12(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_14(...) MULT_ARG_I_13(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_15(...) MULT_ARG_I_14(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_16(...) MULT_ARG_I_15(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_17(...) MULT_ARG_I_16(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_18(...) MULT_ARG_I_17(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_19(...) MULT_ARG_I_18(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_20(...) MULT_ARG_I_19(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_21(...) MULT_ARG_I_20(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_22(...) MULT_ARG_I_21(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_23(...) MULT_ARG_I_22(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_24(...) MULT_ARG_I_23(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_25(...) MULT_ARG_I_24(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_26(...) MULT_ARG_I_25(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_27(...) MULT_ARG_I_26(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_28(...) MULT_ARG_I_27(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_29(...) MULT_ARG_I_28(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_30(...) MULT_ARG_I_29(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_31(...) MULT_ARG_I_30(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_32(...) MULT_ARG_I_31(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_33(...) MULT_ARG_I_32(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_34(...) MULT_ARG_I_33(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_35(...) MULT_ARG_I_34(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_36(...) MULT_ARG_I_35(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_37(...) MULT_ARG_I_36(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_38(...) MULT_ARG_I_37(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_39(...) MULT_ARG_I_38(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_40(...) MULT_ARG_I_39(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_41(...) MULT_ARG_I_40(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_42(...) MULT_ARG_I_41(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_43(...) MULT_ARG_I_42(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_44(...) MULT_ARG_I_43(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_45(...) MULT_ARG_I_44(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_46(...) MULT_ARG_I_45(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_47(...) MULT_ARG_I_46(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_48(...) MULT_ARG_I_47(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_49(...) MULT_ARG_I_48(__VA_ARGS__), ## __VA_ARGS__
+#define MULT_ARG_I_50(...) MULT_ARG_I_49(__VA_ARGS__), ## __VA_ARGS__
+
+#define MULT_ARG_I(N, ...) CONCAT(MULT_ARG_I_, N)(__VA_ARGS__)
+
+#define CE_I_(...) , ## __VA_ARGS__
+#define CE_I(...) CE_I_(__VA_ARGS__) //put comma before non-empty list of arguments
+
+//return N + 1(for N < 50)
+#define NEXT(N) SELF(GET_ARGS_COUNT SELF() (0 CE_I(MULT_ARG_I(N, 0))))

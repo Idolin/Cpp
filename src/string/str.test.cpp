@@ -62,8 +62,8 @@ TEST_PACK(str)
     TEST(substr_access)
     {
         str a = "012345";
-        str b = a.subStr(3);
-        str c = a.subStr(1, 4);
+        str b = a.substr(3);
+        str c = a.substr(1, 4);
         EXPECT_EQ(b, "345");
         EXPECT_EQ(c, "123");
         EXPECT_EQ(b[0], '3');
@@ -137,21 +137,25 @@ TEST_PACK(str)
     TEST(substr)
     {
         str a = "1234567890";
-        str b = a.subStr(0, 5);
+        str b = a.substr(0, 5);
         EXPECT_EQ(b, "12345");
-        str c = a.subStr(5);
+        str c = a.substr(5);
         EXPECT_EQ(c, "67890");
         EXPECT_EQ(a, b + c);
-        str d = b.subStr(3);
+        str d = b.substr(3);
         EXPECT_EQ(d, "45");
-        EXPECT_EQ(a.subStr(4), a(4));
-        EXPECT_EQ(a.subStr(1, 2), a(1, 2));
+        EXPECT_EQ(a.substr(4), a(4));
+        EXPECT_EQ(a.substr(1, 2), a(1, 2));
         EXPECT_EQ(d(2), "");
         EXPECT_EQ(a(7), a(7, 10));
         EXPECT_EQ(a(1, 7)(1, 2), "3");
         EXPECT_EQ(a(2)(1, 5), "4567");
         str e = a + b + c + d;
         EXPECT_EQ(e(4, 16), "567890123456");
+
+        str a2 = "1234567890";
+        a2 = a2.substr(1, 7).substr(2, 5);
+        EXPECT_STRING_EQ(a2.c_str(), "456");
     }
 
     TEST(not_equals)
@@ -174,7 +178,7 @@ TEST_PACK(str)
     TEST(invert)
     {
         str a = "12323410";
-        str b = a.subStr(2).subStr(1, 5);
+        str b = a.substr(2).substr(1, 5);
         EXPECT_EQ(b, "2341");
         b = b.invert();
         EXPECT_EQ(b, "1432");
@@ -265,9 +269,9 @@ TEST_PACK(str)
             e += '1';
             EXPECT_EQ(e.at(e.length()), '\0');
         }
-        a = e.subStr(3, 7);
+        a = e.substr(3, 7);
         EXPECT_EQ(a.at(a.length()), '\0');
-        a = a.subStr(3);
+        a = a.substr(3);
         EXPECT_EQ(a.at(a.length()), '\0');
         a = "";
         EXPECT_EQ(a.at(a.length()), '\0');
@@ -470,6 +474,138 @@ TEST_PACK(str)
             EXPECT_EQ(a.rfind(f, p), p - 6);
 
             EXPECT_EQ(a.rfind(b, a.length()), a.rfind_char('.'));
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(find_all)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            auto v = a.find_all(b);
+            EXPECT_EQ_RA_VALS(v, v.size(), 22, 27, 28);
+            v = a.find_all(c);
+            EXPECT_EQ_RA_VALS(v, v.size(), 11, 15, 19, 32);
+            v = a.find_all(d);
+            EXPECT_EQ_RA_VALS(v, v.size(), 0, 2, 4, 6, 8, 10, 17, 24, 30);
+            v = a.find_all(e);
+            EXPECT_EQ_RA_VALS(v, v.size(), 0);
+            v = a.find_all(f);
+            EXPECT_EQ_RA_VALS(v, v.size(), 9, 17, 30);
+            v = a.find_all(b + f);
+            EXPECT_EQ_RA_VALS(v, v.size());
+
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(find_all_intersect)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            auto v = a.find_all_intersect(b);
+            EXPECT_EQ_RA_VALS(v, v.size(), 22, 27, 28);
+            v = a.find_all_intersect(c);
+            EXPECT_EQ_RA_VALS(v, v.size(), 11, 13, 15, 19, 32);
+            v = a.find_all_intersect(d);
+            EXPECT_EQ_RA_VALS(v, v.size(), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 17, 18, 24, 30, 31);
+            v = a.find_all_intersect(e);
+            EXPECT_EQ_RA_VALS(v, v.size(), 0);
+            v = a.find_all_intersect(f);
+            EXPECT_EQ_RA_VALS(v, v.size(), 9, 17, 30);
+            v = a.find_all_intersect(b + f);
+            EXPECT_EQ_RA_VALS(v, v.size());
+
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(count)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.count(b), 3);
+            EXPECT_EQ(a.count(c), 4);
+            EXPECT_EQ(a.count(d), 9);
+            EXPECT_EQ(a.count(e), 1);
+            EXPECT_EQ(a.count(f), 3);
+            EXPECT_EQ(a.count(b + f), 0);
+
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+
+    TEST(count_intersect)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_EQ(a.count_intersect(b), 3);
+            EXPECT_EQ(a.count_intersect(c), 5);
+            EXPECT_EQ(a.count_intersect(d), 16);
+            EXPECT_EQ(a.count_intersect(e), 1);
+            EXPECT_EQ(a.count_intersect(f), 3);
+            EXPECT_EQ(a.count_intersect(b + f), 0);
+
             if(random8() == 0)
                 b[0] = b.at(0);
             if(random8() == 0)

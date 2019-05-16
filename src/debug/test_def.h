@@ -185,6 +185,20 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         else \
             EXPECT_EQ_RA(a, b, len, GET_ARG_DEF("Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
     }
+#define _LAST_COMPOSE_EQ_I(a, i, b) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")")
+#define COMPOSE_EQ_I(a, i, b, ...) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")"); __VA_ARGS__
+#define SKIP_3_1_INC_2(a, i, b, ...) a, NEXT(i), ## __VA_ARGS__
+#define EXPECT_EQ_RA_VALS(a, len, ...) \
+    { \
+        if((len) != GET_ARGS_COUNT(__VA_ARGS__)) \
+        { \
+            EXPECT_TRUE(false, "Check(random access length) failed((" #len ") == " QUOTE(GET_ARGS_COUNT(__VA_ARGS__)) ") failed"); \
+        } \
+        else \
+        { \
+            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_123, SKIP_3_1_INC_2, a, 0, ## __VA_ARGS__); \
+        } \
+    }
 #define EXPECT_EXCEPTION(a, exception, ...) \
     { \
         this -> test_ok = false; \
