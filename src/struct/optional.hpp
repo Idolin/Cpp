@@ -3,6 +3,7 @@
 #include "../debug/def_debug.h"
 #include "../template/t_useful.hpp"
 #include "../template/typemethods.hpp"
+#include "../other/serializable.hpp"
 
 template<typename T>
 struct optional
@@ -36,6 +37,24 @@ public:
         return value;
     }
 
+    serialized serialize() const
+    {
+        if(!is_set)
+            return serialized(new unsigned char[1]{0}, 1);
+        serialized s = ::serialize(value);
+        unsigned char *buffer = new unsigned char[s.size() + 1];
+        buffer[0] = 1;
+        _copy(s.data(), s.size(), buffer + 1);
+        return serialized(buffer, s.size() + 1);
+    }
+
+    static optional deserialize(unsigned char *buffer, size_t buffer_length)
+    {
+        if(buffer[0])
+            return optional(::deserialize<T>(buffer + 1, buffer_length - 1));
+        else
+            return optional();
+    }
 };
 
 template<>
