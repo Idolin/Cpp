@@ -205,7 +205,6 @@ public:
         {}
 
     public:
-
         iterator(): ptr(nullptr), end(true)
         {}
 
@@ -250,7 +249,7 @@ public:
             return copy;
         }
 
-        iterator &operator--()
+        iterator& operator--()
         {
             if(end)
                 end = false;
