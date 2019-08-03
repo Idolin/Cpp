@@ -228,7 +228,7 @@ struct binary_search: protected __binary_search_base<T>
     }
 
     //if get_last_not -> get last element where condition not true(or previous to first)
-    //first iterator: *it >= val or next to last, done() returns false if position found and true otherwise
+    //first iterator: *it > val or next to last, done() returns false if position found and true otherwise
     template<typename R = decltype(_get<T>(std::declval<T>())),
         typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
     T upper_bound(typename def_get_by<R>::type val, bool get_last_not = false)
@@ -294,7 +294,7 @@ struct binary_search: protected __binary_search_base<T>
         return std::make_pair(pos, !done());
     }
 
-    //first iterator: *it > val or next to last, done() returns false if position found and true otherwise
+    //first iterator: *it >= val or next to last, done() returns false if position found and true otherwise
     template<typename R = typename std::remove_pointer<T>::type,
         typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
     T lower_bound(typename def_get_by<R>::type val, bool get_last_not = false)
