@@ -86,7 +86,7 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
     {
         DEBUGLVLMSG(7, "AVL Tree: Inserting new node");
         this->_lock.lock();
-        avl_node *node = 0, **next = &this->root;
+        avl_node *node = nullptr, **next = &this->root;
         for(;;)
         {
             if(*next)
