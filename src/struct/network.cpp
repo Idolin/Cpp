@@ -37,7 +37,7 @@ struct network
             unsigned v = q.pop();
             for(unsigned i = 0; i < edge[v].maxs; i++)
             {
-                nTransition e = edge[t][i];
+                nTransition e = edge[v][i];
                 if(!f[e.to] && (e.flow < e.capacity))
                 {
                     f[e.to] = true;
@@ -91,6 +91,5 @@ struct network
                 flow += addFlow;
             }
         }
-        return flow;
     }
 };

@@ -4,9 +4,6 @@
 
 #include <type_traits>
 
-struct HashableTag
-{};
-
 template<typename T = void>
 struct is_bit_movable;
 
@@ -63,6 +60,16 @@ struct is_mergeable
 };
 
 
+#define STRUCT_IS_T(name, ...) \
+    template<typename T> \
+    struct is_ ## name<T, typename std::enable_if_t<__VA_ARGS__>> \
+    { \
+        enum \
+        { \
+            value = true \
+        }; \
+    };
+
 #define STRUCT_IS(name, ...) \
     template<typename T, typename Enable = void> \
     struct is_ ## name \
@@ -73,26 +80,37 @@ struct is_mergeable
         }; \
     }; \
     \
-    template<typename T> \
-    struct is_ ## name<T, typename std::enable_if_t<__VA_ARGS__>> \
-    { \
-        enum \
-        { \
-            value = true \
-        }; \
-    };
+    STRUCT_IS_T(name, ## __VA_ARGS__)
 
-STRUCT_IS(less_comparable, std::is_same<decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
-                                 std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>()), bool>::value)
+STRUCT_IS(less_comparable, std::is_same<
+        decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
+         std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>()), bool>::value)
 
-STRUCT_IS(dereferencable, std::is_lvalue_reference<decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
+STRUCT_IS(dereferencable, std::is_lvalue_reference<
+        decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
 
-template<typename T>
-struct is_hashable
-{
-    enum
-    {
-        value = std::is_base_of<HashableTag, T>::value || std::is_integral<T>::value
-            || std::is_pointer<T>::value
-    };
-};
+
+STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value)
+
+STRUCT_IS_T(hashable, std::is_same<
+        decltype(std::declval<typename std::add_lvalue_reference<
+                typename std::add_const<T>::type>::type>().hash()), uint64_t>::value)
+
+STRUCT_IS(block_splittable, std::is_integral<T>::value || std::is_pointer<T>::value)
+
+STRUCT_IS_T(block_splittable, std::is_same<decltype(std::declval<
+             typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().size()), size_t>::value &&
+        is_block_splittable<decltype(std::declval<
+                typename std::add_lvalue_reference<
+                        typename std::add_const<T>::type>::type>().operator[][static_cast<size_t>(0)])>::value)
+
+STRUCT_IS(block_iterable, is_block_splittable<T>::value)
+
+STRUCT_IS(block_iterable_class, std::is_same<
+        decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().cbegin()),
+        decltype(std::declval<typename std::add_lvalue_reference<
+                typename std::add_const<T>::type>::type>().cend())>::value &&
+    is_block_iterable<decltype(*(std::declval<typename std::add_lvalue_reference<
+            typename std::add_const<T>::type>::type>().cbegin()))>::value)
+
+STRUCT_IS_T(block_iterable, is_block_iterable_class<T>::value)

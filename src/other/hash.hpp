@@ -19,7 +19,7 @@ struct NoHashable: AnyHashable
     }
 };
 
-struct Hashable: HashableTag, AnyHashable
+struct Hashable: AnyHashable
 {
     virtual uint64_t hash() const noexcept = 0;
 

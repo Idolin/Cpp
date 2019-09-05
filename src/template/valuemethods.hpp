@@ -37,6 +37,8 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_integral<T>::value 
         shift &= (4 << sizeof(T)) - 1;
         return static_cast<T>(to_unsigned(x) >> shift) | (x << (sizeof(T) * 8 - shift));
     }
+
+    typedef typename std::make_unsigned<T>::type to_unsigned_type;
 };
 
 template<typename T>
@@ -57,6 +59,8 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &
     {
         return _valueOtherMethods<uint32_t>::getNthByte(to_unsigned(x), byte);
     }
+
+    typedef uint32_t to_unsigned_type;
 };
 
 template<typename T>
@@ -67,6 +71,8 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_floating_point<T>::
     {
         return *reinterpret_cast<uint32_t*>(&x);
     }
+
+    typedef uint32_t to_unsigned_type;
 };
 
 template<typename T>
@@ -77,6 +83,8 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_floating_point<T>::
     {
         return *reinterpret_cast<uint64_t*>(&x);
     }
+
+    typedef uint64_t to_unsigned_type;
 };
 
 template<typename T>
@@ -97,6 +105,8 @@ struct _valueOtherMethods<T, typename std::enable_if<std::is_pointer<T>::value &
     {
         return _valueOtherMethods<uint64_t>::getNthByte(to_unsigned(x), byte);
     }
+
+    typedef uint64_t to_unsigned_type;
 };
 
 template<>
@@ -116,6 +126,8 @@ struct _valueOtherMethods<bool>
     {
         return (byte) ? 0 : to_unsigned(x);
     }
+
+    typedef unsigned char to_unsigned_type;
 };
 
 

@@ -126,7 +126,7 @@ namespace
         unsigned char b = 0;
         while(type_size)
             b++, type_size >>= 1;
-        return b;
+        return b + 2;
     }
 }
 
@@ -174,6 +174,7 @@ template <typename T>
 struct _hasNextType
 {
 private:
+    template<typename Enabled = void>
     static uint8_t test(_rank<0>);
 
     template<typename _typeSeq<T>::next::type = 0>
