@@ -9,12 +9,23 @@
 #include <csignal>
 #include <chrono>
 #include <sys/wait.h>
+#include <cstdarg>
 #include "../ImageMagick-7/Magick++.h"
 #include "../string/str.h"
 #include "../container/vector.hpp"
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
 #include "../algo/icmp_normalize.h"
+
+static void update_linef(const char *format, ...)
+{
+    putchar('\r');
+    va_list va;
+    va_start(va, format);
+    vprintf(format, va);
+    va_end(va);
+    fflush(stdout);
+}
 
 //#define SECOND_METHOD
 #ifdef SECOND_METHOD
@@ -225,7 +236,7 @@ int main(int argc, char **argv)
 
     unsigned i, range_i = 0;
     unsigned char threads_amount = 4;
-    double sensibility = 0.0;
+    double sensibility = 25.0;
     vect<std::pair<str, bool>> dirs_and_files;
     bool unique = false, file_arguments = false, clear_cache = false, all_ok = true, show_in_background = false;
     bool symmetry_h = false, symmetry_v = false, symmetry;
@@ -297,10 +308,10 @@ int main(int argc, char **argv)
                        "\tOptions:\\n\\\n"
                        "\t-h or --help: show this help and exit\n"
                        "\t-u or --unique: assume what every given directory contain only unique images\n"
-                       "\t-s or --sensibility <float>: count two pictures different if they similarity more than given number percents[0 by default]\n"
+                       "\t-s or --sensibility <float>: count two pictures different if they similarity more than given number percents[25 by default]\n"
                        "\t-a or --app <program_name>: choose a program for showing pictures\n"
                        "\t-d or --diff: show difference between pictures\n"
-                       "\t-N or --not-show: show pictures\n"
+                       "\t-N or --not-show: don't show pictures\n"
                        "\t-n or --no-wait: don't wait for showing process, exit immediately after comparison\n"
                        "\t-t or --tmp <dir>: choose tmp directory(/tmp/diff for default)\n"
                        "\t-c or --clear-cache: clear converted pictures cache at exit\n"
@@ -345,7 +356,7 @@ int main(int argc, char **argv)
             fprintf(stderr, "File doesn't seems to be a picture: %s\n", f.first.c_str()), all_ok = false;
         elif(all_ok)
         {
-            files.push(picture{f.first, f.first.subStr(f.first.rfind(fs_del) + 1), str(inode)});
+            files.push(picture{f.first, f.first.substr(f.first.rfind(fs_del) + 1), str(inode)});
             if(unique)
                 unique_ranges[range_i++] = static_cast<unsigned>(files.size());
         }
@@ -413,11 +424,7 @@ int main(int argc, char **argv)
     unsigned converted = 0;
     for(unsigned file_i = 0; file_i < files.size(); file_i++)
     {
-        if((converted++ & 63u) == 0)
-        {
-            printf("\rConverting: %u/%lu", converted, files.size());
-            fflush(stdout);
-        }
+        update_linef("Converting: %u/%lu", converted++, files.size());
         Image image;
         if(file_type(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext) &&
            ((coeff[file_i] = get_coeff(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext)) >= 0))
@@ -430,7 +437,7 @@ int main(int argc, char **argv)
         }
         catch(Exception &exception)
         {
-            printf("\rException occurred while processing following image: %s\nImage will be ignored\n", files[file_i].path.c_str());
+            update_linef("Exception occurred while processing following image: %s\nImage will be ignored\n", files[file_i].path.c_str());
             printf("what(): %s\n", exception.what());
             files[file_i].path = "";
             continue;
@@ -446,7 +453,17 @@ int main(int argc, char **argv)
 //        coeff2[file_i] = coeff[file_i];
 //#endif
     }
-    printf("\rConverted                  \n");
+    update_linef("Converted    ");
+    unsigned cc = 1;
+    while(cc <= files.size())
+    {
+        printf("  ");
+        unsigned tmp_cc = cc * 10;
+        if(tmp_cc < cc)
+            break;
+        cc = tmp_cc;
+    }
+    putchar('\n');
     fflush(stdout);
     delete[] pixels;
     delete[] pixels_diff;
@@ -464,7 +481,7 @@ int main(int argc, char **argv)
     pixels_diff = new unsigned char[wh * wh];
 #endif
 
-    double max_cutoff = 240;
+    double max_cutoff = 320;
     double cutoff = max_cutoff * (100 - sensibility) / 100;
     for(i = 0;i < files.size() - 1;i++)
     {
@@ -499,11 +516,7 @@ int main(int argc, char **argv)
         }
         for(unsigned k = compare_from;k < files.size();k++)
         {
-            if((compared & 255u) == 0)
-            {
-                printf("\rComparing: %llu%% (%llu/%llu)", compared * 100 / comparisons, compared, comparisons);
-                fflush(stdout);
-            }
+            update_linef("Comparing: %llu%% (%llu/%llu)", compared * 100 / comparisons, compared, comparisons);
             compared++;
             if(!file_type(files[k].path))
                 continue;
@@ -598,7 +611,7 @@ int main(int argc, char **argv)
             }
         }
     }
-    printf("\rCompared (%llu comparisons)\n", compared);
+    update_linef("Compared (%llu comparisons)                 \n", compared);
     delete[] coeff;
     if(method_efficiency)
     {
