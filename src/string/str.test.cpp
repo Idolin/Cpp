@@ -643,4 +643,18 @@ TEST_PACK(str)
             EXPECT_EQ(c.rfind("00"), 80);
         }
     }
+
+    TEST(split)
+    {
+        str s = "a\nb\nc\n";
+        auto split_obj = s.split();
+        auto it = split_obj.begin();
+        EXPECT_EQ(*it, "a");
+        EXPECT_EQ(*++it, "b");
+        EXPECT_EQ(*++it, "c");
+        ++it;
+        EXPECT_NE(it, split_obj.end());
+        EXPECT_EQ(*it, "");
+        EXPECT_EQ(++it, split_obj.end());
+    }
 }
