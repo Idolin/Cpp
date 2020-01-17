@@ -154,43 +154,7 @@ protected:
         const str& operator->() const;
     };
 
-    struct str_iterable
-    {
-        struct str_iterator: public std::iterator<std::forward_iterator_tag, str>
-        {
-            friend struct str;
-        private:
-            const str &s, &f;
-            unsigned long l;
-
-            str_iterator();
-
-        public:
-            str_iterator(const str &s, const str &p);
-
-            str_iterator(const str_iterator &otr);
-
-            bool operator==(const str_iterator &otr) const;
-
-            bool operator!=(const str_iterator &otr) const;
-
-            str_iterator& operator++();
-
-            str_iterator operator++(int);
-
-            str operator*() const;
-
-            operator bool() const;
-        };
-
-        const str &s, &f;
-
-        str_iterable(const str &s, const str &p);
-
-        str_iterator begin() const;
-
-        str_iterator end() const;
-    };
+    struct str_iterable;
 public:
     str();
 
@@ -309,7 +273,7 @@ public:
 
     vect<unsigned long> find_all_intersect(const str&) const;
 
-    str_iterable& split(const str&) const;
+    str_iterable split(const str& = "\n") const;
 
     const_iterator begin() const;
 
@@ -340,6 +304,44 @@ protected:
 
 private:
     static str_info& empty();
+};
+
+struct str::str_iterable
+{
+    struct str_iterator: public std::iterator<std::forward_iterator_tag, str>
+    {
+        friend struct str;
+    private:
+        const str &s, &f;
+        unsigned long now_index, next_index;
+
+        str_iterator();
+
+    public:
+        str_iterator(const str &s, const str &p);
+
+        str_iterator(const str_iterator &otr);
+
+        bool operator==(const str_iterator &otr) const;
+
+        bool operator!=(const str_iterator &otr) const;
+
+        str_iterator& operator++();
+
+        str_iterator operator++(int);
+
+        str operator*() const;
+
+        operator bool() const;
+    };
+
+    const str s, f;
+
+    str_iterable(const str &s, const str &p);
+
+    str_iterator begin() const;
+
+    str_iterator end() const;
 };
 
 str operator+(str a, const str &b);

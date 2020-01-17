@@ -37,9 +37,9 @@ namespace
     template<>
     struct CFDef<3>
     {
-        static vect<unsigned long>&& v()
+        static vect<unsigned long> v()
         {
-            return std::move(vect<unsigned long>(0));
+            return vect<unsigned long>(0);
         }
     };
 
@@ -244,32 +244,39 @@ const str& str::const_iterator::operator->() const
     return s;
 }
 
-str::str_iterable::str_iterator::str_iterator(): s(str()), f(str()), l(str::not_found)
+str::str_iterable::str_iterator::str_iterator(): s(str()), f(str()), now_index(str::not_found)
 {}
 
 str::str_iterable::str_iterator::str_iterator(const str &s, const str &f):
-        s(s), f(f), l(0)
-{}
+        s(s), f(f), now_index(0)
+{
+    next_index = s.find(f);
+}
 
 str::str_iterable::str_iterator::str_iterator(const str::str_iterable::str_iterator &otr):
-        s(otr.s), f(otr.f), l(otr.l)
+        s(otr.s), f(otr.f), now_index(otr.now_index), next_index(otr.next_index)
 {}
 
 bool str::str_iterable::str_iterator::operator==(
         const str::str_iterable::str_iterator& otr) const
 {
-    return l == otr.l;
+    return now_index == otr.now_index;
 }
 
 bool str::str_iterable::str_iterator::operator!=(
         const str::str_iterable::str_iterator& otr) const
 {
-    return l != otr.l;
+    return now_index != otr.now_index;
 }
 
 str::str_iterable::str_iterator& str::str_iterable::str_iterator::operator++()
 {
-    l = s.find(f, l + 1);
+    now_index = next_index;
+    if(now_index != str::not_found)
+    {
+        now_index += f.length();
+        next_index = s.find(f, now_index);
+    }
     return *this;
 }
 
@@ -282,15 +289,14 @@ str::str_iterable::str_iterator str::str_iterable::str_iterator::operator++(int)
 
 str str::str_iterable::str_iterator::operator*() const
 {
-    unsigned long t = s.find("|", l);
-    if(t == str::not_found)
-        return s.substr(l);
-    return s.substr(l, t);
+    if(next_index == str::not_found)
+        return s.substr(now_index);
+    return s.substr(now_index, next_index);
 }
 
 str::str_iterable::str_iterator::operator bool() const
 {
-    return l != str::not_found;
+    return now_index != str::not_found;
 }
 
 str::str_iterable::str_iterable(const str &s, const str &p): s(s), f(p)
@@ -946,6 +952,11 @@ vect<unsigned long> str::find_all(const str& o) const
 vect<unsigned long> str::find_all_intersect(const str& o) const
 {
     return count_r_find<3, true>(o);
+}
+
+str::str_iterable str::split(const str& delim) const
+{
+    return str_iterable(*this, delim);
 }
 
 str::const_iterator str::begin() const
