@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <dirent.h>
 #include <cmath>
+#include <exception>
 #include <pthread.h>
 #include <unistd.h>
 #include <condition_variable>
@@ -16,6 +17,7 @@
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
 #include "../algo/icmp_normalize.h"
+#include "../other/pam_writer.h"
 
 static void update_linef(const char *format, ...)
 {
@@ -193,19 +195,6 @@ void* pictures_show(void*)
     }
     waitpid(notification, nullptr, 0);
     return nullptr;
-}
-
-void write_picture(str file_name, unsigned char *pixels, unsigned width, unsigned height,
-                   const char *comment = nullptr)
-{
-    FILE *img = fopen(file_name.c_str(), "wb");
-    ASSERT(img != NULL, "Can't write to file: %s", file_name.c_str());
-    fputs("P5\n", img);
-    if(comment)
-        fprintf(img, "#%s\n", comment);
-    fprintf(img, "%u %u\n255\n", width, height);
-    fwrite(pixels, width * height, 1, img);
-    fclose(img);
 }
 
 double get_coeff(str file_name)
@@ -425,17 +414,17 @@ int main(int argc, char **argv)
     for(unsigned file_i = 0; file_i < files.size(); file_i++)
     {
         update_linef("Converting: %u/%lu", converted++, files.size());
-        Image image;
         if(file_type(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext) &&
            ((coeff[file_i] = get_coeff(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext)) >= 0))
             continue;
         try
         {
             coeff[file_i] = image_convert_diff(files[file_i].path.c_str(), pixels_diff);
-            write_picture(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext,
-                      pixels_diff, wh, wh, str("Coefficient:") + std::to_string(coeff[file_i]));
+            PAMImageWriter writer(PAMImageWriter::keep_exact(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext), wh, wh);
+            writer.set_comment(str("Coefficient:") + std::to_string(coeff[file_i]));
+            writer.write(pixels_diff);
         }
-        catch(Exception &exception)
+        catch(std::exception &exception)
         {
             update_linef("Exception occurred while processing following image: %s\nImage will be ignored\n", files[file_i].path.c_str());
             printf("what(): %s\n", exception.what());

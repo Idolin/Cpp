@@ -5,13 +5,13 @@
 #include <sys/stat.h>
 #include <cstdio>
 #include <dirent.h>
-#include "../ImageMagick-7/Magick++.h"
+#include <exception>
 #include "../string/str.h"
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
 #include "../algo/icmp_normalize.h"
-
-using namespace Magick;
+#include "../debug/def_debug.h"
+#include "../other/pam_writer.h"
 
 bool is_picture(const str &name)
 {
@@ -60,8 +60,6 @@ void write_picture(const char *file_name, unsigned char *pixels, unsigned width,
 
 int main(int argc, char **argv)
 {
-    InitializeMagick(nullptr);
-
     if(argc != 3 && argc != 2)
     {
         fprintf(stderr, "Expected 1 or 2 arguments\nUsage: %s <path_to_image> [<path_to_save>]\n", argv[0]);
@@ -117,9 +115,9 @@ int main(int argc, char **argv)
         else
             last_dir = 0;
         if(last_dot > last_dir)
-            write_path += str(argv[1]).subStr(last_dir, last_dot);
+            write_path += str(argv[1]).substr(last_dir, last_dot);
         else
-            write_path += str(argv[1]).subStr(last_dir);
+            write_path += str(argv[1]).substr(last_dir);
         write_path += ".pgm";
         write_to = write_path;
     }
@@ -127,13 +125,15 @@ int main(int argc, char **argv)
     {
         unsigned char *pixels = nullptr;
         double coeff = image_convert_diff(argv[1], pixels);
+
         str comment("Coefficient:");
         comment += std::to_string(coeff);
-        write_picture(write_to, pixels, image_geometry.width(), image_geometry.height(),
-                      comment.c_str());
-        delete [] pixels;
+        PAMImageWriter writer(PAMImageWriter::keep_exact(write_to), image_geometry.width(), image_geometry.height());
+        writer.set_comment(comment);
+        writer.write(pixels);
+        delete[] pixels;
     }
-    catch(Exception &exception)
+    catch(std::exception &exception)
     {
         printf("\rException occurred while converting image: %s\n", argv[1]);
         printf("what(): %s\n", exception.what());
