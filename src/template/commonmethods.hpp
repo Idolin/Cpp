@@ -175,7 +175,7 @@ T to2(T k)
 }
 
 template<typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
-                        std::is_pointer<T>::value>::type> //mask = min(2^x - 1) | mask >= k
+                        std::is_pointer<T>::value>::type> //mask = min(2^x - 1) >= k
 constexpr T to_bit_mask(T k)
 {
     if(k < 0)
@@ -233,3 +233,27 @@ constexpr T pwr(T value, PT power)
     }
     return result;
 }
+
+template<typename T, typename = typename std::enable_if_t<std::is_unsigned<T>::value>>
+constexpr bool is_power_of_2(const T value)
+{
+    if(value & (value - 1))
+        return false;
+    return (value > 0);
+}
+
+template<bool init>
+struct once
+{
+	bool now;
+	
+	once(): now(init)
+	{}
+	
+	operator bool()
+	{
+		bool result = now;
+		now = ~init;
+		return result;
+	}
+};
