@@ -151,6 +151,205 @@ public:
     }
 };
 
+template<typename T, bool enable_hash_if_possible = false>
+struct queue_cycled: HashableStoredConditional<false, enable_hash_if_possible && is_hashable<T>::value>
+{
+private:
+    struct block
+    {
+        T *array;
+        // blockmask = 2^x - 1, blockmask > 0(blocksize > 1)
+        unsigned head, tail, blockmask;
+
+        explicit block(): array(nullptr), blockmask(0)
+        {}
+
+        explicit block(unsigned blocksize): array(new T[blocksize]), head(0), tail(0), blockmask(blocksize - 1)
+        {
+            ASSERT(is_power_of_2(blocksize));
+            ASSERT(blocksize > 1);
+        }
+
+        ~block()
+        {
+            delete[] array;
+        }
+        
+        void init(unsigned blocksize)
+        {
+            ASSERT(is_power_of_2(blocksize));
+            array = new T[blocksize];
+            head = tail = 0;
+            blockmask = blocksize - 1;
+        }
+        
+        void copy_from(const block& otr)
+        {
+            ASSERT(blockmask == 0);
+			delete[] array;
+            ASSERT(this != &otr);
+            array = otr.array;
+            head = otr.head;
+            tail = otr.tail;
+            blockmask = otr.blockmask;
+        }
+        
+        unsigned move_to(T *array_to)
+        {
+			unsigned len;
+			if(tail < head)
+			{
+				len = head - tail;
+				_move(array + tail, len, array_to);
+			}
+			else
+			{
+				len = blockmask + 1 - tail;
+				_move(array + tail, len, array_to);
+				_move(array, head, array_to + len);
+				len += head;
+			}
+			delete[] array;
+			array = nullptr;
+			blockmask = 0;
+			return len;
+        }
+        
+        unsigned size() const
+		{
+			if(tail < head)
+				return head - tail;
+			return blockmask - (tail - head) + 1;
+		}
+    };
+
+    unsigned long len;
+
+    //pointer to (head - first element, tail - last element, headlast - last element of first block,
+    //taillast - last element of last block)
+    block block_new, block_old;
+
+    ConditionalStored<uint64_t, enable_hash_if_possible && is_hashable<T>::value> prev_hash;
+
+public:
+    explicit queue_cycled(unsigned blocksize = 256):
+            len(0), block_new(_max(to2(blocksize), 2)), block_old(), prev_hash(0)
+    {}
+
+    ~queue_cycled() = default;
+
+    void push(typename def_get_by<T>::type x)
+    {
+        if(enable_hash_if_possible && is_hashable<T>::value)
+        {
+            uint64_t element_hash = get_hash(x);
+            this->set_hash(this->get_hash_value() + (~prev_hash.get_value() ^ element_hash)),
+                    this->prev_hash.set_value(element_hash);
+        }
+        block_new.array[block_new.head++] = x;
+        block_new.head &= block_new.blockmask;
+        if(block_new.head == block_new.tail)
+        {
+            if(block_old.blockmask == 0)
+            {
+                block_old.copy_from(block_new);
+                block_new.init(++block_new.blockmask << 1);
+            }
+            else
+            {
+				unsigned blocksize = (block_new.blockmask + 1) << 2;
+				T *array = new T[blocksize];
+				unsigned head = block_old.move_to(array);
+				head += block_new.move_to(array + head);
+				block_new.array = array;
+				block_new.head = head;
+				block_new.tail = 0;
+				block_new.blockmask = blocksize - 1;
+            }
+        }
+        len++;
+    }
+
+    T&& pop()
+    {
+        ASSERT(len > 0);
+        len--;
+        T *element;
+        if(block_old.blockmask != 0)
+        {
+			element = block_old.array + block_old.tail++;
+			block_old.tail &= block_old.blockmask;
+			if(block_old.tail == block_old.head)
+				block_old.blockmask = 0;
+        }
+        else
+		{
+			element = block_new.array + block_new.tail++;
+			block_new.tail &= block_new.blockmask;
+		}
+        if(enable_hash_if_possible && is_hashable<T>::value)
+        {
+            uint64_t next_element_hash = 0;
+            if(len)
+            {
+                if(block_old.blockmask != 0)
+					next_element_hash = get_hash(block_old.array[block_old.tail]);
+				else
+					next_element_hash = get_hash(block_new.array[block_new.tail]);
+            }
+            this->set_hash(this->get_hash_value() - (~get_hash(element) ^ next_element_hash));
+        }
+        return std::move(*element);
+    }
+
+    unsigned long size() const
+    {
+        return len;
+    }
+
+    bool empty() const
+    {
+        return (size() == 0);
+    }
+
+    void display() const
+    {
+        if(len == 0)
+            puts("Queue is empty");
+        else
+        {
+			once<false> started;
+			if(block_old.blockmask != 0)
+			{
+				unsigned tail = block_old.tail;
+				do
+				{
+					if(started)
+						fputs(", ", stdout);
+					_tshow(block_old.array[tail++]);
+					tail &= block_old.blockmask;
+				}
+				while(tail != block_old.head);
+				if(block_old.size() == len)
+				{
+					putchar('\n');
+					return;
+				}
+			}
+            unsigned tail = block_new.tail;
+			do
+			{
+				if(started)
+					fputs(", ", stdout);
+				_tshow(block_new.array[tail++]);
+				tail &= block_new.blockmask;
+			}
+			while(tail != block_new.head);
+            putchar('\n');
+        }
+    }
+};
+
 template<typename T>
 struct queuem
 {
