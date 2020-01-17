@@ -7,27 +7,7 @@
 
 class randomizer
 {
-    union
-    {
-        uint8_t randU8;
-        int8_t rand8;
-        uint16_t randU16;
-        int16_t rand16;
-        uint32_t randU32;
-        int32_t rand32;
-        uint64_t randU64;
-        int64_t rand64;
-        unsigned char randUC;
-        char randC;
-        unsigned short randUS;
-        short randS;
-        unsigned randU;
-        int randI;
-        unsigned long randUL;
-        long randL;
-        unsigned long long randULL;
-        long long randLL;
-    };
+    uint64_t state;
 public:
     randomizer();
 
@@ -71,6 +51,9 @@ public:
 
     template<typename T>
     T random();
+	
+private:
+	uint64_t next();
 };
 
 bool randomB();

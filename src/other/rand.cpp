@@ -2,12 +2,12 @@
 
 static randomizer defaultRandomizer;
 
-randomizer::randomizer() : randU64(UINT64_C(9316722631499553187))
+randomizer::randomizer(): state(9316722631499553187LLU)
 {}
 
 bool randomizer::randomB()
 {
-    return static_cast<bool>(randomUC() & 0x01);
+    return static_cast<bool>(next() & 0x01);
 }
 
 template<>
@@ -18,10 +18,7 @@ bool randomizer::random()
 
 unsigned char randomizer::randomUC()
 {
-    randUC ^= randUC >> 3;
-    randUC ^= randUC << 7;
-    randUC ^= randUC >> 5;
-    return randUC;
+    return static_cast<unsigned char>(next());
 }
 
 template<>
@@ -32,10 +29,7 @@ unsigned char randomizer::random()
 
 char randomizer::randomC()
 {
-    randUC ^= randUC >> 3;
-    randUC ^= randUC << 7;
-    randUC ^= randUC >> 5;
-    return randC;
+    return static_cast<char>(next());
 }
 
 template<>
@@ -46,10 +40,7 @@ char randomizer::random()
 
 unsigned short randomizer::randomUS()
 {
-    randUS ^= randUS >> 3;
-    randUS ^= randUS << 7;
-    randUS ^= randUS >> 11;
-    return randUS;
+    return static_cast<unsigned short>(next());
 }
 
 template<>
@@ -60,10 +51,7 @@ unsigned short randomizer::random()
 
 short randomizer::randomS()
 {
-    randUS ^= randUS >> 3;
-    randUS ^= randUS << 7;
-    randUS ^= randUS >> 11;
-    return randS;
+    return static_cast<short>(next());
 }
 
 template<>
@@ -74,10 +62,7 @@ short randomizer::random()
 
 unsigned randomizer::randomU()
 {
-    randU ^= randU >> 3;
-    randU ^= randU << 7;
-    randU ^= randU >> 11;
-    return randU;
+    return static_cast<unsigned>(next());
 }
 
 template<>
@@ -88,10 +73,7 @@ unsigned randomizer::random()
 
 int randomizer::randomI()
 {
-    randU ^= randU >> 3;
-    randU ^= randU << 7;
-    randU ^= randU >> 11;
-    return randI;
+    return static_cast<int>(next());
 }
 
 template<>
@@ -102,10 +84,7 @@ int randomizer::random()
 
 unsigned long randomizer::randomUL()
 {
-    randUL ^= randUL >> 3;
-    randUL ^= randUL << 7;
-    randUL ^= randUL >> 11;
-    return randUL;
+    return static_cast<unsigned long>(next());
 }
 
 template<>
@@ -116,10 +95,7 @@ unsigned long randomizer::random()
 
 long randomizer::randomL()
 {
-    randUL ^= randUL >> 3;
-    randUL ^= randUL << 7;
-    randUL ^= randUL >> 11;
-    return randL;
+    return static_cast<unsigned long>(next());
 }
 
 template<>
@@ -130,10 +106,7 @@ long randomizer::random()
 
 unsigned long long randomizer::randomULL()
 {
-    randULL ^= randULL >> 3;
-    randULL ^= randULL << 7;
-    randULL ^= randULL >> 11;
-    return randULL;
+    return static_cast<unsigned long long>(next());
 }
 
 template<>
@@ -144,10 +117,7 @@ unsigned long long randomizer::random()
 
 long long randomizer::randomLL()
 {
-    randULL ^= randULL >> 3;
-    randULL ^= randULL << 7;
-    randULL ^= randULL >> 11;
-    return randLL;
+    return static_cast<long long>(next());
 }
 
 template<>
@@ -158,68 +128,53 @@ long long randomizer::random()
 
 uint8_t randomizer::randomU8()
 {
-    randU8 ^= randU8 >> 3;
-    randU8 ^= randU8 << 7;
-    randU8 ^= randU8 >> 5;
-    return randU8;
+    return static_cast<uint8_t>(next());
 }
 
 int8_t randomizer::random8()
 {
-    randU8 ^= randU8 >> 3;
-    randU8 ^= randU8 << 7;
-    randU8 ^= randU8 >> 5;
-    return rand8;
+    return static_cast<int8_t>(next());
 }
 
 uint16_t randomizer::randomU16()
 {
-    randU16 ^= randU16 >> 3;
-    randU16 ^= randU16 << 7;
-    randU16 ^= randU16 >> 11;
-    return randU16;
+    return static_cast<uint16_t>(next());
 }
 
 int16_t randomizer::random16()
 {
-    randU16 ^= randU16 >> 3;
-    randU16 ^= randU16 << 7;
-    randU16 ^= randU16 >> 11;
-    return rand16;
+    return static_cast<int16_t>(next());
 }
 
 uint32_t randomizer::randomU32()
 {
-    randU32 ^= randU32 >> 3;
-    randU32 ^= randU32 << 7;
-    randU32 ^= randU32 >> 11;
-    return randU32;
+    return static_cast<uint32_t>(next());
 }
 
 int32_t randomizer::random32()
 {
-    randU32 ^= randU32 >> 3;
-    randU32 ^= randU32 << 7;
-    randU32 ^= randU32 >> 11;
-    return rand32;
+    return static_cast<int32_t>(next());
 }
 
 
 uint64_t randomizer::randomU64()
 {
-    randU64 ^= randU64 >> 3;
-    randU64 ^= randU64 << 7;
-    randU64 ^= randU64 >> 11;
-    return randU64;
+    return static_cast<uint64_t>(next());
 }
 
 int64_t randomizer::random64()
 {
-    randU64 ^= randU64 >> 3;
-    randU64 ^= randU64 << 7;
-    randU64 ^= randU64 >> 11;
-    return rand64;
+	return static_cast<int64_t>(next());
 }
+
+uint64_t randomizer::next()
+{
+	state = state * 198277LLU + 3;
+    state ^= state << 3;
+    state ^= state >> 7;
+	return state;
+}
+
 
 bool randomB()
 {
