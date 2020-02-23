@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../debug/def_debug.h"
-#include "struct_tags.hpp"
+#include "type_tags.hpp"
 #include "valuemethods.hpp"
 
 #include <iterator>

@@ -5,7 +5,7 @@
 #include "persistancequeue.hpp"
 #include "stack.hpp"
 #include "../other/hash.hpp"
-#include "../template/struct_tags.hpp"
+#include "../template/type_tags.hpp"
 #include "../struct/optional.hpp"
 
 #include <algorithm>

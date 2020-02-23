@@ -2,7 +2,7 @@
 
 #include "../other/rand.h"
 #include "../container/vector.hpp"
-#include "../template/struct_tags.hpp"
+#include "../template/type_tags.hpp"
 #include "../template/t_useful.hpp"
 #include "../template/valuemethods.hpp"
 

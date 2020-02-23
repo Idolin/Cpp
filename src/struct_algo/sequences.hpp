@@ -5,8 +5,7 @@
 #include "../other/commonmethods.hxx"
 #include "../sort/sortlog.hxx"
 
-unsigned *
-lcs(unsigned *firstSequence, unsigned firstSequenceLen, unsigned *secondSequence, unsigned &sequenceLen) //TODO
+unsigned *lcs(unsigned *firstSequence, unsigned firstSequenceLen, unsigned *secondSequence, unsigned &sequenceLen) //TODO
 {
     unsigned *firstSorted = new unsigned[firstSequenceLen];
     unsigned *indexArray = new unsigned[firstSequenceLen];

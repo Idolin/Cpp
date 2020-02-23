@@ -3,7 +3,7 @@
 #include "../template/arraymethods.hpp"
 #include "../template/commonmethods.hpp"
 #include "../template/typemethods.hpp"
-#include "../template/struct_tags.hpp"
+#include "../template/type_tags.hpp"
 #include "sortsquare.hpp"
 #include <functional>
 

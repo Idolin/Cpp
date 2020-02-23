@@ -2,7 +2,7 @@
 
 #include "../debug/def_debug.h"
 #include "typemethods.hpp"
-#include "struct_tags.hpp"
+#include "type_tags.hpp"
 
 #include <algorithm>
 #include <type_traits>

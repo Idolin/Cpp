@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../debug/def_debug.h"
-#include "../template/struct_tags.hpp"
+#include "../template/type_tags.hpp"
 #include "../template/typemethods.hpp"
 #include "../template/valuemethods.hpp"
 
