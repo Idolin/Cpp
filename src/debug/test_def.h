@@ -97,8 +97,8 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                     DEBUGLVLMSG_N(5, "> "); \
                     DEBUGLVLMSG_N(5, ## __VA_ARGS__); \
                     DEBUGLVLMSG(5, " at line %d", __LINE__); \
-                    this -> print_test_with(term_color::ORANGE); \
-                    fputc('\n', DEBUG_OUTPUT_STREAM); \
+                    if(this -> print_test_with(term_color::ORANGE)) \
+                        fputc('\n', DEBUG_OUTPUT_STREAM); \
                     if(this -> errors_occured == this -> max_error_amount_show) \
                         DEBUGLVLMSG(4, "> Max amount of errors to show (limit %u)" \
                                        "\nNo errors will be shown further", \

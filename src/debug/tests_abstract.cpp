@@ -95,7 +95,7 @@ namespace _test_abstract_class_
         return test_ok;
     }
 
-    void _test_class_abstract::print_test_with(term_color color)
+    bool _test_class_abstract::print_test_with(term_color color)
     {
         set_term_color(color, DEBUG_OUTPUT_STREAM);
         for(unsigned i = 0;i < this -> test_with.size();i++)
@@ -104,6 +104,7 @@ namespace _test_abstract_class_
             else
                 DEBUGLVLMSG_N(5, "with %s, ", this -> test_with[i]);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
+        return test_with.size() > 0;
     }
 
     void _test_class_abstract::print_level(term_color color)

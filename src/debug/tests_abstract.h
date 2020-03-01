@@ -32,7 +32,7 @@ namespace _test_abstract_class_
 
         virtual void test_body() = 0;
 
-        void print_test_with(term_color color = term_color::DEFAULT);
+        bool print_test_with(term_color color = term_color::DEFAULT);
 
         void print_level(term_color color = term_color::KEEP);
 
