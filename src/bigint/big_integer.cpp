@@ -1,13 +1,5 @@
 #include "big_integer.h"
 
-/*TODO
- R/W Lock system:
-    bool write flag(wf - signed char), process id(id)
-    Start: id=0, wf=0
-    Read:
-    Write:
-*/
-
 using std::string;
 using std::swap;
 using std::min;
@@ -464,62 +456,54 @@ big_integer &big_integer::operator|=(const big_integer &b)
     if(b._number.get_sign() == 0)
         return *this;
     unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
+    if(this->_number.get_sign() < 0)
+    {
+        unsigned i = 0;
+        for(; i <= min_max_set; i++)
+            if(this->_number[i])
+            {
+                this->_number[i]--;
+                break;
+            }
+        for(; i <= min_max_set; i++)
+            this->_number[i] = ~this->_number[i];
+    }
     unsigned b_index = 0;
     while(b._number[b_index] == 0)
         b_index++;
-    if(b_index <= min_max_set)
+    if(b._number.get_sign() < 0)
     {
-        if(this->_number.get_sign() < 0)
-        {
-            unsigned i = 0;
-            for(; i <= min_max_set; i++)
-                if(this->_number[i])
-                {
-                    this->_number[i]--;
-                    break;
-                }
-            for(; i <= min_max_set; i++)
-                this->_number[i] = ~this->_number[i];
-        }
-        if(b._number.get_sign() < 0)
-        {
-            this->_number[b_index] |= ~(b._number[b_index] - 1);
-            for(unsigned i = b_index + 1; i <= min_max_set; i++)
-                this->_number[i] |= ~b._number[i];
-        }
-        else
-            for(unsigned i = b_index; i <= min_max_set; i++)
-                this->_number[i] |= b._number[i];
+        this->_number[b_index] |= ~(b._number[b_index] - 1);
+        for(unsigned i = b_index + 1; i <= min_max_set; i++)
+            this->_number[i] |= ~b._number[i];
     }
-    if(this->_number.get_sign() < 0)
+    else
+        for(unsigned i = b_index; i <= min_max_set; i++)
+            this->_number[i] |= b._number[i];
+    bool max_set_is_set = false;
+    if(b._number.get_max_set() > min_max_set && this->_number.get_sign() > 0)
     {
-        if(b._number.get_max_set() > min_max_set)
-        {
-            if(b._number.get_max_set() >= this->_number.get_size())
-                this->_number.resize(b._number.get_max_set() + 1);
-            this->_number.copy(min_max_set + 1, b._number.get_max_set() - min_max_set, b._number, min_max_set + 1);
-            this->_number.set_max_set(b._number.get_max_set());
-        }
-        if(b._number.get_sign() < 0)
-        {
-            this->_number.set_sign(-1);
-            if(b_index <= min_max_set)
+        if(b._number.get_max_set() >= this->_number.get_size())
+            this->_number.resize(b._number.get_max_set() + 1);
+        this->_number.copy(min_max_set + 1, b._number.get_max_set() - min_max_set, b._number, min_max_set + 1);
+        this->_number.set_max_set(b._number.get_max_set());
+        max_set_is_set = true;
+    }
+    if(this->_number.get_sign() < 0 || b._number.get_sign() < 0)
+    {
+        this->_number.set_sign(-1);
+        unsigned i = 0;
+        for(; i <= min_max_set; i++)
+            if(this->_number[i])
             {
-                unsigned i = 0;
-                for(; i <= min_max_set; i++)
-                    if(this->_number[i])
-                    {
-                        this->_number[i]--;
-                        break;
-                    }
-                for(; i <= min_max_set; i++)
-                    this->_number[i] = ~this->_number[i];
+                this->_number[i]--;
+                break;
             }
-        }
-        else
-            this->_number.set_sign(1);
+        for(; i <= min_max_set; i++)
+            this->_number[i] = ~this->_number[i];
+        if(!max_set_is_set)
+            this->_number.set_max_set(min_max_set);
     }
-    this->_number.getms();
     return *this;
 }
 
@@ -971,7 +955,7 @@ void big_integer::_inv(unsigned to_size)
     for(unsigned i = 0; i <= _number.get_max_set(); i++)
     {
         _number[i] = ~_number[i] + carry;
-        carry = (carry && _number[i] == 0);
+        carry = (carry && (_number[i] == 0)) ? 1 : 0;
     }
     if(!carry)
     {

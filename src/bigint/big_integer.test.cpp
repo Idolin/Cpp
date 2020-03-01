@@ -424,7 +424,7 @@ TEST_PACK(big_integer)
         a++;
         big_integer b = 1;
 
-        EXPECT_EQ(a | b, big_integer(UINT32_MAX) + 1);
+        EXPECT_EQ(a | b, big_integer(UINT32_MAX) + 2);
         EXPECT_EQ(a | (-b), -1);
         EXPECT_EQ((-a) | b, -big_integer(UINT32_MAX));
         EXPECT_EQ((-a) | (-b), -1);
@@ -479,15 +479,14 @@ TEST_PACK(big_integer)
         a++;
         big_integer b = 1;
 
-        EXPECT_EQ(a ^ b, big_integer(UINT32_MAX)
-                +1);
-        EXPECT_EQ(a ^ (-b), -(big_integer(UINT32_MAX) + 1));
-        EXPECT_EQ((-a) ^ b, UINT32_MAX);
-        EXPECT_EQ((-a) ^ (-b), -1);
+        EXPECT_EQ(a ^ b, big_integer(UINT32_MAX) + 2);
+        EXPECT_EQ(a ^ (-b), -big_integer(UINT32_MAX));
+        EXPECT_EQ((-a) ^ b, -big_integer(UINT32_MAX) + 1);
+        EXPECT_EQ((-a) ^ (-b), UINT32_MAX);
 
         a++;
         b <<= 32;
-        EXPECT_EQ(a ^ b, a);
+        EXPECT_EQ(a ^ b, 2);
     }
 
     TEST(long_xor_2, REPEAT(100000))
@@ -499,10 +498,12 @@ TEST_PACK(big_integer)
         b += UINT32_MAX;
         b <<= 32;
 
-        EXPECT_EQ(a | b, b);
-        EXPECT_EQ(a | (-b), -b);
-        EXPECT_EQ((-a) | b, -a);
-        EXPECT_EQ((-a) & (-b), -a);
+        big_integer c = a ^ b, d = b - a;
+        fprintf(stderr, "%s=%s\n", c.to_string().c_str(), d.to_string().c_str());
+        EXPECT_EQ(a ^ b, b - a);
+        EXPECT_EQ(a ^ (-b), -b);
+        EXPECT_EQ((-a) ^ b, -a);
+        EXPECT_EQ((-a) ^ (-b), -a);
     }
 
     TEST(not_)
