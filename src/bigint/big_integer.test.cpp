@@ -121,6 +121,13 @@ TEST_PACK(big_integer)
 
         a += b;
         EXPECT_TRUE(a == 25);
+        
+        a = UINT32_MAX;
+        a += 2;
+        b = 1;
+        b <<= 32;
+        b++;
+        EXPECT_EQ(a, b);
     }
 
     TEST(add_signed)
@@ -329,7 +336,13 @@ TEST_PACK(big_integer)
         big_integer a = 666;
         big_integer b = -a;
 
-        EXPECT_TRUE(b == -666);
+        EXPECT_EQ(b, -666);
+        
+        a = 1ll << 31;
+        b = 1ll << 30;
+        b = -b;
+        b += b;
+        EXPECT_EQ(-a, b);
     }
 
     TEST(and_, REPEAT(100000))
@@ -390,6 +403,24 @@ TEST_PACK(big_integer)
         EXPECT_EQ(a & (-b), a);
         EXPECT_EQ((-a) & b, b);
         EXPECT_EQ((-a) & (-b), -b);
+        
+        a = -1;
+        a <<= 69;
+        b = -2;
+        EXPECT_EQ(a & b, a);
+        
+        a = UINT32_MAX;
+        a <<= 1;
+        a++;
+        a <<= 31;
+        b = UINT32_MAX;
+        b++;
+        EXPECT_EQ((-a) & (-b), big_integer(-1) << 64);
+        
+        a = -1;
+        b = UINT32_MAX;
+        b <<= 32;
+        EXPECT_EQ(a & b, b);
     }
 
     TEST(or_, REPEAT(100000))
@@ -424,7 +455,7 @@ TEST_PACK(big_integer)
         a++;
         big_integer b = 1;
 
-        EXPECT_EQ(a | b, big_integer(UINT32_MAX) + 1);
+        EXPECT_EQ(a | b, big_integer(UINT32_MAX) + 2);
         EXPECT_EQ(a | (-b), -1);
         EXPECT_EQ((-a) | b, -big_integer(UINT32_MAX));
         EXPECT_EQ((-a) | (-b), -1);
@@ -447,6 +478,11 @@ TEST_PACK(big_integer)
         EXPECT_EQ(a | (-b), -b);
         EXPECT_EQ((-a) | b, -a);
         EXPECT_EQ((-a) | (-b), -a);
+        
+        a = -1;
+        a <<= 69;
+        b = 1;
+        EXPECT_EQ(a | b, a + 1);
     }
 
     TEST(xor_)
@@ -479,15 +515,14 @@ TEST_PACK(big_integer)
         a++;
         big_integer b = 1;
 
-        EXPECT_EQ(a ^ b, big_integer(UINT32_MAX)
-                +1);
-        EXPECT_EQ(a ^ (-b), -(big_integer(UINT32_MAX) + 1));
-        EXPECT_EQ((-a) ^ b, UINT32_MAX);
-        EXPECT_EQ((-a) ^ (-b), -1);
+        EXPECT_EQ(a ^ b, big_integer(UINT32_MAX) + 2);
+        EXPECT_EQ(a ^ (-b), -big_integer(UINT32_MAX) - 2);
+        EXPECT_EQ((-a) ^ b, -big_integer(UINT32_MAX));
+        EXPECT_EQ((-a) ^ (-b), UINT32_MAX);
 
         a++;
         b <<= 32;
-        EXPECT_EQ(a ^ b, a);
+        EXPECT_EQ(a ^ b, 1);
     }
 
     TEST(long_xor_2, REPEAT(100000))
@@ -499,10 +534,20 @@ TEST_PACK(big_integer)
         b += UINT32_MAX;
         b <<= 32;
 
-        EXPECT_EQ(a | b, b);
-        EXPECT_EQ(a | (-b), -b);
-        EXPECT_EQ((-a) | b, -a);
-        EXPECT_EQ((-a) & (-b), -a);
+        EXPECT_EQ(a ^ b, b - a);
+        EXPECT_EQ(a ^ (-b), (-b - UINT32_MAX) - 1);
+        EXPECT_EQ((-a) ^ b, (-b - UINT32_MAX) - 1);
+        EXPECT_EQ((-a) ^ (-b), (b - UINT32_MAX) - 1);
+        
+        a = 1llu << 31;
+        b = UINT32_MAX;
+        b++;
+        EXPECT_EQ(a ^ (-b), -a);
+        
+        a = -5;
+        a <<= 69;
+        b = 1;
+        EXPECT_EQ(a ^ b, a + 1);
     }
 
     TEST(not_)
