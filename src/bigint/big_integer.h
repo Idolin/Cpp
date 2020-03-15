@@ -147,8 +147,6 @@ private:
     void _resize(unsigned new_size);
 
     friend std::string to_string(big_integer const &a);
-    
-    void _dbg(const char *s) const;
 };
 
 big_integer operator-(big_integer a, big_integer const &b);

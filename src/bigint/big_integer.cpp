@@ -125,7 +125,7 @@ void big_integer::big_integer_container::resize(unsigned int new_size)
         return;
     if((new_size > size) && (new_size < size * 2))
         new_size = size * 2;
-    _copy(number, new_size, number);
+    //_copy(number, new_size, number);
     number = ::_resize(number, max_set + 1, new_size);
     if(new_size > max_set + 1)
         _fill(number + max_set + 1, new_size - max_set - 1);
@@ -1018,23 +1018,6 @@ void big_integer::_resize(unsigned new_size)
 {
     _number.resize(new_size);
 }
-
-void big_integer::_dbg(const char* s) const
-{
-    bool dbg = true;
-    if(dbg)
-    {
-        fprintf(stderr, "%s(%c): ", s, (_number.get_sign() > 0) ? '+' : (_number.get_sign() < 0 ? '-' : '0'));
-        for(int i = this->_number.get_max_set(); i >= 0; i--)
-        {
-            if(i != this->_number.get_max_set())
-                fprintf(stderr, ", ");
-            fprintf(stderr, "%u", this->_number[i]);
-        }
-        fputc('\n', stderr);
-    }
-}
-
 
 big_integer operator-(big_integer a, big_integer const &b)
 {
