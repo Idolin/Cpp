@@ -65,4 +65,6 @@ struct _test_pack_class_abstract
     virtual ~_test_pack_class_abstract() = default;
 
     virtual bool test(str mask);
+    
+    void print_failed() const;
 };

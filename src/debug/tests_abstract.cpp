@@ -215,31 +215,34 @@ bool _test_pack_class_abstract::test(str mask)
                       "Test pack %s: failed! ", this->test_pack_name);
     fprinttime(DEBUG_OUTPUT_STREAM, milliseconds);
     if(!test_ok)
-    {
-        fprintf(DEBUG_OUTPUT_STREAM, "%d test%s failed:\n", this->errors_occured,
-                (this->errors_occured > 1 ? "s" : ""));
-        for(unsigned i = 0; i < this->errors_occured; i++)
-        {
-            fprintf(DEBUG_OUTPUT_STREAM, "\t%s", test_classes[test_failed[i]]->test_name);
-            if(test_classes[test_failed[i]]->subtests_failed.size() == 0)
-                fputc('\n', DEBUG_OUTPUT_STREAM);
-            else
-            {
-                fputs(" with failed subtests:\n", DEBUG_OUTPUT_STREAM);
-                unsigned level = 1;
-                for(const char *s : test_classes[test_failed[i]]->subtests_failed)
-                    if(s)
-                    {
-                        level++;
-                        for(unsigned j = 0;j < level;j++)
-                            fputc('\t', DEBUG_OUTPUT_STREAM);
-                        fprintf(DEBUG_OUTPUT_STREAM, "%s\n", s);
-                    }
-                    else
-                        level--;
-            }
-        }
-    }
+        print_failed();
     fputc('\n', DEBUG_OUTPUT_STREAM);
     return test_ok;
+}
+
+void _test_pack_class_abstract::print_failed() const
+{
+    fprintf(DEBUG_OUTPUT_STREAM, "%d test%s failed:\n", this->errors_occured,
+                (this->errors_occured > 1 ? "s" : ""));
+    for(unsigned i = 0; i < this->errors_occured; i++)
+    {
+        fprintf(DEBUG_OUTPUT_STREAM, "\t%s", test_classes[test_failed[i]]->test_name);
+        if(test_classes[test_failed[i]]->subtests_failed.size() == 0)
+            fputc('\n', DEBUG_OUTPUT_STREAM);
+        else
+        {
+            fputs(" with failed subtests:\n", DEBUG_OUTPUT_STREAM);
+            unsigned level = 1;
+            for(const char *s : test_classes[test_failed[i]]->subtests_failed)
+                if(s)
+                {
+                    level++;
+                    for(unsigned j = 0;j < level;j++)
+                        fputc('\t', DEBUG_OUTPUT_STREAM);
+                    fprintf(DEBUG_OUTPUT_STREAM, "%s\n", s);
+                }
+                else
+                    level--;
+        }
+    }
 }
