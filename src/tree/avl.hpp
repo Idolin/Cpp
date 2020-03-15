@@ -40,7 +40,7 @@ struct avl_node_crtp: search_tree_node_crtp<TData, TKey, S>, avl_node_tag
 
     void show_node() const
     {
-        printf("%d:%d", height, this->key);
+        //printf("%d:%d", height, this->key);
     }
 };
 
@@ -152,7 +152,7 @@ struct avl_tree: search_tree_abstract_crtp<TData, TKey, avl_node>
             node->parent->left = nullptr;
         else
             node->parent->right = nullptr;
-        TData &data = node->data;
+        TData data = node->data;
         balance(node);
         delete node;
         _size--;
