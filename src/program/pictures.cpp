@@ -1,7 +1,7 @@
 #include <functional>
 #include <math.h>
 #include "../other/rand.h"
-#include "../string/func.hpp"
+#include "../string/str_func.h"
 #include "../template/arraymethods.hpp"
 #include "../other/pam_writer.h"
 
