@@ -5,6 +5,7 @@
 #include "../template/typemethods.hpp"
 #include "../template/valuemethods.hpp"
 
+#include <functional>
 #include <stdint.h>
 #include <type_traits>
 
