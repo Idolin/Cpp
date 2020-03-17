@@ -76,8 +76,8 @@ struct _getMMinType;
 
 template<typename T, typename T2>
 struct _getMMinType<T, T2, typename std::enable_if<
-        std::is_signed<T>::value && std::is_signed<T2>::value ||
-        std::is_unsigned<T>::value && std::is_unsigned<T2>::value>::type>
+        (std::is_signed<T>::value && std::is_signed<T2>::value) ||
+        (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
 {
     typedef typename _getMinType<T, T2>::type type;
 };
@@ -253,7 +253,7 @@ struct once
 	operator bool()
 	{
 		bool result = now;
-		now = ~init;
+		now = !init;
 		return result;
 	}
 };

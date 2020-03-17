@@ -47,7 +47,7 @@ TEST_PACK(sort)
             SUB_TEST(partially_sorted)
             {
                 FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, unsigned length, 0, 1, 10, 100, 1000, 10000, {
-                    for(unsigned i = 0, k = 0; i < length; i++, k += (i & 0x40 == 0x40) * 30)
+                    for(unsigned i = 0, k = 0; i < length; i++, k += ((i & 0x40) == 0x40) * 30)
                         t[i] = i + 20 + randomU() & 0xff - randomU() & 0xf - k;
                     sort(t, t + length);
                     EXPECT_TRUE(_checksorted(t, t + length));
