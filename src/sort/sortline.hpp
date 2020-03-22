@@ -15,7 +15,7 @@ constexpr static typename getter_func<T>::RType def_getter(T value, unsigned sho
     return (std::is_signed<T>::value && (part == 0)) ?
            static_cast<RType>(static_cast<typename std::make_unsigned<T>::type>(value) >> ((sizeof(T) - sizeof(RType)) * 8)) ^
                (static_cast<RType>(1 << (sizeof(RType) * 8 - 1))) :
-           static_cast<RType>(value >> (sizeof(T) + part * sizeof(RType) - sizeof(RType)) * 8);
+           static_cast<RType>(value >> (sizeof(T) - part * sizeof(RType) - sizeof(RType)) * 8);
 }
 
 template<typename RType, typename RNow, typename T,
@@ -94,8 +94,8 @@ static void bucketsort_impl(T *start, T *end, T *copy, unsigned short from = 0)
     E length = end - start;
     E *items_in_bucket = new E[std::numeric_limits<GR>::max() + 1];
     _fill(items_in_bucket, std::numeric_limits<GR>::max() + 1);
-    E index_to = (sizeof(E) == sizeof(GR)) ? 0 :
-                       static_cast<E>(std::numeric_limits<GR>::max()) + 1;
+    E index_to = static_cast<E>((sizeof(E) == sizeof(GR)) ? 0u :
+                       static_cast<E>(std::numeric_limits<GR>::max()) + 1u); // can overflow, it's ok
 
     for(E i = 0;i < length;i++)
         items_in_bucket[get_f(start[i], from)]++;
