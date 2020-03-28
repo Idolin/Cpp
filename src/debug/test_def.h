@@ -5,6 +5,7 @@
 #include "tests_abstract.h"
 #include "../other/defdef.h"
 
+#include <cmath>
 #include <exception>
 
 //TODO
@@ -149,12 +150,24 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 #define EXPECT_GE(a, b, ...) EXPECT_TRUE((a) >= (b), GET_ARG_DEF("Check((" #a ") >= (" #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_GT(a, b, ...) EXPECT_TRUE((a) > (b), GET_ARG_DEF("Check((" #a ") > (" #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF("Check((" #a ") != (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_NEAR(a, b, d, ...) EXPECT_TRUE((((a) - (b)) < (d)) && (((b) - (a)) < (d)), GET_ARG_DEF_I("Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__))
-#define EXPECT_IN_RANGE(a, l, r, ...) EXPECT_TRUE(((a) >= (l)) && ((a) <= (r)), GET_ARG_DEF("Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__))
-#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<typeof(a)>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<float>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<double>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_STRING_EQ(a, b, ...) \
+#define EXPECT_NEAR(a, b, d, ...) \
+    { \
+        const auto _debug_var_a = (a); \
+        const auto _debug_var_b = (b); \
+        const auto _debug_var_d = (d); \
+        EXPECT_TRUE(((_debug_var_a - _debug_var_b) < _debug_var_d) && ((_debug_var_b - _debug_var_a) < _debug_var_d), GET_ARG_DEF_I("Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_IN_RANGE(a, l, r, ...) \
+    { \
+        const auto _debug_var_a = (a); \
+        const auto _debug_var_l = (l); \
+        const auto _debug_var_r = (r); \
+        EXPECT_TRUE((_debug_var_a >= _debug_var_l) && (_debug_var_a <= _debug_var_r), GET_ARG_DEF("Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<typeof(a)>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<float>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<double>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_CSTRING_EQ(a, b, ...) \
     { \
         unsigned long i = 0; \
         while(a[i] == b[i]) \

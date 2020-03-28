@@ -23,7 +23,7 @@ TEST_PACK(str)
         const str d = b;
         const char *e = d;
         const char *f = d.c_str();
-        EXPECT_STRING_EQ(e, f);
+        EXPECT_CSTRING_EQ(e, f);
         delete [] c;
         delete [] e; //convert to char* always creates new array(use c_str instead)
     }
@@ -155,7 +155,7 @@ TEST_PACK(str)
 
         str a2 = "1234567890";
         a2 = a2.substr(1, 7).substr(2, 5);
-        EXPECT_STRING_EQ(a2.c_str(), "456");
+        EXPECT_CSTRING_EQ(a2.c_str(), "456");
     }
 
     TEST(not_equals)
@@ -237,7 +237,7 @@ TEST_PACK(str)
         str c;
         c += 'c';
         str u;
-        unsigned str_count = 0;
+        unsigned long str_count = 0;
         for(unsigned i = 0;i < 100000;i++)
             if(randomUC() < 5)
             {
@@ -248,7 +248,7 @@ TEST_PACK(str)
                 u += c;
         EXPECT_EQ(u.length(), str_count * 2 + 100000,
                   "Expected length of str: %lu, but length is %lu",
-                  str_count * 2 + 100000, u.length());
+                  str_count * 2lu + 100000lu, u.length());
     }
 
     TEST(last_char_is_nul)
