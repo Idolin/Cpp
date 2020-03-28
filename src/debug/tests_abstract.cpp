@@ -31,6 +31,44 @@ void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str
     fputs("]\n", SOUT);
 }
 
+void inline fprinttimevalue(FILE *SOUT, unsigned long long milliseconds)
+{
+    const char* identifier[5] = {"day", "hour", "minute", "second", "millisecond"};
+    const unsigned coefficient[4] = {24, 60, 60, 1000};
+
+    unsigned value[5];
+    unsigned start_from = 5;
+    while(--start_from > 0)
+    {
+        value[start_from] = static_cast<unsigned>(milliseconds % coefficient[start_from - 1]);
+        if((milliseconds /= coefficient[start_from - 1]) == 0)
+            break;
+    }
+    value[0] = static_cast<unsigned>(milliseconds);
+    for(unsigned i = start_from;i < 5;i++)
+    {
+        fprintf(SOUT, "%u %s", value[i], identifier[i]);
+        if(value[i] != 1)
+            fputc('s', SOUT);
+        if(i < 4)
+            fputc(' ', SOUT);
+    }
+}
+
+void fprinttime(FILE *SOUT, const welford<VARIANCE>& timer)
+{
+    fputc('[', SOUT);
+    fprinttimevalue(SOUT, timer.get_mean() * timer.get_count());
+    if(timer.get_count() > 1)
+    {
+        fprintf(SOUT, "/%lu = ", timer.get_count());
+        fprinttimevalue(SOUT, timer.get_mean());
+        fputs("+-", SOUT);
+        fprinttimevalue(SOUT, timer.get_variance());
+    }
+    fputs("]\n", SOUT);
+}
+
 namespace _test_abstract_class_
 {
     _test_class_abstract::_test_class_abstract(const char *test_name):
@@ -46,16 +84,22 @@ namespace _test_abstract_class_
         errors_occured = 0;
         test_ok = true;
         subtests_failed.clear();
-        counter.start();
         try
         {
             try
             {
                 for(unsigned i = 0; i < test_repeat_amount; i++)
+                {
+                    counter.start();
                     test_body();
+                    counter.stop();
+                    time_measurement.update(counter.getMilliseconds());
+                }
             }
             catch(...)
             {
+                counter.stop();
+                time_measurement.update(counter.getMilliseconds());
                 fflush(stdout);
                 color_fputs(term_color::RED, "> Exception!\n", DEBUG_OUTPUT_STREAM);
                 for(unsigned i = 0;i < subtests.size();i++)
@@ -80,17 +124,16 @@ namespace _test_abstract_class_
             fputs("> Not inherited from std::exception!\n", DEBUG_OUTPUT_STREAM);
         }
         fflush(stdout);
-        counter.stop();
         if(exception_occured)
             test_ok &= exception_expected;
         color_fprintf((test_ok ? term_color::GREEN : term_color::RED), DEBUG_OUTPUT_STREAM, "> Test %s ",
                       (test_ok ? "succeeded" : "failed!"));
-        fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds());
-        if(test_ok && (test_repeat_amount > 1))
-        {
-            putchar(' ');
-            fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds() / test_repeat_amount, "per run");
-        }
+        fprinttime(DEBUG_OUTPUT_STREAM, time_measurement);
+//         if(test_ok && (test_repeat_amount > 1))
+//         {
+//             putchar(' ');
+//             fprinttime(DEBUG_OUTPUT_STREAM, counter.getMilliseconds() / test_repeat_amount, "per run");
+//         }
         fputc('\n', DEBUG_OUTPUT_STREAM);
         return test_ok;
     }

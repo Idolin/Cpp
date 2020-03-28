@@ -5,10 +5,12 @@
 #include "../container/vector.hpp"
 #include "def_debug.h"
 #include "../string/str.h"
+#include "../flow_processing/welford.hpp"
 
 #include <exception>
 
 void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str = nullptr);
+void fprinttime(FILE *SOUT, const welford<VARIANCE>& timer);
 
 namespace _test_abstract_class_
 {
@@ -19,6 +21,7 @@ namespace _test_abstract_class_
         unsigned test_repeat_amount, max_error_amount_show, errors_to_stop,
                 errors_occured;
         process_time_counter counter;
+        welford<VARIANCE> time_measurement;
         bool test_ok, exception_expected, exception_occured;
         vect<const char*> test_with;
         vect<std::pair<const char*, process_time_counter>> subtests;

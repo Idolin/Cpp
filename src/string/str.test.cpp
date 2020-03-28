@@ -306,25 +306,22 @@ TEST_PACK(str)
         }
     }
 
-    TEST(str_comparision_speed)
+    TEST(str_comparision_speed, REPEAT(100))
     {
-        for(unsigned i = 0;i < 100;i++)
-        {
-            str a = "1";
-            str b = "1";
-            a *= 100000;
-            b *= 100000;
-            EXPECT_EQ(a, b);
-            EXPECT_LE(b, a);
-            EXPECT_GE(b, a);
-            EXPECT_FALSE(b < a);
-            a = "0" + a;
-            EXPECT_LT(a, b);
-            EXPECT_NE(a, b);
-            b = "0" + b + "1";
-            EXPECT_LT(a, b);
-            EXPECT_NE(a, b);
-        }
+        str a = "1";
+        str b = "1";
+        a *= 100000;
+        b *= 100000;
+        EXPECT_EQ(a, b);
+        EXPECT_LE(b, a);
+        EXPECT_GE(b, a);
+        EXPECT_FALSE(b < a);
+        a = "0" + a;
+        EXPECT_LT(a, b);
+        EXPECT_NE(a, b);
+        b = "0" + b + "1";
+        EXPECT_LT(a, b);
+        EXPECT_NE(a, b);
     }
 
     TEST(find_char)
