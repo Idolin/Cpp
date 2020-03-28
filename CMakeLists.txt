@@ -22,6 +22,7 @@ add_subdirectory(src/tree)
 #add_subdirectory(src/program)
 add_subdirectory(src/parallelism)
 add_subdirectory(src/algo)
+add_subdirectory(src/flow_processing)
 
 set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
