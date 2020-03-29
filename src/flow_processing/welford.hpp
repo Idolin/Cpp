@@ -71,9 +71,10 @@ template<>
 struct welford<ONLY_MEAN>: welford_base
 {
 public:
-    void update(double value)
+    welford<ONLY_MEAN>& update(double value)
     {
         welford_base::update(value);
+        return *this;
     }
     
     welford<ONLY_MEAN>& merge(const welford<ONLY_MEAN> &otr)
@@ -96,10 +97,11 @@ private:
     double m2 = .0;
    
 public:
-    void update(double value)
+    welford<VARIANCE>& update(double value)
     {
         double delta = update_ret_delta(value);
         m2 += delta * (value - mean);
+        return *this;
     }
     
     double get_variance() const
@@ -137,13 +139,14 @@ private:
     double C = .0;
    
 public:
-    void update(double value_x, double value_y)
+    welford<COVARIANCE>& update(double value_x, double value_y)
     {
         double dx = value_x - mean_x;
         double dy = value_y - mean_y;
         mean_x += dx / ++count;
         mean_y += dy / count;
         C += dx * dy;
+        return *this;
     }
     
     unsigned long get_count() const
