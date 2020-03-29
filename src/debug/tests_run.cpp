@@ -4,7 +4,7 @@
 #include "tests_abstract.h"
 #include "tests_run.h"
 
-bool run_test(str test_name, str subtest_mask)
+bool run_test(str test_pack_mask, str test_mask)
 {
     bool run_ok = true;
     unsigned run_test_packs = 0;
@@ -12,16 +12,16 @@ bool run_test(str test_name, str subtest_mask)
         g_static::global_static_var<vect<_test_pack_class_abstract *>, g_static::test_global_static_id>();
     vect<_test_pack_class_abstract *> failed_packs;
     for(unsigned i = 0; i < _test_class_packs_defined.size(); i++)
-        if((test_name == _test_class_packs_defined[i]->test_pack_name) || (test_name == "*"))
+        if((test_pack_mask == _test_class_packs_defined[i]->test_pack_name) || (test_pack_mask == "*"))
         {
             run_test_packs++;
-            bool run_local_test_ok = _test_class_packs_defined[i]->test(subtest_mask);
+            bool run_local_test_ok = _test_class_packs_defined[i]->test(test_mask);
             run_ok = run_local_test_ok && run_ok;
             if(!run_local_test_ok)
                 failed_packs.push(_test_class_packs_defined[i]);
         }
     if(run_test_packs == 0)
-        color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM, "Test not found: %s\n", test_name.c_str());
+        color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM, "Test not found: %s\n", test_pack_mask.c_str());
     if(run_test_packs > 1)
     {
         if(failed_packs.size() > 0)
