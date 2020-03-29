@@ -9,7 +9,7 @@
 
 #include <exception>
 
-void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str = nullptr);
+void fprinttime_ms(FILE *SOUT, unsigned long long milliseconds);
 void fprinttime(FILE *SOUT, const welford<VARIANCE>& timer);
 
 namespace _test_abstract_class_

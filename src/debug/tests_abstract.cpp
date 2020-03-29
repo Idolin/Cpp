@@ -1,37 +1,6 @@
 #include "tests_abstract.h"
 
-void fprinttime(FILE *SOUT, unsigned long long milliseconds, const char *add_str)
-{
-    const char* identifier[5] = {"day", "hour", "minute", "second", "millisecond"};
-    const unsigned coefficient[4] = {24, 60, 60, 1000};
-
-    fputc('[', SOUT);
-    unsigned value[5];
-    unsigned start_from = 5;
-    while(--start_from > 0)
-    {
-        value[start_from] = static_cast<unsigned>(milliseconds % coefficient[start_from - 1]);
-        if((milliseconds /= coefficient[start_from - 1]) == 0)
-            break;
-    }
-    value[0] = static_cast<unsigned>(milliseconds);
-    for(unsigned i = start_from;i < 5;i++)
-    {
-        fprintf(SOUT, "%u %s", value[i], identifier[i]);
-        if(value[i] != 1)
-            fputc('s', SOUT);
-        if(i < 4)
-            fputc(' ', SOUT);
-    }
-    if(add_str)
-    {
-        fputc(' ', SOUT);
-        fputs(add_str, SOUT);
-    }
-    fputs("]\n", SOUT);
-}
-
-void inline fprinttimevalue(FILE *SOUT, unsigned long long milliseconds)
+void inline fprinttime_ms(FILE *SOUT, unsigned long long milliseconds)
 {
     const char* identifier[5] = {"day", "hour", "minute", "second", "millisecond"};
     const unsigned coefficient[4] = {24, 60, 60, 1000};
@@ -58,13 +27,13 @@ void inline fprinttimevalue(FILE *SOUT, unsigned long long milliseconds)
 void fprinttime(FILE *SOUT, const welford<VARIANCE>& timer)
 {
     fputc('[', SOUT);
-    fprinttimevalue(SOUT, timer.get_mean() * timer.get_count());
+    fprinttime_ms(SOUT, timer.get_mean() * timer.get_count());
     if(timer.get_count() > 1)
     {
         fprintf(SOUT, "/%lu = ", timer.get_count());
-        fprinttimevalue(SOUT, timer.get_mean());
+        fprinttime_ms(SOUT, timer.get_mean());
         fputs("+-", SOUT);
-        fprinttimevalue(SOUT, timer.get_variance());
+        fprinttime_ms(SOUT, timer.get_variance());
     }
     fputs("]\n", SOUT);
 }
@@ -190,7 +159,7 @@ namespace _test_abstract_class_
         print_level();
         fprintf(DEBUG_OUTPUT_STREAM, " Subtest %s: %s ", subtests.pop().first,
                 this -> test_ok ? "succeeded" : "failed");
-        fprinttime(DEBUG_OUTPUT_STREAM, time);
+        fprinttime(DEBUG_OUTPUT_STREAM, welford<VARIANCE>().update(time));
         fputc('\n', DEBUG_OUTPUT_STREAM);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
         this -> test_ok &= saved;
@@ -256,7 +225,7 @@ bool _test_pack_class_abstract::test(str mask)
     else
         color_fprintf(term_color::RED, DEBUG_OUTPUT_STREAM,
                       "Test pack %s: failed! ", this->test_pack_name);
-    fprinttime(DEBUG_OUTPUT_STREAM, milliseconds);
+    fprinttime(DEBUG_OUTPUT_STREAM, welford<VARIANCE>().update(milliseconds));
     if(!test_ok)
         print_failed();
     fputc('\n', DEBUG_OUTPUT_STREAM);

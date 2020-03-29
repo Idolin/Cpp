@@ -243,7 +243,7 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     color_fputs(term_color::CYAN, "> Test ", DEBUG_OUTPUT_STREAM); \
     this -> print_test_with(term_color::CYAN); \
     fputc(' ', DEBUG_OUTPUT_STREAM); \
-    fprinttime(DEBUG_OUTPUT_STREAM, inner.getMilliseconds()); \
+    fprinttime(DEBUG_OUTPUT_STREAM, welford<VARIANCE>().update(inner.getMilliseconds())); \
     this -> test_with.pop(); \
 } __VA_ARGS__
 
