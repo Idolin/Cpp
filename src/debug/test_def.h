@@ -4,6 +4,7 @@
 #include "../other/singleton.hpp"
 #include "tests_abstract.h"
 #include "../other/defdef.h"
+#include "def_debug.h"
 
 #include <cmath>
 #include <exception>
@@ -12,7 +13,6 @@
 /*
  * Nested tests
  * Time limit, memory limit, testing n times
- * Expected exception test
  * Summary statistics(How many 0-level test failed/succeeded, memory peak, which tests failed)
  * Regular expression for test chooser
 */
@@ -26,13 +26,6 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 #define REPEAT(n) this -> test_repeat_amount = n;
 
 #ifdef TESTS_ENABLED
-
-#ifndef DEBUG
-    #define DEBUG
-    #ifndef DEBUG_OUTPUT_STREAM
-        #define DEBUG_OUTPUT_STREAM stderr
-    #endif // DEBUG_OUTPUT_STREAM
-#endif
 
 #define TEST_PACK(pack_name, ...) \
     struct _test_pack_ ## pack_name: _test_pack_class_abstract \
