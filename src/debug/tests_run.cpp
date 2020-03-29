@@ -27,10 +27,7 @@ bool run_test(str test_name, str subtest_mask)
         if(failed_packs.size() > 0)
         {
             set_term_color(term_color::RED, DEBUG_OUTPUT_STREAM);
-            if(failed_packs.size() > 1)
-                fprintf(DEBUG_OUTPUT_STREAM, "%lu test packs failed:\n", failed_packs.size());
-            else
-                fputs("1 test pack failed:\n", DEBUG_OUTPUT_STREAM);
+            fprintf(DEBUG_OUTPUT_STREAM, "%lu/%u test packs failed:\n", failed_packs.size(), run_test_packs);
             for(_test_pack_class_abstract *test_pack : failed_packs)
             {
                 fprintf(DEBUG_OUTPUT_STREAM, "\t%s\n", test_pack->test_pack_name);
