@@ -324,7 +324,7 @@ namespace test_namespace
         } \
         catch(...) \
         { \
-            bool _test_exception_check = true; \
+            _test_exception_check = true; \
         } \
         EXPECT_TRUE(_test_exception_check, GET_ARG_DEF("Check(exception_any) failed", ## __VA_ARGS__)); \
     }
