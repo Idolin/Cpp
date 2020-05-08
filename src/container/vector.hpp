@@ -27,7 +27,7 @@ struct vect
         iterator(const iterator& otr): ptr(otr.ptr)
         {}
 
-        iterator (iterator&& otr): ptr(otr.ptr)
+        iterator(iterator&& otr): ptr(otr.ptr)
         {
             otr.ptr = nullptr;
         }
@@ -35,6 +35,7 @@ struct vect
         iterator& operator=(const iterator& otr)
         {
             ptr = otr.ptr;
+            return *this;
         }
 
         iterator& operator=(iterator&& otr)
@@ -44,6 +45,7 @@ struct vect
                 ptr = otr.ptr;
                 otr.ptr = nullptr;
             }
+            return *this;
         }
 
         bool operator==(const iterator& otr) const
