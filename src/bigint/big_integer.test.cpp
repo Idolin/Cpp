@@ -399,6 +399,8 @@ TEST_PACK(big_integer)
         b += UINT32_MAX;
         b <<= 32;
 
+        TIMER_START;
+        
         EXPECT_EQ(a & b, a);
         EXPECT_EQ(a & (-b), a);
         EXPECT_EQ((-a) & b, b);
@@ -765,29 +767,26 @@ TEST_PACK(big_integer)
         }
     }
 
-    TEST(mul_div_randomized)
+    TEST(mul_div_randomized, REPEAT(number_of_iterations))
     {
-        for(unsigned itn = 0; itn != number_of_iterations; ++itn)
-        {
-            std::vector<int> multipliers;
+        std::vector<int> multipliers;
 
-            for(size_t i = 0; i != number_of_multipliers; ++i)
-                multipliers.push_back(myrand());
+        for(size_t i = 0; i != number_of_multipliers; ++i)
+            multipliers.push_back(myrand());
 
-            big_integer accumulator = 1;
+        big_integer accumulator = 1;
 
-            for(size_t i = 0; i != number_of_multipliers; ++i)
-                accumulator *= multipliers[i];
+        for(size_t i = 0; i != number_of_multipliers; ++i)
+            accumulator *= multipliers[i];
 
-            std::random_shuffle(multipliers.begin(), multipliers.end());
+        std::random_shuffle(multipliers.begin(), multipliers.end());
 
-            for(size_t i = 1; i != number_of_multipliers; ++i)
-                accumulator /= multipliers[i];
+        for(size_t i = 1; i != number_of_multipliers; ++i)
+            accumulator /= multipliers[i];
 
-            if(accumulator != multipliers[0])
-                accumulator = 0;
-            EXPECT_TRUE(accumulator == multipliers[0]);
-        }
+        if(accumulator != multipliers[0])
+            accumulator = 0;
+        EXPECT_TRUE(accumulator == multipliers[0]);
     }
 
     namespace
@@ -837,19 +836,16 @@ TEST_PACK(big_integer)
         }
     }
 
-    TEST(mul_merge_randomized)
+    TEST(mul_merge_randomized, REPEAT(number_of_iterations))
     {
-        for(unsigned itn = 0; itn != number_of_iterations; ++itn)
-        {
-            std::vector<big_integer> x;
-            for(size_t i = 0; i != number_of_multipliers; ++i)
-                x.push_back(myrand());
+        std::vector<big_integer> x;
+        for(size_t i = 0; i != number_of_multipliers; ++i)
+            x.push_back(myrand());
 
-            big_integer a = merge_all(x);
-            big_integer b = merge_all(x);
+        big_integer a = merge_all(x);
+        big_integer b = merge_all(x);
 
-            EXPECT_TRUE(a == b);
-        }
+        EXPECT_TRUE(a == b);
     }
 
 }
