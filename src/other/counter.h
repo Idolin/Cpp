@@ -21,7 +21,9 @@ struct counter
     virtual void stop() = 0; // stop/pause timer
     virtual void clear() = 0;
     virtual unsigned long long getMilliseconds() const = 0;
-    virtual unsigned long long getMicroseconds() const = 0;
+    virtual unsigned long long getMicroseconds() const;
+    virtual unsigned long long getNanoseconds() const;
+    virtual unsigned long long getPrecision() const = 0; // tick period in nanoseconds
 };
 
 struct time_counter: counter
@@ -37,6 +39,8 @@ public:
     void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
+    unsigned long long getNanoseconds() const override;
+    unsigned long long getPrecision() const override;
 };
 
 struct process_time_counter: counter
@@ -57,6 +61,7 @@ public:
     void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
+    unsigned long long getPrecision() const override;
 };
 
 struct clocks_counter: counter
@@ -71,5 +76,7 @@ public:
     void clear() override;
     unsigned long long getMilliseconds() const override;
     unsigned long long getMicroseconds() const override;
+    unsigned long long getNanoseconds() const override;
+    unsigned long long getPrecision() const override;
     unsigned long long getClocks() const;
 };
