@@ -128,14 +128,6 @@ namespace test_namespace
         \
         ~test_ ## test_name() = default; \
         \
-        bool run_next() override \
-        { \
-            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <typename TypeSeqAdapter::NextAdapter>(outer); \
-            if(next == nullptr) \
-                return true; \
-            return next->run(); \
-        } \
-        \
         void test_body() override; \
     }; \
     \
@@ -157,9 +149,19 @@ namespace test_namespace
                 return; \
             next->run(); \
         } \
+        \
+        template<typename Adapter> \
+        void run_with_adapter() \
+        { \
+            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <Adapter>(this); \
+            if(next == nullptr) \
+                return; \
+            next->run(); \
+            run_with_adapter<typename Adapter::NextAdapter>(); \
+        } \
     }; \
     \
-    testouter_ ## test_name<CALL(FREE, CALL_I(GET_FIRST, types))> *test_ ## test_name_single_class_ ## test_name = new testouter_ ## test_name<CALL(FREE, CALL_I(GET_FIRST, types))>(); \
+    testouter_ ## test_name<CALL(FREE, CALL_I(GET_FIRST, types))> test_ ## test_name_single_class_ ## test_name; \
     \
     template<typename TypeSeqAdapter> \
     void test_ ## test_name <TypeSeqAdapter>::test_body()
@@ -175,7 +177,7 @@ namespace test_namespace
         ~test_ ## test_name() = default; \
         void test_body(); \
     }; \
-    test_ ## test_name *test_ ## test_name_single_class_ ## test_name = new test_ ## test_name(); \
+    test_ ## test_name test_ ## test_name_single_class_ ## test_name; \
     \
     void test_ ## test_name::test_body()
     

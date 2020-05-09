@@ -279,10 +279,7 @@ namespace test_namespace
     {}
 
     _test_pack_class::~_test_pack_class()
-    {
-        for(auto *test_class : test_classes)
-            delete test_class;
-    }
+    {}
 
     bool _test_pack_class::test(str mask)
     {
