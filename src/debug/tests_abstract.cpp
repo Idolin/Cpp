@@ -1,8 +1,14 @@
 #include "tests_abstract.h"
 
+#include <cmath>
 #include <stdarg.h>
 
-void inline fprinttime(FILE *SOUT, unsigned long long nanoseconds, unsigned long long tick_ns_precision)
+static inline unsigned long long std_deviation(unsigned long long variance)
+{
+    return sqrt(variance) + .5;
+}
+
+void fprinttime(FILE *SOUT, unsigned long long nanoseconds, unsigned long long tick_ns_precision)
 {
     static const char* identifier[7] = {"day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"};
     static const unsigned coefficient[6] = {24, 60, 60, 1000, 1000, 1000};
@@ -53,7 +59,7 @@ void fprinttimer(FILE *SOUT, const welford<VARIANCE>& timer, unsigned long long 
         fprintf(SOUT, "/%lu = ", timer.get_count());
         fprinttime(SOUT, timer.get_mean(), tick_ns_precision / timer.get_count());
         fputs("+-", SOUT);
-        fprinttime(SOUT, timer.get_variance(), tick_ns_precision / timer.get_count());
+        fprinttime(SOUT, std_deviation(timer.get_variance()), tick_ns_precision / timer.get_count());
     }
     if(show_brackets)
         fputs("]\n", SOUT);
