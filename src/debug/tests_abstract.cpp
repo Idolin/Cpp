@@ -5,7 +5,7 @@
 
 static inline unsigned long long std_deviation(unsigned long long variance)
 {
-    return sqrt(variance) + .5;
+    return sqrtl(variance) + .5;
 }
 
 void fprinttime(FILE *SOUT, unsigned long long nanoseconds, unsigned long long tick_ns_precision)
