@@ -8,8 +8,8 @@ bool run_test(str test_pack_mask, str test_mask)
 {
     bool run_ok = true;
     unsigned run_test_packs = 0;
-    vect<test_namespace::_test_pack_class *> _test_class_packs_defined = \
-        g_static::global_static_var<vect<test_namespace::_test_pack_class *>, g_static::test_global_static_id>();
+    auto _test_class_packs_defined = \
+        g_static::global_static_var<vect<test_namespace::_test_pack_class *>, "Test"_gsh, "All test packs"_gsh>();
     vect<test_namespace::_test_pack_class *> failed_packs;
     for(unsigned i = 0; i < _test_class_packs_defined.size(); i++)
         if((test_pack_mask == _test_class_packs_defined[i]->test_pack_name) || (test_pack_mask == "*"))

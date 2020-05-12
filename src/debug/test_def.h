@@ -82,7 +82,7 @@ namespace test_namespace
     { \
         _test_pack_ ## pack_name(): test_namespace::_test_pack_class(#pack_name) \
         { \
-                g_static::global_static_var<vect<test_namespace::_test_pack_class*>, g_static::test_global_static_id>().push(this); \
+                g_static::global_static_var<vect<test_namespace::_test_pack_class*>, "Test"_gsh, "All test packs"_gsh>().push(this); \
                 auto _this_test_ptr = this; \
                 __VA_ARGS__; \
                 test_classes_main_sequence = &(this -> test_classes); \

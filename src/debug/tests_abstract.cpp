@@ -1,5 +1,7 @@
 #include "tests_abstract.h"
 
+#include "../other/singleton.hpp"
+
 #include <cmath>
 #include <stdarg.h>
 
@@ -178,9 +180,9 @@ namespace test_namespace
     void _test_class_abstract::print_level(term_color color) const
     {
         set_term_color(color, DEBUG_OUTPUT_STREAM);
-        if(first_run && show_level == g_static::global_static_var<unsigned, g_static::test_global_static_id>())
+        if(first_run && show_level == g_static::global_static_var<unsigned, "Test"_gsh, "Show level"_gsh>())
             fputc('\n', DEBUG_OUTPUT_STREAM);
-        g_static::global_static_var<unsigned, g_static::test_global_static_id>() = show_level;
+        g_static::global_static_var<unsigned, "Test"_gsh, "Show level"_gsh>() = show_level;
         if(show_level < 4)
             for(unsigned i = 0;i < show_level;i++)
                 fputc('>', DEBUG_OUTPUT_STREAM);
@@ -283,7 +285,7 @@ namespace test_namespace
 
     bool _test_pack_class::test(str mask)
     {
-        g_static::global_static_var<unsigned, g_static::test_global_static_id>() = 0;
+        g_static::global_static_var<unsigned, "Test"_gsh, "Show level"_gsh>() = 0;
         color_fprintf(term_color::BLUE, DEBUG_OUTPUT_STREAM, "Running %s pack test\n", this->test_pack_name);
         test_ok = true;
         nanoseconds_all = 0;
