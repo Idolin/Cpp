@@ -6,7 +6,6 @@
 #include "../template/displaymethods.hpp"
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
-#include "../other/singleton.hpp"
 
 #include <string>
 #include <type_traits>

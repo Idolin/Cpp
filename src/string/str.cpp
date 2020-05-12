@@ -1,6 +1,7 @@
 #include "str.h"
 
 #include "../debug/def_debug.h"
+#include "../other/singleton.hpp"
 
 namespace
 {
