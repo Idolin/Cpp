@@ -14,6 +14,15 @@ struct is_numeric
     };
 };
 
+template<typename T>
+struct is_cstr
+{
+    enum {
+        value = std::is_pointer<T>::value && 
+            std::is_same<typename std::remove_cv_t<typename std::remove_reference<typename std::remove_extent<typename std::remove_pointer<T>::type>::type>::type>, char>::value
+    };
+};
+
 template<typename T = void>
 struct is_bit_movable;
 
@@ -100,7 +109,7 @@ STRUCT_IS(dereferencable, std::is_lvalue_reference<
         decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
 
 
-STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value)
+STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
 STRUCT_IS_T(hashable, std::is_same<
         decltype(std::declval<typename std::add_lvalue_reference<

@@ -146,9 +146,19 @@ template<bool lazy=true, bool enabled=true>
 using HashableStoredConditional = typename std::conditional<enabled, HashableStored<lazy>, NoHashableStrored<lazy>>::type;
 
 template<typename T>
-typename std::enable_if<std::is_integral<T>::value || std::is_pointer<T>::value, uint64_t>::type get_hash(T x)
+constexpr typename std::enable_if<std::is_integral<T>::value || 
+    (std::is_pointer<T>::value && !is_cstr<T>::value), uint64_t>::type get_hash(T x)
 {
     return static_cast<uint64_t>(_valueMethods<T>::to_unsigned(x));
+}
+
+template<typename T>
+constexpr typename std::enable_if_t<is_cstr<T>::value, uint64_t> get_hash(T s)
+{
+    uint64_t hash = 0;
+    for(size_t i = 0;s[i];i++)
+        hash = hash * 337u + s[i];
+    return hash;
 }
 
 template<typename T>
