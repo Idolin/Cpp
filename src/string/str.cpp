@@ -367,20 +367,20 @@ unsigned char str::str_info::cannot_change() const
 void str::str_info::update_hash() const
 {
     if(is_changed())
-        set_hash(get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pwr(str::hash_mult, cell_changed));
+        set_hash(get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed));
 }
 
 void str::str_info::update_hash(unsigned long cell) const
 {
     cell_changed = cell;
-    set_hash(get_hash_value() - static_cast<uint64_t>(block[cell_changed]) * pwr(str::hash_mult, cell_changed));
+    set_hash(get_hash_value() - static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed));
     hash_changed();
 }
 
 uint64_t str::str_info::hash_recalc() const
 {
     if(cell_changed < std::numeric_limits<unsigned long>::max())
-        return get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pwr(str::hash_mult, cell_changed);
+        return get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed);
     uint64_t hash_v = 0, m = str::hash_mult;
     for(unsigned long i = 0;i < len;i++)
         hash_v += static_cast<uint64_t>(block[i]) * m, m *= str::hash_mult;
@@ -430,7 +430,7 @@ void str::str_info_cnct_char::operator+=(char c)
         size *= 2;
     }
     if(!is_changed() || cell_changed != std::numeric_limits<unsigned long>::max())
-        set_hash(get_hash_value() + static_cast<uint64_t>(c) * pwr(hash_mult, len));
+        set_hash(get_hash_value() + static_cast<uint64_t>(c) * pow(hash_mult, len));
 }
 
 str::str_info_cnct::str_info_cnct(str::str_info *lpart, str::str_info *rpart):
@@ -483,7 +483,7 @@ unsigned char str::str_info_cnct::cannot_change() const
 
 uint64_t str::str_info_cnct::hash_recalc() const
 {
-    return lpart->hash() + rpart->hash() * pwr(str::hash_mult, lpart->len);
+    return lpart->hash() + rpart->hash() * pow(str::hash_mult, lpart->len);
 }
 
 str::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)

@@ -220,7 +220,7 @@ constexpr inline T sqr(T value)
 
 template<typename T, typename PT = unsigned,
     typename = typename std::enable_if_t<std::is_integral<T>::value && std::is_unsigned<PT>::value>>
-constexpr T pwr(T value, PT power)
+constexpr T pow(T value, PT power)
 {
     T result = 1;
     T pwr_values[4] = {1, value, sqr(value)};
