@@ -19,7 +19,10 @@ struct is_cstr
 {
     enum {
         value = std::is_pointer<T>::value && 
-            std::is_same<typename std::remove_cv_t<typename std::remove_reference<typename std::remove_extent<typename std::remove_pointer<T>::type>::type>::type>, char>::value
+            (std::is_same<
+                typename std::remove_cv_t<
+                    typename std::remove_reference<typename std::remove_extent<T>::type>::type>, char>::value || 
+            std::is_same<typename std::remove_cv_t<typename std::remove_pointer<T>::type>, char>::value)
     };
 };
 
