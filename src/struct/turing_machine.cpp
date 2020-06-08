@@ -124,6 +124,7 @@ str turing_machine::tape::getById(unsigned id) const
         if(*it == id)
             return it.key();
     ASSERT(false, "tape: state with id: %u not exists", id);
+    return "";
 }
 
 void turing_machine::tape::step(std::pair<moves, unsigned> actions)
@@ -201,6 +202,7 @@ str turing_machine::finite_auto::getById(unsigned id)
         if(*it == id)
             return it.key();
     ASSERT(false, "automate: state with id: %u not exists!", id);
+    return "";
 }
 
 str turing_machine::finite_auto::getByPointer(state *s)
