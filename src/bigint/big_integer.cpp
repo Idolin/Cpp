@@ -1,22 +1,16 @@
 #include "big_integer.h"
 
-/*TODO
- R/W Lock system:
-    bool write flag(wf - signed char), process id(id)
-    Start: id=0, wf=0
-    Read:
-    Write:
-*/
+#include <limits>
 
 using std::string;
 using std::swap;
 using std::min;
 using std::max;
 
-static inline uint64_t _abs(long k)
+static inline uint64_t _abs(int64_t k)
 {
-    if(k == LONG_MIN)
-        return static_cast<uint64_t>(LONG_MAX) + 1;
+    if(k == std::numeric_limits<int64_t>::min())
+        return static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1;
     return static_cast<uint64_t>((k < 0) ? -k : k);
 }
 
@@ -131,11 +125,17 @@ void big_integer::big_integer_container::resize(unsigned int new_size)
         return;
     if((new_size > size) && (new_size < size * 2))
         new_size = size * 2;
-    _copy(number, new_size, number);
-    number = ::_resize(number, max_set + 1, new_size); //wtf it's not copmiling without ::
+    //_copy(number, new_size, number);
+    number = ::_resize(number, max_set + 1, new_size);
     if(new_size > max_set + 1)
         _fill(number + max_set + 1, new_size - max_set - 1);
     size = new_size;
+}
+
+void big_integer::big_integer_container::ensure_capacity(unsigned int capacity)
+{
+    if(capacity > size)
+        resize(capacity);
 }
 
 void big_integer::big_integer_container::swap(big_integer::big_integer_container &c)
@@ -172,7 +172,7 @@ big_integer::big_integer(unsigned number) : _number(big_integer_container())
     _number[0] = (uint32_t) number;
 }
 
-big_integer::big_integer(long number) : _number(big_integer_container(2))
+big_integer::big_integer(long long number) : _number(big_integer_container(2))
 {
     uint64_t value;
     if(number >= 0)
@@ -183,14 +183,14 @@ big_integer::big_integer(long number) : _number(big_integer_container(2))
     else
     {
         _number.set_sign(-1);
-        value = _abs(number);
+        value = _abs(static_cast<int64_t>(number));
     }
     _number[0] = (uint32_t) (value & 0xffffffff);
     _number[1] = (uint32_t) (value >> 32);
     _number.getms();
 }
 
-big_integer::big_integer(unsigned long number) : _number(big_integer_container(2))
+big_integer::big_integer(unsigned long long number) : _number(big_integer_container(2))
 {
     _number.set_sign((number > 0));
     _number[0] = (uint32_t) (number & 0xffffffff);
@@ -295,7 +295,7 @@ uint32_t &big_integer::operator[](int index)
     return _number[index];
 }
 
-const uint32_t &big_integer::operator[](int index) const
+uint32_t big_integer::operator[](int index) const
 {
     return _number[index];
 }
@@ -392,68 +392,68 @@ big_integer &big_integer::operator&=(const big_integer &b)
         return *this;
     if(b._number.get_sign() == 0)
         return (*this = 0);
-    unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
-    unsigned b_index = 0;
-    while(b._number[b_index] == 0)
-        b_index++;
-    if(b_index <= min_max_set)
+    
+    unsigned max_set = b._number.get_max_set();
+    if(_number.get_sign() > 0)
+        smin_(max_set, _number.get_max_set());
+    this->_number.ensure_capacity(max_set + 1);
+    
+    unsigned first_non_blank = 0, b_first_non_blank = 0;
+    for(;_number[first_non_blank] == 0;first_non_blank++);
+    for(;b._number[b_first_non_blank] == 0;b_first_non_blank++);
+    unsigned invert_to = max(first_non_blank, max_set);
+    
+    if(_number.get_sign() < 0)
     {
-        if(this->_number.get_sign() < 0)
+        _number[first_non_blank]--;
+        for(unsigned i = first_non_blank; i <= invert_to; i++)
+            _number[i] = ~_number[i];
+    }
+    
+     if(b_first_non_blank > first_non_blank)
+        _number.fill(first_non_blank, b_first_non_blank - first_non_blank);
+    
+    if(b._number.get_sign() < 0)
+    {
+        if(b_first_non_blank <= max_set)
         {
-            unsigned i = 0;
-            for(; i <= min_max_set; i++)
-                if(this->_number[i])
-                {
-                    this->_number[i]--;
-                    break;
-                }
-            for(; i <= min_max_set; i++)
-                this->_number[i] = ~this->_number[i];
+            _number[b_first_non_blank] &= ~(b._number[b_first_non_blank] - 1);
+            for(unsigned i = b_first_non_blank + 1; i <= max_set; i++)
+                _number[i] &= ~b._number[i];
         }
-        if(b._number.get_sign() < 0)
+    }
+    else
+    {
+        for(unsigned i = b_first_non_blank; i <= max_set; i++)
+            _number[i] &= b._number[i];
+        
+        if(_number.get_max_set() > max_set)
+            _number.fill(max_set + 1, _number.get_max_set() - max_set);
+        _number.set_max_set(max_set);
+        _number.set_sign(1);
+    }
+        
+    if(_number.get_sign() < 0)
+    {
+        smin_(first_non_blank, b_first_non_blank);
+        for(;first_non_blank <= _number.get_max_set() && _number[first_non_blank] == 0;first_non_blank++);
+        if(first_non_blank <= _number.get_max_set())
         {
-            this->_number[b_index] &= ~(b._number[b_index] - 1);
-            for(unsigned i = b_index + 1; i <= min_max_set; i++)
-                this->_number[i] &= ~b._number[i];
+            _number[first_non_blank]--;
+            for(;first_non_blank <= invert_to;first_non_blank++)
+                _number[first_non_blank] = ~_number[first_non_blank];
+            if(max_set > _number.get_max_set())
+                _number.set_max_set(max_set);
         }
         else
         {
-            for(unsigned i = b_index; i <= min_max_set; i++)
-                this->_number[i] &= b._number[i];
-            if(this->_number.get_max_set() > min_max_set)
-                this->_number.fill(min_max_set + 1, this->_number.get_max_set() - min_max_set);
+            _number.ensure_capacity(first_non_blank + 1);
+            _number[first_non_blank] = 1;
+            _number.set_max_set(first_non_blank);
         }
     }
-    this->_number.fill(0, min(min_max_set + 1, b_index));
-    if(this->_number.get_sign() < 0)
-    {
-        if(b._number.get_max_set() > min_max_set)
-        {
-            if(b._number.get_max_set() >= this->_number.get_size())
-                this->_number.resize(b._number.get_max_set() + 1);
-            this->_number.copy(min_max_set + 1, b._number.get_max_set() - min_max_set, b._number, min_max_set + 1);
-            this->_number.set_max_set(b._number.get_max_set());
-        }
-        if(b._number.get_sign() < 0)
-        {
-            this->_number.set_sign(-1);
-            if(b_index <= min_max_set)
-            {
-                unsigned i = 0;
-                for(; i <= min_max_set; i++)
-                    if(this->_number[i])
-                    {
-                        this->_number[i]--;
-                        break;
-                    }
-                for(; i <= min_max_set; i++)
-                    this->_number[i] = ~this->_number[i];
-            }
-        }
-        else
-            this->_number.set_sign(1);
-    }
-    this->_number.getms();
+    _number.getms();
+    
     return *this;
 }
 
@@ -463,92 +463,125 @@ big_integer &big_integer::operator|=(const big_integer &b)
         return (*this = b);
     if(b._number.get_sign() == 0)
         return *this;
-    unsigned min_max_set = min(this->_number.get_max_set(), b._number.get_max_set());
-    unsigned b_index = 0;
-    while(b._number[b_index] == 0)
-        b_index++;
-    if(b_index <= min_max_set)
+    
+    unsigned max_set = b._number.get_max_set();
+    if(_number.get_sign() < 0)
+        smin_(max_set, _number.get_max_set());
+    _number.ensure_capacity(max_set + 1);
+    
+    unsigned first_non_blank = 0, b_first_non_blank = 0;
+    for(;_number[first_non_blank] == 0;first_non_blank++);
+    for(;b._number[b_first_non_blank] == 0;b_first_non_blank++);
+    unsigned invert_to = max(first_non_blank, max_set);
+    
+    if(_number.get_sign() < 0)
     {
-        if(this->_number.get_sign() < 0)
-        {
-            unsigned i = 0;
-            for(; i <= min_max_set; i++)
-                if(this->_number[i])
-                {
-                    this->_number[i]--;
-                    break;
-                }
-            for(; i <= min_max_set; i++)
-                this->_number[i] = ~this->_number[i];
-        }
-        if(b._number.get_sign() < 0)
-        {
-            this->_number[b_index] |= ~(b._number[b_index] - 1);
-            for(unsigned i = b_index + 1; i <= min_max_set; i++)
-                this->_number[i] |= ~b._number[i];
-        }
-        else
-            for(unsigned i = b_index; i <= min_max_set; i++)
-                this->_number[i] |= b._number[i];
+        _number[first_non_blank]--;
+        for(unsigned i = first_non_blank; i <= invert_to; i++)
+            _number[i] = ~_number[i];
     }
-    if(this->_number.get_sign() < 0)
+    
+    if(b._number.get_sign() < 0)
     {
-        if(b._number.get_max_set() > min_max_set)
+        if(b_first_non_blank <= max_set)
         {
-            if(b._number.get_max_set() >= this->_number.get_size())
-                this->_number.resize(b._number.get_max_set() + 1);
-            this->_number.copy(min_max_set + 1, b._number.get_max_set() - min_max_set, b._number, min_max_set + 1);
-            this->_number.set_max_set(b._number.get_max_set());
+            _number[b_first_non_blank] |= ~(b._number[b_first_non_blank] - 1);
+            for(unsigned i = b_first_non_blank + 1; i <= max_set; i++)
+                _number[i] |= ~b._number[i];
         }
-        if(b._number.get_sign() < 0)
-        {
-            this->_number.set_sign(-1);
-            if(b_index <= min_max_set)
-            {
-                unsigned i = 0;
-                for(; i <= min_max_set; i++)
-                    if(this->_number[i])
-                    {
-                        this->_number[i]--;
-                        break;
-                    }
-                for(; i <= min_max_set; i++)
-                    this->_number[i] = ~this->_number[i];
-            }
-        }
-        else
-            this->_number.set_sign(1);
+        if(_number.get_max_set() > max_set)
+            _number.fill(max_set + 1, _number.get_max_set() - max_set);
+        _number.set_max_set(max_set);
+        _number.set_sign(-1);
     }
-    this->_number.getms();
+    else
+        for(unsigned i = b_first_non_blank; i <= max_set; i++)
+            _number[i] |= b._number[i];
+        
+    if(_number.get_sign() < 0)
+    {
+        smin_(first_non_blank, b_first_non_blank);
+        for(;first_non_blank <= invert_to && _number[first_non_blank] == 0;first_non_blank++);
+        if(first_non_blank <= invert_to)
+        {
+            _number[first_non_blank]--;
+            for(;first_non_blank <= invert_to;first_non_blank++)
+                _number[first_non_blank] = ~_number[first_non_blank];
+        }
+        _number.getms();
+    }
+    elif(max_set > _number.get_max_set())
+        _number.set_max_set(max_set);
+    
     return *this;
 }
 
 big_integer &big_integer::operator^=(const big_integer &b)
 {
+    
     if(b._number.get_sign() == 0)
         return *this;
     if(this->_number.get_sign() == 0)
         return (*this = b);
-    unsigned max_set = max(this->_number.get_max_set(), b._number.get_max_set());
-    if(b._number.get_max_set() > this->_number.get_size())
-        this->_resize(b._number.get_max_set());
-    if(this->_number.get_sign() < 0)
-        this->_inv(max_set);
-    big_integer c(b);
-    if(b._number.get_size() < max_set)
-        c._resize(max_set);
-    if(b._number.get_sign() < 0)
-        c._inv(max_set);
-    for(unsigned i = 0; i <= max_set; i++)
-        this->_number[i] ^= c[i];
-    if((this->_number.get_sign() ^ b._number.get_sign()) != 0)
+    
+    unsigned max_set = b._number.get_max_set();
+    if(max_set > _number.get_max_set())
     {
-        this->_inv(max_set);
-        this->_number.set_sign(-1);
+        _number.ensure_capacity(max_set + 1);
+        _number.set_max_set(max_set);
+    }
+    unsigned first_non_blank = 0, b_first_non_blank = 0;
+    for(;_number[first_non_blank] == 0;first_non_blank++);
+    for(;b._number[b_first_non_blank] == 0;b_first_non_blank++);
+    unsigned invert_to = max_set;
+    
+    if(_number.get_sign() < 0)
+    {
+        smax_(invert_to, first_non_blank);
+        _number[first_non_blank]--;
+        for(unsigned i = first_non_blank; i <= invert_to; i++)
+            _number[i] = ~_number[i];
+    }
+    
+    if(b._number.get_sign() < 0)
+    {
+        _number[b_first_non_blank] ^= ~(b._number[b_first_non_blank] - 1);
+        unsigned i = b_first_non_blank + 1;
+        for(; i <= max_set; i++)
+            _number[i] ^= ~b._number[i];
+        if(_number.get_sign() < 0)
+            for(; i <= invert_to; i++)
+                _number[i] = ~_number[i];
+        _number.set_sign();
     }
     else
-        this->_number.set_sign(1);
-    _number.getms();
+        for(unsigned i = b_first_non_blank; i <= max_set; i++)
+            _number[i] ^= b._number[i];
+        
+    if(_number.get_sign() < 0)
+    {
+        smin_(first_non_blank, b_first_non_blank);
+        for(;first_non_blank <= _number.get_max_set() && _number[first_non_blank] == 0;first_non_blank++);
+        if(first_non_blank <= _number.get_max_set())
+        {
+            _number[first_non_blank]--;
+            for(;first_non_blank <= invert_to;first_non_blank++)
+                _number[first_non_blank] = ~_number[first_non_blank];
+            if(max_set > _number.get_max_set())
+                _number.set_max_set(max_set);
+            else
+                _number.getms();
+        }
+        else
+        {
+            _number.ensure_capacity(first_non_blank + 1);
+            _number[first_non_blank] = 1;
+            _number.set_max_set(first_non_blank);
+        }
+    }
+    else
+        _number.getms();
+    
     return *this;
 }
 
@@ -794,7 +827,7 @@ big_integer &big_integer::div_big(const big_integer &b, big_integer &remainder)
         return *this;
     if(b._number.get_max_set() == 0) // b is actually < 2^32
     {
-        remainder = div_uint(b[0]);
+        remainder = static_cast<long long>(div_uint(b[0]));
         if(b._number.get_sign() < 0)
             _number.set_sign();
         return *this;
@@ -872,19 +905,19 @@ signed char big_integer::_comp(const big_integer &a, const big_integer &b) const
 void big_integer::_add(unsigned k)
 {
     _number[0] += k;
-    unsigned i = 1;
+    unsigned i = 0;
     if(_number[0] < k)
     {
-        while(i < _number.get_size())
-            if(++_number[i++])
+        while(++i < _number.get_size())
+            if(++_number[i])
                 break;
-        if(_number[i - 1] == 0)
+        if(i == _number.get_size())
         {
-            _resize(_number.get_size() + 1);
-            _number[i++] = 1;
+            _resize(_number.get_size() * 2);
+            _number[i] = 1;
         }
+        _number.set_max_set(max(_number.get_max_set(), i));
     }
-    _number.set_max_set(max(_number.get_max_set(), i - 1));
 }
 
 void big_integer::_sub(unsigned k)
@@ -971,7 +1004,7 @@ void big_integer::_inv(unsigned to_size)
     for(unsigned i = 0; i <= _number.get_max_set(); i++)
     {
         _number[i] = ~_number[i] + carry;
-        carry = (carry && _number[i] == 0);
+        carry = (carry && (_number[i] == 0)) ? 1 : 0;
     }
     if(!carry)
     {

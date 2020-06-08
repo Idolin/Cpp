@@ -2,7 +2,7 @@
 
 #include "../debug/def_debug.h"
 #include "typemethods.hpp"
-#include "struct_tags.hpp"
+#include "type_tags.hpp"
 
 #include <algorithm>
 #include <type_traits>
@@ -76,8 +76,8 @@ struct _getMMinType;
 
 template<typename T, typename T2>
 struct _getMMinType<T, T2, typename std::enable_if<
-        std::is_signed<T>::value && std::is_signed<T2>::value ||
-        std::is_unsigned<T>::value && std::is_unsigned<T2>::value>::type>
+        (std::is_signed<T>::value && std::is_signed<T2>::value) ||
+        (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
 {
     typedef typename _getMinType<T, T2>::type type;
 };
@@ -220,7 +220,7 @@ constexpr inline T sqr(T value)
 
 template<typename T, typename PT = unsigned,
     typename = typename std::enable_if_t<std::is_integral<T>::value && std::is_unsigned<PT>::value>>
-constexpr T pwr(T value, PT power)
+constexpr T pow(T value, PT power)
 {
     T result = 1;
     T pwr_values[4] = {1, value, sqr(value)};
@@ -253,7 +253,7 @@ struct once
 	operator bool()
 	{
 		bool result = now;
-		now = ~init;
+		now = !init;
 		return result;
 	}
 };

@@ -2,7 +2,29 @@
 
 #include "t_useful.hpp"
 
+#include <cstdint>
 #include <type_traits>
+
+template<typename T>
+struct is_numeric
+{
+    enum {
+        value = (std::is_integral<T>::value && !std::is_same<std::remove_cv_t<T>, bool>::value) ||
+                std::is_floating_point<T>::value
+    };
+};
+
+template<typename T>
+struct is_cstr
+{
+    enum {
+        value = std::is_pointer<T>::value && 
+            (std::is_same<
+                typename std::remove_cv_t<
+                    typename std::remove_reference<typename std::remove_extent<T>::type>::type>, char>::value || 
+            std::is_same<typename std::remove_cv_t<typename std::remove_pointer<T>::type>, char>::value)
+    };
+};
 
 template<typename T = void>
 struct is_bit_movable;
@@ -90,7 +112,7 @@ STRUCT_IS(dereferencable, std::is_lvalue_reference<
         decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
 
 
-STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value)
+STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
 STRUCT_IS_T(hashable, std::is_same<
         decltype(std::declval<typename std::add_lvalue_reference<
@@ -99,10 +121,10 @@ STRUCT_IS_T(hashable, std::is_same<
 STRUCT_IS(block_splittable, std::is_integral<T>::value || std::is_pointer<T>::value)
 
 STRUCT_IS_T(block_splittable, std::is_same<decltype(std::declval<
-             typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().size()), size_t>::value &&
+             typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().size()), std::size_t>::value &&
         is_block_splittable<decltype(std::declval<
                 typename std::add_lvalue_reference<
-                        typename std::add_const<T>::type>::type>().operator[][static_cast<size_t>(0)])>::value)
+                        typename std::add_const<T>::type>::type>().operator[][static_cast<std::size_t>(0)])>::value)
 
 STRUCT_IS(block_iterable, is_block_splittable<T>::value)
 

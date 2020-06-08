@@ -6,7 +6,6 @@
 #include "../template/displaymethods.hpp"
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
-#include "../other/singleton.hpp"
 
 #include <string>
 #include <type_traits>
@@ -100,7 +99,12 @@ protected:
 
         ~str_info_pi() override;
 
-        unsigned char cannot_change() const override; //0 - OK, 1 - only copy, 2 - can move block
+        char operator[](unsigned long) const override;
+        void copy_to_array(char *dst) const override;
+        void copy_to_array(char *dst, unsigned long from, unsigned long to) const override;
+        unsigned char cannot_change() const override;
+
+        uint64_t hash_recalc() const override;
     };
 
     mutable char *s;
@@ -252,6 +256,8 @@ public:
     bool startswith(const str&) const;
 
     bool endswith(const str&) const;
+    
+    bool contains_char(char) const;
 
     unsigned long count_char(char) const;
 
@@ -261,6 +267,8 @@ public:
 
     unsigned long rfind_char(char, unsigned long to = str::last) const;
 
+    bool contains(const str&) const;
+    
     unsigned long count(const str&) const;
 
     unsigned long count_intersect(const str&) const;
@@ -350,6 +358,8 @@ str operator*(str a, unsigned times);
 bool check_eof();
 
 str read_str();
+
+std::ostream &operator<<(std::ostream &o, const str &a);
 
 inline bool operator==(const str &a, const char* b)
 {

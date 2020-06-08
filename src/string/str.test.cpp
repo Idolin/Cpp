@@ -23,7 +23,7 @@ TEST_PACK(str)
         const str d = b;
         const char *e = d;
         const char *f = d.c_str();
-        EXPECT_STRING_EQ(e, f);
+        EXPECT_CSTRING_EQ(e, f);
         delete [] c;
         delete [] e; //convert to char* always creates new array(use c_str instead)
     }
@@ -93,6 +93,10 @@ TEST_PACK(str)
         EXPECT_EQ(a, "12");
         EXPECT_EQ(c, b);
         EXPECT_EQ(b, "3");
+        str k = "aa";
+        EXPECT_EQ(k + k, "aaaa");
+        str k2 = k + k;
+        EXPECT_CSTRING_EQ(k2.c_str(), "aaaa");
     }
 
     TEST(multiplication)
@@ -155,7 +159,7 @@ TEST_PACK(str)
 
         str a2 = "1234567890";
         a2 = a2.substr(1, 7).substr(2, 5);
-        EXPECT_STRING_EQ(a2.c_str(), "456");
+        EXPECT_CSTRING_EQ(a2.c_str(), "456");
     }
 
     TEST(not_equals)
@@ -237,7 +241,7 @@ TEST_PACK(str)
         str c;
         c += 'c';
         str u;
-        unsigned str_count = 0;
+        unsigned long str_count = 0;
         for(unsigned i = 0;i < 100000;i++)
             if(randomUC() < 5)
             {
@@ -248,7 +252,7 @@ TEST_PACK(str)
                 u += c;
         EXPECT_EQ(u.length(), str_count * 2 + 100000,
                   "Expected length of str: %lu, but length is %lu",
-                  str_count * 2 + 100000, u.length());
+                  str_count * 2lu + 100000lu, u.length());
     }
 
     TEST(last_char_is_nul)
@@ -306,25 +310,22 @@ TEST_PACK(str)
         }
     }
 
-    TEST(str_comparision_speed)
+    TEST(str_comparision_speed, REPEAT(100))
     {
-        for(unsigned i = 0;i < 100;i++)
-        {
-            str a = "1";
-            str b = "1";
-            a *= 100000;
-            b *= 100000;
-            EXPECT_EQ(a, b);
-            EXPECT_LE(b, a);
-            EXPECT_GE(b, a);
-            EXPECT_FALSE(b < a);
-            a = "0" + a;
-            EXPECT_LT(a, b);
-            EXPECT_NE(a, b);
-            b = "0" + b + "1";
-            EXPECT_LT(a, b);
-            EXPECT_NE(a, b);
-        }
+        str a = "1";
+        str b = "1";
+        a *= 100000;
+        b *= 100000;
+        EXPECT_EQ(a, b);
+        EXPECT_LE(b, a);
+        EXPECT_GE(b, a);
+        EXPECT_FALSE(b < a);
+        a = "0" + a;
+        EXPECT_LT(a, b);
+        EXPECT_NE(a, b);
+        b = "0" + b + "1";
+        EXPECT_LT(a, b);
+        EXPECT_NE(a, b);
     }
 
     TEST(find_char)
@@ -398,6 +399,18 @@ TEST_PACK(str)
                         ct++;
                 EXPECT_EQ(v, ct);
             }
+        }
+    }
+    
+    TEST(contains_char)
+    {
+        str a = "aabaa.baaz..a..y";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_TRUE(a.contains_char('a'));
+            EXPECT_TRUE(a.contains_char('.'));
+            EXPECT_TRUE(a.contains_char('y'));
+            EXPECT_FALSE(a.contains_char('x'));
         }
     }
 
@@ -605,6 +618,48 @@ TEST_PACK(str)
             EXPECT_EQ(a.count_intersect(e), 1);
             EXPECT_EQ(a.count_intersect(f), 3);
             EXPECT_EQ(a.count_intersect(b + f), 0);
+
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+    
+    TEST(contains)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_TRUE(a.contains(b));
+            EXPECT_TRUE(a.contains(b * 2));
+            EXPECT_FALSE(a.contains(b * 3));
+            
+            EXPECT_TRUE(a.contains(c));
+            EXPECT_FALSE(a.contains(c * 2));
+            
+            EXPECT_TRUE(a.contains(d));
+            EXPECT_TRUE(a.contains(d * 3));
+            
+            EXPECT_TRUE(a.contains(d * 6));
+            EXPECT_FALSE(a.contains(d * 7));
+            
+            EXPECT_TRUE(a.contains(e));
+            EXPECT_FALSE(a.contains(e + e));
+            
+            EXPECT_TRUE(a.contains(f));
+            EXPECT_FALSE(a.contains(f + f));
 
             if(random8() == 0)
                 b[0] = b.at(0);

@@ -5,7 +5,7 @@
 #include "valuemethods.hpp"
 #include "../other/defdef.h"
 #include "../debug/def_debug.h"
-#include "struct_tags.hpp"
+#include "type_tags.hpp"
 
 #include <cstring>
 #include <type_traits>

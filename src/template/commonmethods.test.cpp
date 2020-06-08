@@ -133,15 +133,15 @@ TEST_PACK(commonmethods)
         signed char ix = 1;
         for(unsigned i = 0;i < 1000;i++)
         {
-            EXPECT_EQ(pwr(0, i), i == 0 ? 1 : 0);
-            EXPECT_EQ(pwr(1, i), 1);
-            EXPECT_EQ(pwr<int>(2, i), ii);
-            EXPECT_EQ(pwr<int>(3, i), iii);
-            EXPECT_EQ(pwr<unsigned>(5, i), v);
-            EXPECT_EQ(pwr<short>(100, i), l);
-            EXPECT_EQ(pwr<unsigned char>(3, i), iiv);
-            EXPECT_EQ(pwr<long long>(7, i), vii);
-            EXPECT_EQ(pwr<signed char>(9, i), ix);
+            EXPECT_EQ(pow(0, i), i == 0 ? 1 : 0);
+            EXPECT_EQ(pow(1, i), 1);
+            EXPECT_EQ(pow<int>(2, i), ii);
+            EXPECT_EQ(pow<int>(3, i), iii);
+            EXPECT_EQ(pow<unsigned>(5, i), v);
+            EXPECT_EQ(pow<short>(100, i), l);
+            EXPECT_EQ(pow<unsigned char>(3, i), iiv);
+            EXPECT_EQ(pow<long long>(7, i), vii);
+            EXPECT_EQ(pow<signed char>(9, i), ix);
             ii *= 2, iii *= 3, v *= 5, l *= 100, iiv *= 3, vii *= 7, ix *= 9;
         }
     }

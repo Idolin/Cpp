@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "../debug/def_debug.h"
-#include "../template/struct_tags.hpp"
+#include "../template/type_tags.hpp"
 #include "../template/typemethods.hpp"
 
 namespace

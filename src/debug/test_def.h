@@ -4,43 +4,88 @@
 #include "../other/singleton.hpp"
 #include "tests_abstract.h"
 #include "../other/defdef.h"
+#include "def_debug.h"
+#include "../string/str.h"
+#include "../template/t_useful.hpp"
 
+#include <cmath>
 #include <exception>
+#include <iterator>
 
 //TODO
 /*
  * Nested tests
- * Time limit, memory limit, testing n times
- * Expected exception test
- * Summary statistics(How many 0-level test failed/succeeded, memory peak, which tests failed)
+ * Time limit, memory limit
+ * Summary statistics(memory peak, which tests failed)
  * Regular expression for test chooser
 */
 
-static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_sequence;
+static vect<test_namespace::_test_class_abstract *> *test_classes_main_sequence;
+
+namespace test_namespace
+{
+    struct comma_split_iterator: public std::iterator<std::input_iterator_tag, str>
+    {
+        private:
+            const char *s;
+            mutable unsigned next;
+
+        public:
+            comma_split_iterator(const char *s);
+
+            comma_split_iterator(const comma_split_iterator& otr);
+
+            comma_split_iterator(comma_split_iterator&& otr);
+
+            comma_split_iterator& operator=(const comma_split_iterator& otr);
+
+            comma_split_iterator& operator=(comma_split_iterator&& otr);
+
+            bool operator==(const comma_split_iterator& otr) const;
+            
+            bool operator!=(const comma_split_iterator& otr) const;
+
+            comma_split_iterator& operator++();
+
+            comma_split_iterator operator++(int);
+
+            str operator*() const;
+            
+            operator bool() const;
+            
+        private:
+            void get_next() const;
+    };
+}
 
 #define TESTS_ENABLED
 
-#define EXCEPTION_EXPECTED this -> exception_expected = true;
-#define STOP_AFTER_ERROR(n) this -> errors_to_stop = n;
-#define REPEAT(n) this -> test_repeat_amount = n;
+#define EXCEPTION_EXPECTED _this_test_ptr -> exception_expected = true;
+#define STOP_AFTER_ERROR(n) _this_test_ptr -> errors_to_stop = n;
+#define REPEAT(n) _this_test_ptr -> test_repeat_amount = n;
+#define TEST_INFO_STR(s) _this_test_ptr -> test_info_str = s;
+
+#define GET_TEST_TDEF(i, t_name, ...) \
+    typedef typename TSeq::template type_n<i>::type t_name;
+#define SKIP2_1(a, b, ...) a, ## __VA_ARGS__
+#define SKIP_2_1_INC_1(i, a, ...) NEXT(i), a, ## __VA_ARGS__
+#define SKIP_3_1_INC_1(i, a, b, ...) NEXT(i), a, ## __VA_ARGS__
 
 #ifdef TESTS_ENABLED
 
-#ifndef DEBUG
-    #define DEBUG
-    #ifndef DEBUG_OUTPUT_STREAM
-        #define DEBUG_OUTPUT_STREAM stderr
-    #endif // DEBUG_OUTPUT_STREAM
-#endif
+#define TEST_COMPOSE_TYPE_GET(...) __VA_ARGS__
+    
+#define LAST_TEST_COMPOSE_TYPE_GET(...) 
 
 #define TEST_PACK(pack_name, ...) \
-    struct _test_pack_ ## pack_name: _test_pack_class_abstract \
+    struct _test_pack_ ## pack_name: test_namespace::_test_pack_class \
     { \
-        _test_pack_ ## pack_name(): _test_pack_class_abstract((char*)#pack_name) \
+        _test_pack_ ## pack_name(): test_namespace::_test_pack_class(#pack_name) \
         { \
-                g_static::global_static_var<vect<_test_pack_class_abstract*>, g_static::test_global_static_id>().push(this); \
+                g_static::global_static_var<vect<test_namespace::_test_pack_class*>, "Test"_gsh, "All test packs"_gsh>().push(this); \
+                auto _this_test_ptr = this; \
                 __VA_ARGS__; \
-                _test_classes_main_sequence = &(this -> test_classes); \
+                test_classes_main_sequence = &(this -> test_classes); \
         } \
         ~_test_pack_ ## pack_name() = default; \
     }; \
@@ -49,12 +94,84 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     \
     namespace test_namespace_ ## pack_name
 
-#define TEST(test_name, ...) \
-    struct test_ ## test_name: _test_abstract_class_::_test_class_abstract \
+#define TEST_WITH_TYPES(test_name, types, ...) \
+    \
+    template<typename TypeSeqAdapter> \
+    struct test_ ## test_name; \
+    \
+    template<typename TypeSeqAdapter> \
+    test_namespace::_test_class_abstract* _get_next_test_ ## test_name(test_namespace::_test_class_abstract* outer) \
     { \
-        test_ ## test_name(): _test_class_abstract((char*)#test_name) \
+        return new test_ ## test_name <TypeSeqAdapter>(outer); \
+    } \
+    \
+    template<> \
+    test_namespace::_test_class_abstract* _get_next_test_ ## test_name<void>(test_namespace::_test_class_abstract* outer) \
+    { \
+        return nullptr; \
+    } \
+    \
+    template<typename TypeSeqAdapter> \
+    struct test_ ## test_name: test_namespace::_test_class_abstract \
+    { \
+        typedef typename TypeSeqAdapter::TypeSeq TSeq; \
+        MULT_ARG_R_N(CALL_I(GET_ARGS_COUNT, types), TEST_COMPOSE_TYPE_GET, GET_TEST_TDEF, SKIP_2_1_INC_1, 0, CALL_I(SKIP_1 , types)) \
+        \
+        test_namespace::_test_class_abstract* outer; \
+        \
+        test_ ## test_name(test_namespace::_test_class_abstract* outer=nullptr): \
+            _test_class_abstract(#test_name, 2), outer(outer) \
         { \
-            _test_classes_main_sequence -> push(this); \
+            outer->subtests.push(this); \
+            __VA_ARGS__; \
+        } \
+        \
+        ~test_ ## test_name() = default; \
+        \
+        void test_body() override; \
+    }; \
+    \
+    template<typename TypeSeqAdapter> \
+    struct testouter_ ## test_name: test_namespace::_test_class_abstract \
+    { \
+        testouter_ ## test_name(): _test_class_abstract(#test_name) \
+        { \
+            test_classes_main_sequence -> push(this); \
+            __VA_ARGS__; \
+        } \
+        \
+        ~testouter_ ## test_name() = default; \
+        \
+        void test_body() override \
+        { \
+            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <TypeSeqAdapter>(this); \
+            if(next == nullptr) \
+                return; \
+            next->run(); \
+        } \
+        \
+        template<typename Adapter> \
+        void run_with_adapter() \
+        { \
+            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <Adapter>(this); \
+            if(next == nullptr) \
+                return; \
+            next->run(); \
+            run_with_adapter<typename Adapter::NextAdapter>(); \
+        } \
+    }; \
+    \
+    testouter_ ## test_name<CALL(FREE, CALL_I(GET_FIRST, types))> test_ ## test_name_single_class_ ## test_name; \
+    \
+    template<typename TypeSeqAdapter> \
+    void test_ ## test_name <TypeSeqAdapter>::test_body()
+
+#define TEST(test_name, ...) \
+    struct test_ ## test_name: test_namespace::_test_class_abstract \
+    { \
+        test_ ## test_name(): _test_class_abstract(#test_name) \
+        { \
+            test_classes_main_sequence -> push(this); \
             __VA_ARGS__; \
         } \
         ~test_ ## test_name() = default; \
@@ -63,27 +180,41 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
     test_ ## test_name test_ ## test_name_single_class_ ## test_name; \
     \
     void test_ ## test_name::test_body()
-
-#else
-
-#define TEST_PACK(pack_name, ...) namespace test_namespace_ ## pack_name
-
-#define TEST(test_name, ...) \
-    struct test_ ## test_name: _test_abstract_class_::_test_class_abstract \
+    
+#define SUBTEST_CSTR_NAME(subtest_name, ...) \
+    for(test_namespace::_subtest_class *_subtest_ = \
+            new test_namespace::_subtest_class(_this_test_ptr, subtest_name, \
+                [&](test_namespace::_test_class_abstract *_this_test_ptr) \
+                    { REPEAT(_this_test_ptr->test_repeat_amount);  __VA_ARGS__} \
+                );_subtest_->first_run;) \
+        for(unsigned char _test_subtest_init = 0; _test_subtest_init < 2; _test_subtest_init++) \
+            if(_test_subtest_init) \
+                _subtest_ -> run(); \
+            else \
+                _subtest_ -> _test_body = [&](test_namespace::_test_class_abstract *_this_test_ptr)
+                
+#define SUBTEST(subtest_name, ...) SUBTEST_CSTR_NAME(#subtest_name, ## __VA_ARGS__)
+    
+#define TIMER_START \
     { \
-        test_ ## test_name(): _test_class_abstract((char*)#test_name) \
-        { \
-            _test_classes_main_sequence -> push(this); \
-            __VA_ARGS__; \
-        } \
-        ~test_ ## test_name() = default; \
-        void test_body(); \
-    }; \
-    \
-    void test_ ## test_name::test_body()
+        _this_test_ptr->counter_running = 2; \
+        _this_test_ptr->counter.start(); \
+    }
+#define TIMER_CONTINUE \
+    { \
+        _this_test_ptr->counter_running = 2; \
+        _this_test_ptr->counter.cont(); \
+    }
+#define TIMER_STOP \
+    { \
+        _this_test_ptr->counter_running = 0; \
+        _this_test_ptr->counter.stop(); \
+    }
 
-#endif // TESTS_ENABLED
-
+#define WITH_VALUES(_value_type_, _value_name_, ...) \
+    for(test_namespace::comma_split_iterator _test_iterate_value = test_namespace::comma_split_iterator(QUOTE(__VA_ARGS__)); _test_iterate_value;) \
+        for(_value_type_ _value_name_ : std::initializer_list<_value_type_>{  __VA_ARGS__ }) \
+            SUBTEST_CSTR_NAME(_this_test_ptr->test_name, TEST_INFO_STR(str("with " #_value_type_ " " #_value_name_ " = ") + *_test_iterate_value++))
 
 #define _EXPECT_TRUE(a, ...) \
     { \
@@ -91,56 +222,20 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         { \
             if(!(a)) \
             { \
-                if(++this -> errors_occured <= this -> max_error_amount_show) \
-                { \
-                    set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                    DEBUGLVLMSG_N(5, "> "); \
-                    DEBUGLVLMSG_N(5, ## __VA_ARGS__); \
-                    DEBUGLVLMSG(5, " at line %d", __LINE__); \
-                    this -> print_test_with(term_color::ORANGE); \
-                    fputc('\n', DEBUG_OUTPUT_STREAM); \
-                    if(this -> errors_occured == this -> max_error_amount_show) \
-                        DEBUGLVLMSG(4, "> Max amount of errors to show (limit %u)" \
-                                       "\nNo errors will be shown further", \
-                                        this -> max_error_amount_show); \
-                } \
-                this -> test_ok = false; \
-                if(this -> errors_occured == this -> errors_to_stop) \
-                { \
-                    set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                    DEBUGLVLMSG(4, "> Failed test limit reached(%d)!", this -> errors_to_stop); \
-                    set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
-                    DEBUGLVLMSG(4, "> Stopping test execution"); \
-                    return; \
-                } \
+               if(! _this_test_ptr -> error(__LINE__, ## __VA_ARGS__)) \
+                   return; \
             } \
         } \
         catch(...) \
         { \
-            this -> test_ok = false; \
-            if(++this -> errors_occured <= this -> max_error_amount_show) \
-            { \
-                set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                this -> print_level(); \
-                fprintf(DEBUG_OUTPUT_STREAM, "> "); \
-                fprintf(DEBUG_OUTPUT_STREAM, ## __VA_ARGS__); \
-                fprintf(DEBUG_OUTPUT_STREAM, " at line %d\n", __LINE__); \
-                this -> print_test_with(term_color::ORANGE); \
-                fputc('\n', DEBUG_OUTPUT_STREAM); \
-            } \
-            this -> test_ok = false; \
-            if(this -> errors_occured == this -> errors_to_stop) \
-            { \
-                set_term_color(term_color::ORANGE, DEBUG_OUTPUT_STREAM); \
-                this -> print_level(); \
-                fprintf(DEBUG_OUTPUT_STREAM, "> Failed test limit reached(%d)!\n", this -> errors_to_stop); \
-                fprintf(DEBUG_OUTPUT_STREAM, "> Stopping test execution\n"); \
-                set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM); \
+            if(! _this_test_ptr -> error(__LINE__, ## __VA_ARGS__)) \
                 return; \
-            } \
             throw; \
         } \
     }
+            
+#endif // TESTS_ENABLED
+
 #define EXPECT_TRUE(a, ...) _EXPECT_TRUE(a, GET_ARG_DEF_II("Check(" #a ") failed", ## __VA_ARGS__))
 #define EXPECT_FALSE(a, ...) EXPECT_TRUE(!(a), GET_ARG_DEF("Check(!(" #a ")) failed", ## __VA_ARGS__))
 #define EXPECT_LT(a, b, ...) EXPECT_TRUE((a) < (b), GET_ARG_DEF("Check((" #a ") < (" #b ")) failed", ## __VA_ARGS__))
@@ -149,12 +244,24 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
 #define EXPECT_GE(a, b, ...) EXPECT_TRUE((a) >= (b), GET_ARG_DEF("Check((" #a ") >= (" #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_GT(a, b, ...) EXPECT_TRUE((a) > (b), GET_ARG_DEF("Check((" #a ") > (" #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF("Check((" #a ") != (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_NEAR(a, b, d, ...) EXPECT_TRUE((((a) - (b)) < (d)) && (((b) - (a)) < (d)), GET_ARG_DEF_I("Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__))
-#define EXPECT_IN_RANGE(a, l, r, ...) EXPECT_TRUE(((a) >= (l)) && ((a) <= (r)), GET_ARG_DEF("Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__))
-#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<typeof(a)>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<float>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, std::numeric_limits<double>::epsilon(), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_STRING_EQ(a, b, ...) \
+#define EXPECT_NEAR(a, b, d, ...) \
+    { \
+        const auto _debug_var_a = (a); \
+        const auto _debug_var_b = (b); \
+        const auto _debug_var_d = (d); \
+        EXPECT_TRUE(((_debug_var_a - _debug_var_b) < _debug_var_d) && ((_debug_var_b - _debug_var_a) < _debug_var_d), GET_ARG_DEF_I("Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_IN_RANGE(a, l, r, ...) \
+    { \
+        const auto _debug_var_a = (a); \
+        const auto _debug_var_l = (l); \
+        const auto _debug_var_r = (r); \
+        EXPECT_TRUE((_debug_var_a >= _debug_var_l) && (_debug_var_a <= _debug_var_r), GET_ARG_DEF("Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__)); \
+    }
+#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<typeof(a)>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<float>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<double>::epsilon()), GET_ARG_DEF("Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_CSTRING_EQ(a, b, ...) \
     { \
         unsigned long i = 0; \
         while(a[i] == b[i]) \
@@ -164,10 +271,9 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
                 i++; \
         EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF("Check strings((" #a ") == (" #b ")) failed", ## __VA_ARGS__)); \
     }
-#define _LAST_COMPOSE_EQ(msg, a, b) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")")
+#define LAST_COMPOSE_EQ(msg, a, b) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")")
 #define COMPOSE_EQ(msg, a, b, ...) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")"); __VA_ARGS__
-#define GET_123(msg, a, b, ...) msg, a, b
-#define SKIP2_1(a, b, ...) a, ## __VA_ARGS__
+
 #define EXPECT_EQ_ALL(a, ...) \
     { \
         MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ, GET_123, SKIP2_1, "Check(equals all) failed", a, ## __VA_ARGS__); \
@@ -185,9 +291,8 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         else \
             EXPECT_EQ_RA(a, b, len, GET_ARG_DEF("Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
     }
-#define _LAST_COMPOSE_EQ_I(a, i, b) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")")
-#define COMPOSE_EQ_I(a, i, b, ...) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")"); __VA_ARGS__
-#define SKIP_3_1_INC_2(a, i, b, ...) a, NEXT(i), ## __VA_ARGS__
+#define LAST_COMPOSE_EQ_I(i, a, b) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")")
+#define COMPOSE_EQ_I(i, a, b, ...) _EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")"); __VA_ARGS__
 #define EXPECT_EQ_RA_VALS(a, len, ...) \
     { \
         if((len) != GET_ARGS_COUNT(__VA_ARGS__)) \
@@ -196,65 +301,32 @@ static vect<_test_abstract_class_::_test_class_abstract *> *_test_classes_main_s
         } \
         else \
         { \
-            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_123, SKIP_3_1_INC_2, a, 0, ## __VA_ARGS__); \
+            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_123, SKIP_3_1_INC_1, 0, a, ## __VA_ARGS__); \
         } \
     }
 #define EXPECT_EXCEPTION(a, exception, ...) \
     { \
-        this -> test_ok = false; \
+        bool _test_exception_check = false; \
         try \
         { \
             a; \
         } \
         catch(const exception&) \
         { \
-            this -> test_ok = true; \
+            _test_exception_check = true; \
         } \
-        EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception) failed", ## __VA_ARGS__)); \
+        EXPECT_TRUE(_test_exception_check, GET_ARG_DEF("Check(exception) failed", ## __VA_ARGS__)); \
     }
 #define EXPECT_EXCEPTION_ANY(a, ...) \
     { \
-        this -> test_ok = false; \
+        bool _test_exception_check = false; \
         try \
         { \
             a; \
         } \
         catch(...) \
         { \
-            this -> test_ok = true; \
+            _test_exception_check = true; \
         } \
-        EXPECT_TRUE(this -> test_ok, GET_ARG_DEF("Check(exception_any) failed", ## __VA_ARGS__)); \
+        EXPECT_TRUE(_test_exception_check, GET_ARG_DEF("Check(exception_any) failed", ## __VA_ARGS__)); \
     }
-
-#define COMPOSE_TEST(B, A, X,  ...) \
-{ \
-    process_time_counter inner; \
-    this -> test_with.push(#B " " QUOTE_F(X)); \
-    inner.start(); \
-    { B X A } \
-    inner.stop(); \
-    this -> print_level(term_color::CYAN); \
-    color_fputs(term_color::CYAN, "> Test ", DEBUG_OUTPUT_STREAM); \
-    this -> print_test_with(term_color::CYAN); \
-    fputc(' ', DEBUG_OUTPUT_STREAM); \
-    fprinttime(DEBUG_OUTPUT_STREAM, inner.getMilliseconds()); \
-    this -> test_with.pop(); \
-} __VA_ARGS__
-
-#define _LAST_COMPOSE_TEST(...) COMPOSE_TEST(__VA_ARGS__)
-
-#define WITH_ARG_DEF(decl, value) \
-    _test_abstract_class_::_test_with_wrapper wrapper_ ## __COUNTER__ ## _ ## __LINE__(this, #decl " = " #value)
-
-// FOR_CLASS(var_name, list to iterate, { body })
-// (example: FOR_CLASS(x, 1, foo(3), Class(), { _tshow(x); })
-#define FOR_CLASS(class_name, ...) \
-{ \
-    FOR_EACH_ARG_COMPOSE(COMPOSE_TEST, auto class_name, ## __VA_ARGS__) \
-}
-
-// using cycle for to work with brackets
-#define SUB_TEST(subtest_name) \
-for(bool saved = new_subtest(#subtest_name), _si = false; \
-    _si == false; \
-    _si = this -> check_subtest(saved))

@@ -56,6 +56,7 @@ private:
         */
         void clear();
         void resize(unsigned int new_size);
+        void ensure_capacity(unsigned int capacity);
         void swap(big_integer_container &c);
     };
     big_integer_container _number;
@@ -65,8 +66,8 @@ public:
     big_integer();
     big_integer(int number);
     big_integer(unsigned number);
-    big_integer(long number);
-    big_integer(unsigned long number);
+    big_integer(long long number);
+    big_integer(unsigned long long number);
     big_integer(const big_integer &b);
 
     big_integer &operator=(const big_integer &b);
@@ -77,7 +78,7 @@ public:
 private:
     uint32_t &operator[](int index);
 public:
-    const uint32_t &operator[](int index) const;
+    uint32_t operator[](int index) const;
     bool operator==(const big_integer &b) const;
     bool operator!=(const big_integer &b) const;
     bool operator<(const big_integer &b) const;

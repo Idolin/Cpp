@@ -1,9 +1,10 @@
-#include "other/defdef.h"
-#include "template/arraymethods.hpp"
-#include "string/str.h"
-#include "container/vector.hpp"
-#include "other/term.h"
-#include "debug/tests_run.h"
+#include "../other/defdef.h"
+#include "../template/arraymethods.hpp"
+#include "../string/str.h"
+#include "../container/vector.hpp"
+#include "../other/term.h"
+#include "../debug/tests_run.h"
+
 #include <unistd.h>
 #include <wait.h>
 
@@ -168,10 +169,10 @@ str get_command_path(str& command)
 
 void run_command(str& command_path, vect<str>& arguments)
 {
-    char **args = new char*[arguments.maxs + 1];
+    char **args = new char*[arguments.size() + 1];
     args[0] = arguments[0];
-    args[arguments.maxs] = NULL; // NOLINT
-    for(unsigned i = 1;i < arguments.maxs;i++)
+    args[arguments.size()] = nullptr;
+    for(unsigned i = 1;i < arguments.size();i++)
         args[i] = arguments[i];
 
     int status;
@@ -210,7 +211,7 @@ int shell_main(int argc, char **argv)
         print_prompt();
         str line = readline();
         vect<str> command = parse_command(line);
-        if(command.maxs == 0)
+        if(command.size() == 0)
             continue;
         if(command[0] == "exit")
             break;

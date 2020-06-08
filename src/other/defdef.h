@@ -4,7 +4,7 @@
 #define smin_(a, b) (a = ((a < b) ? (a) : (b)))
 #define smax_(a, b) (a = ((a < b) ? (b) : (a)))
 
-#define UNUSED(x) (void)x  //to avoid removing variable by compiler
+#define UNUSED(x) (void)x  // to avoid removing variable by compiler
 
 #define TAKE53(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, \
                  _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, \
@@ -20,31 +20,32 @@
 #define EMPTY(...)
 
 #define CE_(...) , ## __VA_ARGS__
-#define CE(...) CE_(__VA_ARGS__) //put comma before non-empty list of arguments
-#define CALL(f, arg) f arg //call another macro function where arg is (args...)
+#define CE(...) CE_(__VA_ARGS__) // put comma before non-empty list of arguments
+#define CALL(f, arg) f arg // call another macro function where arg is (args...)
 
 #define MS_(...) __VA_ARGS__
-#define MS(...) MS_(__VA_ARGS__) //another SELF macros
+#define MS(...) MS_(__VA_ARGS__) // another SELF macros
 
-//returns 0 on zero amount of arguments and 1 otherwise
+// returns 0 on zero amount of arguments and 1 otherwise
 #define GET_ARGS_COUNT_2(...) SELF(TAKE53 SELF() (1, ## __VA_ARGS__, \
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0))
 
 #define MC_(a, b) a ## b
-#define MC(a, b) MC_(a, b) //another CONCAT macros
+#define MC(a, b) MC_(a, b) // another CONCAT macros
 
-#define MSS(...) __VA_ARGS__  //just another SELF macros
+#define MSS(...) __VA_ARGS__  // just another SELF macros
 
 #define CEE_0 MS
 #define CEE_1 CE
-//returns CE on zero amount of arguments or MS otherwise
+
+// returns CE on zero amount of arguments or MS otherwise
 #define CEE(...) MSS(__VA_ARGS__)MC(CEE_, GET_ARGS_COUNT_2(__VA_ARGS__))
 
-//CEE shouldn't influence on macro expansion except for the extra space after commas
+// CEE shouldn't influence on macro expansion except for the extra space after commas
 #define MULT_ARG_R_0(C, G, N, ...)
-#define MULT_ARG_R_1(C, G, N, ...) CALL(_LAST_ ## C, (__VA_ARGS__))
+#define MULT_ARG_R_1(C, G, N, ...) CALL(LAST_ ## C, (__VA_ARGS__))
 #define MULT_ARG_R_2(C, G, N, ...) \
     CALL(C,(CEE(G(__VA_ARGS__))(MULT_ARG_R_1(C, G, N, N(__VA_ARGS__)))))
 #define MULT_ARG_R_3(C, G, N, ...) \
@@ -150,38 +151,40 @@
 #define MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ...) \
     CONCAT(MULT_ARG_R_, N)(compose, get_current, get_arg_next, ## __VA_ARGS__)
 
-//recursive(50 levels!) macro to expand
-//result = compose(get_current(args...), compose(get_current(get_arg_next(args...)),
-//  compose(...))), where last compose is: _LAST_ ## compose(args...)
+// recursive(50 levels!) macro to expand
+// result = compose(get_current(args...), compose(get_current(get_arg_next(args...)),
+//  compose(...))), where last compose is: LAST_ ## compose(args...)
+// NOTE: don't start compose name with underscore as names with double underscore is reserved
 #define MULT_ARG_R_N(N, compose, get_current, get_arg_next, ...) \
     MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ## __VA_ARGS__)
 
 #define MULT_ARG_R_C(compose, get_current, get_arg_next, ...) \
     MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), compose, get_current, get_arg_next, ## __VA_ARGS__)
 
-#define _LAST_SELF(...) __VA_ARGS__
+#define LAST_SELF(...) __VA_ARGS__
 
 //multiply given argument list N times
 #define MULT_ARG(N, ...) \
     CONCAT(MULT_ARG_R_, N)(SELF, SELF, SELF, ## __VA_ARGS__)
 
-#define _LAST_LSKIP1(a, ...) a
+#define LAST_LSKIP_1(a, ...) a
 
-#define LSKIP1(a, ...) __VA_ARGS__
+#define LSKIP_1(a, ...) __VA_ARGS__
+
+#define SKIP_1(B, ...) __VA_ARGS__
+    
+#define LAST_SKIP_1(...) SKIP_1(__VA_ARGS__)
 
 //returns Nth argument from given argument list
 #define GET_ARG_N(N, ...) \
-    CONCAT(MULT_ARG_R_, N)(LSKIP1, GET_FIRST, SKIP1, ## __VA_ARGS__)
+    CONCAT(MULT_ARG_R_, N)(LSKIP_1, GET_FIRST, SKIP_1, ## __VA_ARGS__)
 
-#define SKIP1(B, ...) __VA_ARGS__
-#define _LAST_SKIP1(...) SKIP1(__VA_ARGS__)
-
-#define _LAST_LSELF(...)
+#define LAST_LSELF(...)
 #define LSELF(...) __VA_ARGS__
 
 //returns arguments without last
 #define EXCLUDE_LAST(...) \
-    MULT_ARG_R_C(LSELF, GET_FIRST, SKIP1, ## __VA_ARGS__)
+    MULT_ARG_R_C(LSELF, GET_FIRST, SKIP_1, ## __VA_ARGS__)
 
 #define _QUOTE(...) # __VA_ARGS__
 #define QUOTE(...) _QUOTE(__VA_ARGS__) //returns quoted string from argument list
@@ -230,21 +233,23 @@
 #define FREE_0(X) SELF X
 #define __FCONCAT(E, ...) E __VA_ARGS__
 #define _FCONCAT(...) __FCONCAT(EMPTY, ## __VA_ARGS__)
-#define CALL_I(f, arg) f arg //another CALL
+#define _CALL(f, arg) f arg //another CALL
 //if argument is in braces than removes outer braces, otherwise returns arguments intact
-#define FREE(...) CONCAT(FREE_, CALL_I(GET_ARGS_COUNT_2, (_FCONCAT(__VA_ARGS__))))(__VA_ARGS__)
+#define FREE(...) CONCAT(FREE_, _CALL(GET_ARGS_COUNT_2, (_FCONCAT(__VA_ARGS__))))(__VA_ARGS__)
 
 #define QUOTE_F(...) QUOTE(FREE(__VA_ARGS__)) //QUOTE(FREE(args...))
 
-#define _LAST_COMPOSE_FOR_EACH(B, A, X) { B X FREE(A) }
+#define CALL_I(f, arg) f arg
+    
+#define LAST_COMPOSE_FOR_EACH(B, A, X) { B X FREE(A) }
 #define COMPOSE_FOR_EACH(B, A, X, ...) { B X FREE(A) } __VA_ARGS__
 
-#define GET_3FIRST(a, b, c, ...) a, b, c
+#define GET_123(a, b, c, ...) a, b, c
 #define SKIP3_1(a, b, skip, ...) a, b, ## __VA_ARGS__
 
 #define FOR_EACH_(compose, before, after, ...) \
     { \
-        MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), compose, GET_3FIRST, SKIP3_1, before, after, ## __VA_ARGS__) \
+        MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), compose, GET_123, SKIP3_1, before, after, ## __VA_ARGS__) \
     }
 
 //returns MULT_ARG_R_N sequence compose(before, after, arg1, compose(...))
@@ -264,22 +269,22 @@
     FOR_EACH(compose, var_decl =, \
     ; GET_LAST(__VA_ARGS__), EXCLUDE_LAST(__VA_ARGS__))
 
-#define _LAST_REV_COMPOSE(a) a
+#define LAST_REV_COMPOSE(a) a
 #define REV_COMPOSE(a, ...) __VA_ARGS__, a
 
 //returns arguments list in reversed order
 #define REVERSE_(...) \
-    MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), REV_COMPOSE, GET_FIRST, SKIP1, ## __VA_ARGS__)
+    MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), REV_COMPOSE, GET_FIRST, SKIP_1, ## __VA_ARGS__)
 #define REVERSE(...) REVERSE_(__VA_ARGS__)
 
-#define _LAST_COMPOSE_SEQUENCE(init, operation) (init)
+#define LAST_COMPOSE_SEQUENCE(init, operation) (init)
 #define COMPOSE_SEQUENCE(init, operation, sequence, ...) (sequence operation), sequence, ## __VA_ARGS__
 
 //returns sequence S_n where s_i = i times applied operation on init, 0 <= i < length
 #define SEQUENCE(init, operation, length) \
     REVERSE(MULT_ARG_R_N(length, COMPOSE_SEQUENCE, SELF, SELF, init, operation))
 
-#define _LAST_POW_10() 1
+#define LAST_POW_10() 1
 #define POW_10(a, ...) a ## 0, a, ## __VA_ARGS__
 
 //returns sequence of T_n where t_i = 10^i, 0 <= i < length

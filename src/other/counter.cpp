@@ -1,5 +1,15 @@
 #include "counter.h"
 
+unsigned long long counter::getMicroseconds() const
+{
+    return getMilliseconds() * 1000;
+}
+
+unsigned long long counter::getNanoseconds() const
+{
+    return getMicroseconds() * 1000;
+}
+
 time_counter::time_counter() = default;
 
 void time_counter::start()
@@ -16,7 +26,7 @@ void time_counter::cont()
 void time_counter::stop()
 {
     saved += static_cast<unsigned long long>(
-            std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
                     std::chrono::steady_clock::now() - time).count());
 }
 
@@ -27,12 +37,22 @@ void time_counter::clear()
 
 unsigned long long time_counter::getMilliseconds() const
 {
-    return saved / 1000;
+    return (saved + 500000) / 1000000;
 }
 
 unsigned long long time_counter::getMicroseconds() const
 {
+    return (saved + 500) / 1000;
+}
+
+unsigned long long time_counter::getNanoseconds() const
+{
     return saved;
+}
+
+unsigned long long time_counter::getPrecision() const
+{
+    return std::chrono::steady_clock::period::num * 1000000000 / std::chrono::steady_clock::period::den;
 }
 
 process_time_counter::process_time_counter() = default;
@@ -122,6 +142,15 @@ unsigned long long process_time_counter::getMicroseconds() const
 #endif
 }
 
+unsigned long long process_time_counter::getPrecision() const
+{
+    #ifdef _WIN32
+        return 1000000;
+    #else
+        return 1000;
+    #endif
+}
+
 clocks_counter::clocks_counter() = default;
 
 void clocks_counter::start()
@@ -154,6 +183,17 @@ unsigned long long clocks_counter::getMicroseconds() const
 {
     return (static_cast<unsigned long long>(clocks) / CLOCKS_PER_SEC) * 1000000 +
            ((static_cast<unsigned long long>(clocks) % CLOCKS_PER_SEC) * 1000000) / CLOCKS_PER_SEC;
+}
+
+unsigned long long clocks_counter::getNanoseconds() const
+{
+    return (static_cast<unsigned long long>(clocks) / CLOCKS_PER_SEC) * 1000000000 +
+           ((static_cast<unsigned long long>(clocks) % CLOCKS_PER_SEC) * 1000000000) / CLOCKS_PER_SEC;
+}
+
+unsigned long long clocks_counter::getPrecision() const
+{
+    return 1000000000 / CLOCKS_PER_SEC;
 }
 
 unsigned long long clocks_counter::getClocks() const

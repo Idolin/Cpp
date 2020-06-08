@@ -13,10 +13,10 @@
 
 /*
  * DEBUG_LVL levels description
- * 0: critical errors, should never happen, different crashes can follow
- * 1: non-critical, exception or data corruption, possible crashes
- * 2: definitely bug, can lead to exception, no crashes will follow
- * 3: some not-critical bugs for program works, program will continue working without problem
+ * 0: critical errors
+ * 1: error
+ * 2: exception
+ * 3: not-critical error
  * >: some helpful debug messages
 */
 
