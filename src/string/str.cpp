@@ -3,6 +3,8 @@
 #include "../debug/def_debug.h"
 #include "../other/singleton.hpp"
 
+#include <cstdio>
+
 namespace
 {
     template<unsigned char count_find_def_vect>
@@ -509,9 +511,29 @@ str::str_info_pi::~str_info_pi()
     delete[] pi;
 }
 
+char str::str_info_pi::operator[](unsigned long i) const
+{
+    return (*lpart)[i];
+}
+
+void str::str_info_pi::copy_to_array(char* dst) const
+{
+    lpart->copy_to_array(dst);
+}
+
+void str::str_info_pi::copy_to_array(char* dst, unsigned long from, unsigned long to) const
+{
+    lpart->copy_to_array(dst, from, to);
+}
+
 unsigned char str::str_info_pi::cannot_change() const
 {
     return 2 - lpart->cannot_change() == 0;
+}
+
+uint64_t str::str_info_pi::hash_recalc() const
+{
+    return lpart->hash();
 }
 
 str::str(): s(empty().block), info(&empty())
@@ -718,6 +740,7 @@ str& str::operator+=(char c)
     if(typeid(info) == typeid(str_info_pi*))
     {
         auto new_info = info->lpart;
+        new_info->links++;
         unlink();
         info = new_info;
     }
@@ -905,6 +928,11 @@ bool str::endswith(const str& suffix) const
     return (suffix == substr(length() - suffix.length()));
 }
 
+bool str::contains_char(char ch) const
+{
+    return count_r_find_char<2>(ch) != not_found;
+}
+
 unsigned long str::count_char(char ch) const
 {
     return count_r_find_char<0>(ch);
@@ -923,6 +951,11 @@ unsigned long str::find_char(char ch, unsigned long from) const
 vect<unsigned long> str::find_all_char(char ch) const
 {
     return count_r_find_char<3>(ch);
+}
+
+bool str::contains(const str& o) const
+{
+    return count_r_find<2, false>(o) != not_found;
 }
 
 unsigned long str::count(const str& o) const
@@ -1109,4 +1142,9 @@ str read_str()
         eof = true;
     s[i] = '\0';
     return str(s.toArray(), i);
+}
+
+std::ostream &operator<<(std::ostream &o, const str &s)
+{
+    return o << s.c_str();
 }

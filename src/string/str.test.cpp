@@ -93,6 +93,10 @@ TEST_PACK(str)
         EXPECT_EQ(a, "12");
         EXPECT_EQ(c, b);
         EXPECT_EQ(b, "3");
+        str k = "aa";
+        EXPECT_EQ(k + k, "aaaa");
+        str k2 = k + k;
+        EXPECT_CSTRING_EQ(k2.c_str(), "aaaa");
     }
 
     TEST(multiplication)
@@ -397,6 +401,18 @@ TEST_PACK(str)
             }
         }
     }
+    
+    TEST(contains_char)
+    {
+        str a = "aabaa.baaz..a..y";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_TRUE(a.contains_char('a'));
+            EXPECT_TRUE(a.contains_char('.'));
+            EXPECT_TRUE(a.contains_char('y'));
+            EXPECT_FALSE(a.contains_char('x'));
+        }
+    }
 
     TEST(find)
     {
@@ -602,6 +618,48 @@ TEST_PACK(str)
             EXPECT_EQ(a.count_intersect(e), 1);
             EXPECT_EQ(a.count_intersect(f), 3);
             EXPECT_EQ(a.count_intersect(b + f), 0);
+
+            if(random8() == 0)
+                b[0] = b.at(0);
+            if(random8() == 0)
+                c[0] = c.at(0);
+            if(random8() == 0)
+                d[0] = d.at(0);
+            if(random8() == 0)
+                e[0] = e.at(0);
+            if(random8() == 0)
+                f[0] = f.at(0);
+        }
+    }
+    
+    TEST(contains)
+    {
+        str a = "aaaaaaaaaaaabababaaaba.baab..baaaba";
+        str b = ".";
+        str c = "aba";
+        str d = "aa";
+        str e = a;
+        str f = "aaab";
+        for(unsigned i = 0;i < 100000;i++)
+        {
+            EXPECT_TRUE(a.contains(b));
+            EXPECT_TRUE(a.contains(b * 2));
+            EXPECT_FALSE(a.contains(b * 3));
+            
+            EXPECT_TRUE(a.contains(c));
+            EXPECT_FALSE(a.contains(c * 2));
+            
+            EXPECT_TRUE(a.contains(d));
+            EXPECT_TRUE(a.contains(d * 3));
+            
+            EXPECT_TRUE(a.contains(d * 6));
+            EXPECT_FALSE(a.contains(d * 7));
+            
+            EXPECT_TRUE(a.contains(e));
+            EXPECT_FALSE(a.contains(e + e));
+            
+            EXPECT_TRUE(a.contains(f));
+            EXPECT_FALSE(a.contains(f + f));
 
             if(random8() == 0)
                 b[0] = b.at(0);
