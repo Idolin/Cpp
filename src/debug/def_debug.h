@@ -87,12 +87,12 @@ private:
         if(!(cond)) \
         { \
             ASSERT_NO_THROW(false, ## __VA_ARGS__); \
-            throw assert_failed("Assertion failed!", __FILE__, __LINE__, err_code); \
+            throw assert_failed("Assertion failed!", __FILE__, __LINE__, (err_code)); \
         } \
     }
-#define ASSERT(cond, ...) ASSERT_ERR(cond, -1, ## __VA_ARGS__)
-#define ASSERT_CODE_NOT(func, fail_code, ...) ASSERT(func != fail_code, ## __VA_ARGS__)
-#define ASSERT_CODE_OK(func, ...) ASSERT(func >= 0, ## __VA_ARGS__)
+#define ASSERT(cond, ...) ASSERT_ERR((cond), -1, ## __VA_ARGS__)
+#define ASSERT_CODE_NOT(func, fail_code, ...) ASSERT((func) != (fail_code), ## __VA_ARGS__)
+#define ASSERT_CODE_OK(func, ...) ASSERT((func) == 0, ## __VA_ARGS__)
 
 #else
 #define DEBUGLVLMSG_N(level, ...) {}
