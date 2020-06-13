@@ -125,7 +125,6 @@ void big_integer::big_integer_container::resize(unsigned int new_size)
         return;
     if((new_size > size) && (new_size < size * 2))
         new_size = size * 2;
-    //_copy(number, new_size, number);
     number = ::_resize(number, max_set + 1, new_size);
     if(new_size > max_set + 1)
         _fill(number + max_set + 1, new_size - max_set - 1);
