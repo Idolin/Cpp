@@ -2,10 +2,6 @@
 
 #include "def_int.h"
 
-#define elif else if
-#define smin_(a, b) (a = ((a < b) ? (a) : (b)))
-#define smax_(a, b) (a = ((a < b) ? (b) : (a)))
-
 #define UNUSED(x) (void)x  // to avoid removing variable by compiler
 
 // returns amount of arguments in argument list

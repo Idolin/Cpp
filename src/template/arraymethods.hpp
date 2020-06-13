@@ -3,7 +3,7 @@
 #include "commonmethods.hpp"
 #include "typemethods.hpp"
 #include "valuemethods.hpp"
-#include "../other/defdef.h"
+#include "../other/common.hpp"
 #include "../debug/def_debug.h"
 #include "type_tags.hpp"
 

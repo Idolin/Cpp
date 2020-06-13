@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../template/arraymethods.hpp"
-#include "../other/defdef.h"
+#include "../other/common.hpp"
 #include "../debug/def_debug.h"
 #include "../template/displaymethods.hpp"
 
@@ -226,7 +226,7 @@ public:
                 this->resizeUp(k);
             }
         }
-        smax_(max_used, index + 1);
+        set_max(max_used, index + 1);
         _lock.unlock();
         return m[index];
     }
@@ -259,7 +259,7 @@ public:
         _lock.lock();
         m = _resize(m, max_used, k);
         v_size = k;
-        smin_(max_used, v_size);
+        set_min(max_used, v_size);
         _lock.unlock();
     }
 

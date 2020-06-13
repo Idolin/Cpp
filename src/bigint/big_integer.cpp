@@ -395,7 +395,7 @@ big_integer &big_integer::operator&=(const big_integer &b)
     
     unsigned max_set = b._number.get_max_set();
     if(_number.get_sign() > 0)
-        smin_(max_set, _number.get_max_set());
+        set_min(max_set, _number.get_max_set());
     this->_number.ensure_capacity(max_set + 1);
     
     unsigned first_non_blank = 0, b_first_non_blank = 0;
@@ -435,7 +435,7 @@ big_integer &big_integer::operator&=(const big_integer &b)
         
     if(_number.get_sign() < 0)
     {
-        smin_(first_non_blank, b_first_non_blank);
+        set_min(first_non_blank, b_first_non_blank);
         for(;first_non_blank <= _number.get_max_set() && _number[first_non_blank] == 0;first_non_blank++);
         if(first_non_blank <= _number.get_max_set())
         {
@@ -466,7 +466,7 @@ big_integer &big_integer::operator|=(const big_integer &b)
     
     unsigned max_set = b._number.get_max_set();
     if(_number.get_sign() < 0)
-        smin_(max_set, _number.get_max_set());
+        set_min(max_set, _number.get_max_set());
     _number.ensure_capacity(max_set + 1);
     
     unsigned first_non_blank = 0, b_first_non_blank = 0;
@@ -500,7 +500,7 @@ big_integer &big_integer::operator|=(const big_integer &b)
         
     if(_number.get_sign() < 0)
     {
-        smin_(first_non_blank, b_first_non_blank);
+        set_min(first_non_blank, b_first_non_blank);
         for(;first_non_blank <= invert_to && _number[first_non_blank] == 0;first_non_blank++);
         if(first_non_blank <= invert_to)
         {
@@ -537,7 +537,7 @@ big_integer &big_integer::operator^=(const big_integer &b)
     
     if(_number.get_sign() < 0)
     {
-        smax_(invert_to, first_non_blank);
+        set_max(invert_to, first_non_blank);
         _number[first_non_blank]--;
         for(unsigned i = first_non_blank; i <= invert_to; i++)
             _number[i] = ~_number[i];
@@ -560,7 +560,7 @@ big_integer &big_integer::operator^=(const big_integer &b)
         
     if(_number.get_sign() < 0)
     {
-        smin_(first_non_blank, b_first_non_blank);
+        set_min(first_non_blank, b_first_non_blank);
         for(;first_non_blank <= _number.get_max_set() && _number[first_non_blank] == 0;first_non_blank++);
         if(first_non_blank <= _number.get_max_set())
         {

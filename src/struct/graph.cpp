@@ -177,7 +177,7 @@ long **graph::floyd_warshall()
     for(unsigned i = 0;i < gLen;i++)
         for(unsigned k = 0;k < gLen;k++)
             for(unsigned j = 0;j < gLen;j++)
-                smin_(d[k][j], d[k][i] + d[i][j]);
+                set_min(d[k][j], d[k][i] + d[i][j]);
     return d;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../other/defdef.h"
+#include "../other/common.hpp"
 #include "stree.hpp"
 
 #include <algorithm>
