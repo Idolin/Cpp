@@ -301,7 +301,7 @@ namespace test_namespace
         } \
         else \
         { \
-            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_123, SKIP_3_1_INC_1, 0, a, ## __VA_ARGS__); \
+            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_3, SKIP_3_1_INC_1, 0, a, ## __VA_ARGS__); \
         } \
     }
 #define EXPECT_EXCEPTION(a, exception, ...) \

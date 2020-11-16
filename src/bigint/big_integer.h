@@ -9,7 +9,7 @@
 #include <exception>
 
 #include "../template/arraymethods.hpp"
-#include "../other/defdef.h"
+#include "../other/common.hpp"
 
 class big_integer_exception : public std::exception
 {

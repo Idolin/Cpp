@@ -229,7 +229,7 @@ struct def_get_by_value
 
 template<typename T>
 struct def_get_by_value<T, typename std::enable_if<
-        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
 {
     typedef T type;
 };
@@ -240,7 +240,7 @@ struct def_get_by_reference
 
 template<typename T>
 struct def_get_by_reference<T, typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
+        !std::is_integral<T>::value && !std::is_floating_point<T>::value && !std::is_pointer<T>::value>::type>
 {
     typedef T type;
 };
@@ -251,14 +251,14 @@ struct def_get_by
 
 template<typename T>
 struct def_get_by<T, typename std::enable_if<
-        std::is_integral<T>::value || std::is_pointer<T>::value>::type>
+        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
 {
     typedef T type;
 };
 
 template<typename T>
 struct def_get_by<T, typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_pointer<T>::value>::type>
+        !std::is_integral<T>::value && !std::is_floating_point<T>::value && !std::is_pointer<T>::value>::type>
 {
     typedef const T& type;
 };
