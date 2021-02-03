@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <cstdio>
 #include <algorithm>
+#include <atomic>
 #include <dirent.h>
 #include <cmath>
 #include <exception>
@@ -14,7 +15,7 @@
 #include "../ImageMagick-7/Magick++.h"
 #include "../string/str.h"
 #include "../container/vector.hpp"
-#include "../other/defdef.h"
+#include "../other/common.hpp"
 #include "../template/arraymethods.hpp"
 #include "../algo/icmp_normalize.h"
 #include "../other/pam_writer.h"
@@ -85,27 +86,26 @@ bool is_program(const str &name)
 
 vect<std::tuple<str, str, unsigned char>> to_show;
 std::mutex show_lock;
-std::condition_variable new_element;
-std::mutex program_lock;
+std::condition_variable show_cond;
+std::atomic<std::size_t> elements_amount {0};
 bool show_diff = false;
 
 str tmp_dir = "/tmp/diff/", ext = ".pgm", fs_del = "/", dot = ".", application = "";
 
 void* pictures_show(void*)
 {
-    std::unique_lock<std::mutex> lock(show_lock);
-    std::unique_lock<std::mutex> p_lock(program_lock);
     Geometry g(512, 512, 0, 0);
     g.aspect(true);
-    unsigned i = 0;
+    std::size_t i = 0;
     ino_t ignore;
     while(true)
     {
-        while(i == to_show.size())
-            new_element.wait(lock);
-        to_show.lock();
+        {
+            std::unique_lock<std::mutex> s_lock(show_lock);
+            while(i == to_show.size())
+                show_cond.wait(s_lock);
+        }
         std::tuple<str, str, double> e = to_show[i++];
-        to_show.unlock();
         if(std::get<0>(e).length() == 0)
             break;
         if(file_type(std::get<0>(e), ignore) == 0 || file_type(std::get<1>(e), ignore) == 0)
@@ -136,7 +136,7 @@ void* pictures_show(void*)
             message += "%)=";
             message += diff_msg + " ";
             message += std::get<1>(e);
-            diff_msg = str(diff_value) + "%";
+            diff_msg = str(diff_value) + "% (" + str(i) + "/" + str(elements_amount.load()) + ")";
             close(1);
             close(2);
             execlp("notify-send", "notification", diff_msg.c_str(), message.c_str(), NULL);
@@ -200,7 +200,7 @@ void* pictures_show(void*)
 double get_coeff(str file_name)
 {
     FILE *img = fopen(file_name.c_str(), "rb");
-    ASSERT(img != NULL, "Can't read from file: %s", file_name.c_str());
+    ASSERT(img != nullptr, "Can't read from file: %s", file_name.c_str());
     char buffer[100]{};
     size_t r = fread(&buffer, 100, 1, img);
     if(!c_str_equals(buffer, "P5\n#Coefficient:", 16))
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
     if(method_efficiency)
         unique = false, show_on = false, dirs_and_files.clear(), dirs_and_files.push(std::make_pair("/home/cynder/Изображения/pic8/ICMPTests/TestDir", false));
     vect<picture> files;
-    unsigned *unique_ranges = new unsigned[unique ? dirs_and_files.size() : 0];
+    unsigned *unique_ranges = unique ? new unsigned[dirs_and_files.size()] : nullptr;
     for(std::pair<str, bool>& f : dirs_and_files)
     {
         ino_t inode;
@@ -387,12 +387,12 @@ int main(int argc, char **argv)
     }
     if(!all_ok)
         return 1;
-    unsigned long long comparisons = unique ?
-                                     (dirs_and_files.size() == 1 ? 0 : unique_ranges[0] * (unique_ranges[--range_i] - unique_ranges[0])) :
-                                     static_cast<unsigned long long>(files.size()) * (files.size() - 1) >> 1;
+    unsigned long long comparisons = 0;
     if(unique)
-        for(i = 2;i <= range_i;i++)
-            comparisons += (unique_ranges[i] - unique_ranges[i - 1]) * (unique_ranges[range_i] - unique_ranges[i]);
+        for(i = 1;i < range_i;i++)
+            comparisons += (unique_ranges[i] - unique_ranges[i - 1]) * unique_ranges[i - 1];
+    else
+        comparisons = static_cast<unsigned long long>(files.size()) * (files.size() - 1) >> 1u;
     if(comparisons == 0)
     {
         fprintf(stderr, "Nothing to compare\n");
@@ -475,12 +475,12 @@ int main(int argc, char **argv)
     for(i = 0;i < files.size() - 1;i++)
     {
         if(unique && i == unique_ranges[range_j])
-            if(range_j++ == range_i)
+            if(++range_j == range_i)
                 break;
         if(!(file_type(files[i].path)))
         {
             if(unique)
-                compared += unique_ranges[range_i] - unique_ranges[range_j];
+                compared += unique_ranges[range_i - 1] - unique_ranges[range_j];
             else
                 compared += files.size() - i - 1;
             continue;
@@ -514,12 +514,12 @@ int main(int argc, char **argv)
             elif(method_efficiency)
             {
                 if(files[i].name[3] == files[k].name[3])
-                    smax_(fnmax, abs(coeff[i] - coeff[k]) * 1048576 / (coeff[i] * coeff[k]));
-                smax_(famax, abs(coeff[i] - coeff[k]) * 1048576 / (coeff[i] * coeff[k]));
+                    set_max(fnmax, abs(coeff[i] - coeff[k]) * 1048576 / (coeff[i] * coeff[k]));
+                set_max(famax, abs(coeff[i] - coeff[k]) * 1048576 / (coeff[i] * coeff[k]));
  #ifdef SECOND_METHOD
                 if(files[i].name[3] == files[k].name[3])
-                    smax_(snmax, abs(coeff2[i] - coeff2[k]) * 1048576 / (coeff2[i] * coeff2[k]));
-                smax_(samax, abs(coeff2[i] - coeff2[k]) * 1048576 / (coeff2[i] * coeff2[k]));
+                    set_max(snmax, abs(coeff2[i] - coeff2[k]) * 1048576 / (coeff2[i] * coeff2[k]));
+                set_max(samax, abs(coeff2[i] - coeff2[k]) * 1048576 / (coeff2[i] * coeff2[k]));
  #endif
             }
             Image i2;
@@ -529,12 +529,12 @@ int main(int argc, char **argv)
             {
                 if(symmetry_h)
                 {
-                    smin_(diff, ih.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
+                    set_min(diff, ih.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
                     if(symmetry_v)
-                        smin_(diff, im.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
+                        set_min(diff, im.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
                 }
                 else
-                    smin_(diff, iv.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
+                    set_min(diff, iv.compare(i2, RootMeanSquaredErrorMetric) * (coeff[i] + coeff[k]));
             }
 #ifdef SECOND_METHOD
             i1.getPixels(0, 0, g1.width(), g1.height());
@@ -566,26 +566,26 @@ int main(int argc, char **argv)
                     printf("\r%s (%f:%f) %s                  \n", files[i].name.c_str(), diff, diff2, files[k].name.c_str());
                     if(files[i].name[3] == files[k].name[3])
                     {
-                        smin_(sns, diff2);
-                        smax_(sne, diff2);
+                        set_min(sns, diff2);
+                        set_max(sne, diff2);
                     }
                     else
                     {
-                        smin_(sfs, diff2);
-                        smax_(sfe, diff2);
+                        set_min(sfs, diff2);
+                        set_max(sfe, diff2);
                     }
 #else
                     printf("\r%s (%f) %s                  \n", files[i].name.c_str(), diff, files[k].name.c_str());
 #endif
                     if(files[i].name[3] == files[k].name[3])
                     {
-                        smin_(fns, diff);
-                        smax_(fne, diff);
+                        set_min(fns, diff);
+                        set_max(fne, diff);
                     }
                     else
                     {
-                        smin_(ffs, diff);
-                        smax_(ffe, diff);
+                        set_min(ffs, diff);
+                        set_max(ffe, diff);
                     }
                 }
                 else
@@ -594,14 +594,18 @@ int main(int argc, char **argv)
                 fflush(stdout);
                 if(show_on)
                 {
+                    std::unique_lock<std::mutex> s_lock(show_lock);
+                    elements_amount++;
                     to_show.push(std::tuple<str, str, unsigned char>(files[i].path, files[k].path, diff == 0 ? 101 : p_diff));
-                    new_element.notify_one();
+                    s_lock.unlock();
+                    show_cond.notify_one();
                 }
             }
         }
     }
     update_linef("Compared (%llu comparisons)                 \n", compared);
     delete[] coeff;
+    delete[] unique_ranges;
     if(method_efficiency)
     {
         printf("First: Near(%f-%f), Far(%f-%f), Cutoff(%f <= %f) \n", fns, fne, ffs, ffe, fnmax, famax);
@@ -620,8 +624,10 @@ int main(int argc, char **argv)
     }
     if(show_on)
     {
+        std::unique_lock<std::mutex> s_lock(show_lock);
         to_show.push(std::make_tuple(str(), str(), 0));
-        new_element.notify_one();
+        s_lock.unlock();
+        show_cond.notify_one();
     }
     printf("Comparison process ended\n");
     if(show_on)
