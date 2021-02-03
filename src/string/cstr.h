@@ -10,7 +10,7 @@
 #include <string>
 #include <type_traits>
 
-struct str: Hashable
+struct cstr: Hashable
 {
     struct no_copy
     {
@@ -119,11 +119,11 @@ protected:
         friend struct str;
 
     private:
-        const str& s;
+        const cstr& s;
         unsigned long i;
 
     public:
-        const_iterator(const str& s, unsigned long i = 0);
+        const_iterator(const cstr& s, unsigned long i = 0);
 
         const_iterator(const const_iterator& otr);
 
@@ -155,80 +155,80 @@ protected:
 
         const char operator*() const;
 
-        const str& operator->() const;
+        const cstr& operator->() const;
     };
 
     struct str_iterable;
 public:
-    str();
+    cstr();
 
-    str(bool);
+    cstr(bool);
 
-    str(char);
+    cstr(char);
 
     template<typename I,
             typename = typename std::enable_if_t<std::is_integral<I>::value &&
                                                  !std::is_same<I, char>::value &&
                                                  !std::is_same<I, bool>::value>>
-    str(I x); // NOLINT
+    cstr(I x); // NOLINT
 
-    str(const char*); // NOLINT
+    cstr(const char*); // NOLINT
 
-    str(const char*, unsigned long);
+    cstr(const char*, unsigned long);
 
-    str(no_copy); // NOLINT
+    cstr(no_copy); // NOLINT
 
-    str(no_copy, unsigned long);
+    cstr(no_copy, unsigned long);
 
-    str(to_own); // NOLINT
+    cstr(to_own); // NOLINT
 
-    str(to_own, unsigned long);
+    cstr(to_own, unsigned long);
 
-    str(const std::string&); // NOLINT
+    cstr(const std::string&); // NOLINT
 
-    str(const str&);
+    cstr(const cstr&);
 
-    str(std::string&&); // NOLINT
+    cstr(std::string&&); // NOLINT
 
-    str(str&&) noexcept;
+    cstr(cstr&&) noexcept;
 
 protected:
 
-    str(str_info *parent, unsigned long from, unsigned long to);
+    cstr(str_info *parent, unsigned long from, unsigned long to);
 
 public:
 
-    ~str();
+    ~cstr();
 
-    str& operator=(const str&);
+    cstr& operator=(const cstr&);
 
-    str& operator=(str&&) noexcept;
+    cstr& operator=(cstr&&) noexcept;
 
     char at(unsigned long) const; //use this for fast access(otherwise if you call [] operator from
     // non-const context non-const [] will be executed what may lead to slowdowns and increased memory usage
 
-    char operator[](unsigned long) const; //str[str.length()] == '\0'
+    char operator[](unsigned long) const; //cstr[cstr.length()] == '\0'
 
-    //str[str.length()] is exception, because of attempt of write access(use at method instead)
+    //cstr[cstr.length()] is exception, because of attempt of write access(use at method instead)
     char& operator[](unsigned long);
 
-    str& operator+=(const str&);
+    cstr& operator+=(const cstr&);
 
-    str& operator+=(char c);
+    cstr& operator+=(char c);
 
-    str& operator*=(unsigned times);
+    cstr& operator*=(unsigned times);
 
-    bool operator==(const str&) const;
+    bool operator==(const cstr&) const;
 
-    bool operator!=(const str&) const;
+    bool operator!=(const cstr&) const;
 
-    bool operator<(const str&) const;
+    bool operator<(const cstr&) const;
 
-    bool operator<=(const str&) const;
+    bool operator<=(const cstr&) const;
 
-    bool operator>(const str&) const;
+    bool operator>(const cstr&) const;
 
-    bool operator>=(const str&) const;
+    bool operator>=(const cstr&) const;
 
     unsigned long length() const;
 
@@ -238,24 +238,24 @@ public:
 
     operator std::string() const;
 
-    str copy() const;
+    cstr copy() const;
 
-    str invert() const;
+    cstr invert() const;
 
     template<bool copy_sub = false>
-    str compact() const;
+    cstr compact() const;
 
-    str operator()(unsigned long, unsigned long) const;
+    cstr operator()(unsigned long, unsigned long) const;
 
-    str operator()(unsigned long) const;
+    cstr operator()(unsigned long) const;
 
-    str substr(unsigned long, unsigned long) const;
+    cstr substr(unsigned long, unsigned long) const;
 
-    str substr(unsigned long) const;
+    cstr substr(unsigned long) const;
 
-    bool startswith(const str&) const;
+    bool startswith(const cstr&) const;
 
-    bool endswith(const str&) const;
+    bool endswith(const cstr&) const;
     
     bool contains_char(char) const;
 
@@ -265,23 +265,23 @@ public:
 
     vect<unsigned long> find_all_char(char) const;
 
-    unsigned long rfind_char(char, unsigned long to = str::last) const;
+    unsigned long rfind_char(char, unsigned long to = cstr::last) const;
 
-    bool contains(const str&) const;
+    bool contains(const cstr&) const;
     
-    unsigned long count(const str&) const;
+    unsigned long count(const cstr&) const;
 
-    unsigned long count_intersect(const str&) const;
+    unsigned long count_intersect(const cstr&) const;
 
-    unsigned long rfind(const str&, unsigned long to = str::last) const;
+    unsigned long rfind(const cstr&, unsigned long to = cstr::last) const;
 
-    unsigned long find(const str&, unsigned long from = 0) const;
+    unsigned long find(const cstr&, unsigned long from = 0) const;
 
-    vect<unsigned long> find_all(const str&) const;
+    vect<unsigned long> find_all(const cstr&) const;
 
-    vect<unsigned long> find_all_intersect(const str&) const;
+    vect<unsigned long> find_all_intersect(const cstr&) const;
 
-    str_iterable split(const str& = "\n") const;
+    str_iterable split(const cstr& = "\n") const;
 
     const_iterator begin() const;
 
@@ -300,7 +300,7 @@ protected:
 
     uint64_t hash() const noexcept override;
 
-    unsigned char cmp_call(const str &b) const;
+    unsigned char cmp_call(const cstr &b) const;
 
     template<unsigned char count_r_find_all,
         typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
@@ -308,25 +308,25 @@ protected:
 
     template<unsigned char count_r_find_all, bool intersect,
         typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
-    RType count_r_find(const str &o, unsigned long from = 0) const;
+    RType count_r_find(const cstr &o, unsigned long from = 0) const;
 
 private:
     static str_info& empty();
 };
 
-struct str::str_iterable
+struct cstr::str_iterable
 {
-    struct str_iterator: public std::iterator<std::forward_iterator_tag, str>
+    struct str_iterator: public std::iterator<std::forward_iterator_tag, cstr>
     {
-        friend struct str;
+        friend struct cstr;
     private:
-        const str s, f;
+        const cstr s, f;
         unsigned long now_index, next_index;
 
         str_iterator();
 
     public:
-        str_iterator(const str &s, const str &p);
+        str_iterator(const cstr &s, const cstr &p);
 
         str_iterator(const str_iterator &otr);
 
@@ -338,30 +338,30 @@ struct str::str_iterable
 
         str_iterator operator++(int);
 
-        str operator*() const;
+        cstr operator*() const;
 
         operator bool() const;
     };
 
-    const str s, f;
+    const cstr s, f;
 
-    str_iterable(const str &s, const str &p);
+    str_iterable(const cstr &s, const cstr &p);
 
     str_iterator begin() const;
 
     str_iterator end() const;
 };
 
-str operator+(str a, const str &b);
-str operator*(str a, unsigned times);
+cstr operator+(cstr a, const cstr &b);
+cstr operator*(cstr a, unsigned times);
 
 bool check_eof();
 
-str read_str();
+cstr read_cstr();
 
-std::ostream &operator<<(std::ostream &o, const str &a);
+std::ostream &operator<<(std::ostream &o, const cstr &a);
 
-inline bool operator==(const str &a, const char* b)
+inline bool operator==(const cstr &a, const char* b)
 {
     a.compact();
     for(unsigned i = 0; i < a.length(); i++)
@@ -370,42 +370,42 @@ inline bool operator==(const str &a, const char* b)
     return (b[a.length()] == '\0');
 }
 
-inline bool operator==(const char *a, const str& b)
+inline bool operator==(const char *a, const cstr& b)
 {
     return (b == a);
 }
 
-inline bool operator==(const str &a, char *b)
+inline bool operator==(const cstr &a, char *b)
 {
     return (a == const_cast<const char*>(b));
 }
 
-inline bool operator==(char *a, const str& b)
+inline bool operator==(char *a, const cstr& b)
 {
     return (b == a);
 }
 
-inline bool operator!=(const str& a, const char *b)
+inline bool operator!=(const cstr& a, const char *b)
 {
     return !(a == b);
 }
 
-inline bool operator!=(const char *a, const str& b)
+inline bool operator!=(const char *a, const cstr& b)
 {
     return !(b == a);
 }
 
-inline bool operator!=(const str& a, char *b)
+inline bool operator!=(const cstr& a, char *b)
 {
     return !(a != const_cast<const char*>(b));
 }
 
-inline bool operator!=(char *a, const str& b)
+inline bool operator!=(char *a, const cstr& b)
 {
     return (b != a);
 }
 
-inline bool operator==(const str& a, const std::string& b)
+inline bool operator==(const cstr& a, const std::string& b)
 {
     if(a.length() != b.length())
         return false;
@@ -416,23 +416,23 @@ inline bool operator==(const str& a, const std::string& b)
     return true;
 }
 
-inline bool operator==(const std::string& a, const str& b)
+inline bool operator==(const std::string& a, const cstr& b)
 {
     return (b == a);
 }
 
-inline bool operator!=(const str& a, const std::string& b)
+inline bool operator!=(const cstr& a, const std::string& b)
 {
     return !(a == b);
 }
 
-inline bool operator!=(const std::string& a, const str& b)
+inline bool operator!=(const std::string& a, const cstr& b)
 {
     return !(b == a);
 }
 
 template<>
-inline void _tshow(const str& x)
+inline void _tshow(const cstr& x)
 {
     printf("%s", static_cast<const char*>(x));
 }

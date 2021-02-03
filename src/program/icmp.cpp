@@ -13,7 +13,7 @@
 #include <sys/wait.h>
 #include <cstdarg>
 #include "../ImageMagick-7/Magick++.h"
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../container/vector.hpp"
 #include "../other/common.hpp"
 #include "../template/arraymethods.hpp"

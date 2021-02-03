@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <dirent.h>
 #include <exception>
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
 #include "../algo/icmp_normalize.h"

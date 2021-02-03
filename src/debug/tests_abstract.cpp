@@ -283,7 +283,7 @@ namespace test_namespace
     _test_pack_class::~_test_pack_class()
     {}
 
-    bool _test_pack_class::test(str mask)
+    bool _test_pack_class::test(cstr mask)
     {
         g_static::global_static_var<unsigned, "Test"_gsh, "Show level"_gsh>() = 0;
         color_fprintf(term_color::BLUE, DEBUG_OUTPUT_STREAM, "Running %s pack test\n", this->test_pack_name);

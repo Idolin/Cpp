@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdio>
-#include "../string/str.h"
+#include "../string/cstr.h"
 
 struct PAMImageWriter
 {
@@ -14,15 +14,15 @@ struct PAMImageWriter
 
 	struct keep_exact
     {
-	    const str &filename;
+	    const cstr &filename;
 
-	    keep_exact(const str&);
+	    keep_exact(const cstr&);
     };
 	
 private:
 	FILE *out;
-	str filename;
-	str comment;
+	cstr filename;
+	cstr comment;
 	unsigned width, height;
 	unsigned short max_value;
 	bool binary;
@@ -31,19 +31,19 @@ private:
 public:
     PAMImageWriter(const keep_exact &filename, unsigned width, unsigned height, colors mode = colors::GRAYSCALE, unsigned short max_value = 255, bool binary = true);
 
-    PAMImageWriter(const str &filename, unsigned width, unsigned height, colors mode = colors::GRAYSCALE, unsigned short max_value = 255, bool binary = true);
+    PAMImageWriter(const cstr &filename, unsigned width, unsigned height, colors mode = colors::GRAYSCALE, unsigned short max_value = 255, bool binary = true);
 
-    void set_comment(const str &comment);
+    void set_comment(const cstr &comment);
 
-    void add_comment(const str &comment);
+    void add_comment(const cstr &comment);
 
 	void write(unsigned char *data);
 	
 	void write_bits(unsigned char *data);
 
-	const str& get_filename() const;
+	const cstr& get_filename() const;
 
-    str get_format_extension() const;
+    cstr get_format_extension() const;
 private:
 	void write_header();
 	

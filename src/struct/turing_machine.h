@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../tree/avl.hpp"
 #include "../container/vector.hpp"
 #include "../debug/def_debug.h"

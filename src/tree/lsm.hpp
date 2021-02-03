@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../container/vector.hpp"
 #include "../struct/optional.hpp"
 #include "../tree/avl.hpp"

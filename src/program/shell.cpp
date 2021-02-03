@@ -1,6 +1,6 @@
 #include "../other/defdef.h"
 #include "../template/arraymethods.hpp"
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../container/vector.hpp"
 #include "../other/term.h"
 #include "../debug/tests_run.h"

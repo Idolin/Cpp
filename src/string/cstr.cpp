@@ -1,4 +1,4 @@
-#include "str.h"
+#include "cstr.h"
 
 #include "../debug/def_debug.h"
 #include "../other/singleton.hpp"
@@ -24,7 +24,7 @@ namespace
     {
         static unsigned long v()
         {
-            return str::not_found;
+            return cstr::not_found;
         }
     };
 
@@ -33,7 +33,7 @@ namespace
     {
         static unsigned long v()
         {
-            return str::not_found;
+            return cstr::not_found;
         }
     };
 
@@ -76,7 +76,7 @@ namespace
     template<>
     struct CFVT<1>
     {
-        unsigned long last = str::not_found;
+        unsigned long last = cstr::not_found;
 
         void inc()
         {}
@@ -108,7 +108,7 @@ namespace
 
         unsigned long result()
         {
-            return str::not_found;
+            return cstr::not_found;
         }
 
         unsigned long result(unsigned long i)
@@ -150,132 +150,132 @@ static inline unsigned char cmp(const char *s1, const char *s2, unsigned long le
     return ((s2[len] == '\0')) * 2;
 }
 
-str::no_copy::no_copy(char *s): s(s)
+cstr::no_copy::no_copy(char *s): s(s)
 {}
 
-str::to_own::to_own(char *s): s(s)
+cstr::to_own::to_own(char *s): s(s)
 {}
 
-str::const_iterator::const_iterator(const str& s, unsigned long i): s(s), i(i)
+cstr::const_iterator::const_iterator(const cstr& s, unsigned long i): s(s), i(i)
 {}
 
-str::const_iterator::const_iterator(const str::const_iterator& otr): s(otr.s), i(otr.i)
+cstr::const_iterator::const_iterator(const cstr::const_iterator& otr): s(otr.s), i(otr.i)
 {}
 
-bool str::const_iterator::operator==(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator==(const cstr::const_iterator& otr) const
 {
     return (&s == &otr.s &&
             ((i < s.length() && i == otr.i) ||
              (i >= s.length() && otr.i >= s.length())));
 }
 
-bool str::const_iterator::operator!=(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator!=(const cstr::const_iterator& otr) const
 {
     return !(*this == otr);
 }
 
-bool str::const_iterator::operator<(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator<(const cstr::const_iterator& otr) const
 {
     return i < otr.i;
 }
 
-bool str::const_iterator::operator<=(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator<=(const cstr::const_iterator& otr) const
 {
     return i <= otr.i;
 }
 
-bool str::const_iterator::operator>(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator>(const cstr::const_iterator& otr) const
 {
     return i > otr.i;
 }
 
-bool str::const_iterator::operator>=(const str::const_iterator& otr) const
+bool cstr::const_iterator::operator>=(const cstr::const_iterator& otr) const
 {
     return i >= otr.i;
 }
 
-str::const_iterator& str::const_iterator::operator++()
+cstr::const_iterator& cstr::const_iterator::operator++()
 {
     i++;
     return *this;
 }
 
-str::const_iterator str::const_iterator::operator++(int)
+cstr::const_iterator cstr::const_iterator::operator++(int)
 {
     const_iterator copy = *this;
     ++*this;
     return copy;
 }
 
-str::const_iterator& str::const_iterator::operator--()
+cstr::const_iterator& cstr::const_iterator::operator--()
 {
     i--;
     return *this;
 }
 
-str::const_iterator str::const_iterator::operator--(int)
+cstr::const_iterator cstr::const_iterator::operator--(int)
 {
     const_iterator copy = *this;
     --*this;
     return copy;
 }
 
-str::const_iterator& str::const_iterator::operator+=(unsigned long p)
+cstr::const_iterator& cstr::const_iterator::operator+=(unsigned long p)
 {
     i += p;
     return *this;
 }
 
-str::const_iterator& str::const_iterator::operator-=(unsigned long p)
+cstr::const_iterator& cstr::const_iterator::operator-=(unsigned long p)
 {
     i -= p;
     return *this;
 }
 
-const char str::const_iterator::operator[](unsigned long index) const
+const char cstr::const_iterator::operator[](unsigned long index) const
 {
     return s[index];
 }
 
-const char str::const_iterator::operator*() const
+const char cstr::const_iterator::operator*() const
 {
     return s[i];
 }
 
-const str& str::const_iterator::operator->() const
+const cstr& cstr::const_iterator::operator->() const
 {
     return s;
 }
 
-str::str_iterable::str_iterator::str_iterator(): s(str()), f(str()), now_index(str::not_found)
+cstr::str_iterable::str_iterator::str_iterator(): s(cstr()), f(cstr()), now_index(cstr::not_found)
 {}
 
-str::str_iterable::str_iterator::str_iterator(const str &s, const str &f):
+cstr::str_iterable::str_iterator::str_iterator(const cstr &s, const cstr &f):
         s(s), f(f), now_index(0)
 {
     next_index = s.find(f);
 }
 
-str::str_iterable::str_iterator::str_iterator(const str::str_iterable::str_iterator &otr):
+cstr::str_iterable::str_iterator::str_iterator(const cstr::str_iterable::str_iterator &otr):
         s(otr.s), f(otr.f), now_index(otr.now_index), next_index(otr.next_index)
 {}
 
-bool str::str_iterable::str_iterator::operator==(
-        const str::str_iterable::str_iterator& otr) const
+bool cstr::str_iterable::str_iterator::operator==(
+        const cstr::str_iterable::str_iterator& otr) const
 {
     return now_index == otr.now_index;
 }
 
-bool str::str_iterable::str_iterator::operator!=(
-        const str::str_iterable::str_iterator& otr) const
+bool cstr::str_iterable::str_iterator::operator!=(
+        const cstr::str_iterable::str_iterator& otr) const
 {
     return now_index != otr.now_index;
 }
 
-str::str_iterable::str_iterator& str::str_iterable::str_iterator::operator++()
+cstr::str_iterable::str_iterator& cstr::str_iterable::str_iterator::operator++()
 {
     now_index = next_index;
-    if(now_index != str::not_found)
+    if(now_index != cstr::not_found)
     {
         now_index += f.length();
         next_index = s.find(f, now_index);
@@ -283,54 +283,54 @@ str::str_iterable::str_iterator& str::str_iterable::str_iterator::operator++()
     return *this;
 }
 
-str::str_iterable::str_iterator str::str_iterable::str_iterator::operator++(int)
+cstr::str_iterable::str_iterator cstr::str_iterable::str_iterator::operator++(int)
 {
     str_iterator copy = *this;
     ++*this;
     return copy;
 }
 
-str str::str_iterable::str_iterator::operator*() const
+cstr cstr::str_iterable::str_iterator::operator*() const
 {
-    if(next_index == str::not_found)
+    if(next_index == cstr::not_found)
         return s.substr(now_index);
     return s.substr(now_index, next_index);
 }
 
-str::str_iterable::str_iterator::operator bool() const
+cstr::str_iterable::str_iterator::operator bool() const
 {
-    return now_index != str::not_found;
+    return now_index != cstr::not_found;
 }
 
-str::str_iterable::str_iterable(const str &s, const str &p): s(s), f(p)
+cstr::str_iterable::str_iterable(const cstr &s, const cstr &p): s(s), f(p)
 {}
 
-str::str_iterable::str_iterator str::str_iterable::begin() const
+cstr::str_iterable::str_iterator cstr::str_iterable::begin() const
 {
-    return str::str_iterable::str_iterator(s, f);
+    return cstr::str_iterable::str_iterator(s, f);
 }
 
-str::str_iterable::str_iterator str::str_iterable::end() const
+cstr::str_iterable::str_iterator cstr::str_iterable::end() const
 {
-    return str::str_iterable::str_iterator();
+    return cstr::str_iterable::str_iterator();
 }
 
-str::str_info::str_info(char *s, unsigned long len) noexcept:
+cstr::str_info::str_info(char *s, unsigned long len) noexcept:
         block(s), len(len), links(1), cell_changed(std::numeric_limits<unsigned long>::max())
 {}
 
-str::str_info::str_info(str::str_info *lpart, unsigned long len) noexcept:
+cstr::str_info::str_info(cstr::str_info *lpart, unsigned long len) noexcept:
     lpart(lpart), len(len), links(1), cell_changed(std::numeric_limits<unsigned long>::max())
 {}
 
-str::str_info::str_info(str::str_info *copy_from): HashableStored<true>(*copy_from),
+cstr::str_info::str_info(cstr::str_info *copy_from): HashableStored<true>(*copy_from),
     block(new char[copy_from->len + 1]), len(copy_from->len), links(1),
     cell_changed(copy_from->cell_changed)
 {
     _copy(copy_from->block, len + 1, block);
 }
 
-str::str_info::str_info(unsigned long new_len, str_info *copy_from):
+cstr::str_info::str_info(unsigned long new_len, str_info *copy_from):
     HashableStored<true>(*copy_from), block(new char[new_len]),
     len(copy_from->len), links(1), cell_changed(copy_from->cell_changed)
 {
@@ -338,58 +338,58 @@ str::str_info::str_info(unsigned long new_len, str_info *copy_from):
     _fill(block + len, new_len - len);
 }
 
-str::str_info::~str_info()
+cstr::str_info::~str_info()
 {
     delete[] block;
 }
 
-char str::str_info::operator[](unsigned long i) const
+char cstr::str_info::operator[](unsigned long i) const
 {
     ASSERT(i <= len);
     return block[i];
 }
 
-void str::str_info::copy_to_array(char *dst) const
+void cstr::str_info::copy_to_array(char *dst) const
 {
     _copy(block, len, dst); //caller needs to care about null char in the end
 }
 
-void str::str_info::copy_to_array(char *dst, unsigned long from, unsigned long to) const
+void cstr::str_info::copy_to_array(char *dst, unsigned long from, unsigned long to) const
 {
     ASSERT(from < to);
     ASSERT(to <= len);
     _copy(block + from, to - from, dst);
 }
 
-unsigned char str::str_info::cannot_change() const
+unsigned char cstr::str_info::cannot_change() const
 {
     return (links != 1);
 }
 
-void str::str_info::update_hash() const
+void cstr::str_info::update_hash() const
 {
     if(is_changed())
-        set_hash(get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed));
+        set_hash(get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(cstr::hash_mult, cell_changed));
 }
 
-void str::str_info::update_hash(unsigned long cell) const
+void cstr::str_info::update_hash(unsigned long cell) const
 {
     cell_changed = cell;
-    set_hash(get_hash_value() - static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed));
+    set_hash(get_hash_value() - static_cast<uint64_t>(block[cell_changed]) * pow(cstr::hash_mult, cell_changed));
     hash_changed();
 }
 
-uint64_t str::str_info::hash_recalc() const
+uint64_t cstr::str_info::hash_recalc() const
 {
     if(cell_changed < std::numeric_limits<unsigned long>::max())
-        return get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(str::hash_mult, cell_changed);
-    uint64_t hash_v = 0, m = str::hash_mult;
+        return get_hash_value() + static_cast<uint64_t>(block[cell_changed]) * pow(cstr::hash_mult, cell_changed);
+    uint64_t hash_v = 0, m = cstr::hash_mult;
     for(unsigned long i = 0;i < len;i++)
-        hash_v += static_cast<uint64_t>(block[i]) * m, m *= str::hash_mult;
+        hash_v += static_cast<uint64_t>(block[i]) * m, m *= cstr::hash_mult;
     return hash_v;
 }
 
-str::str_info_subs::str_info_subs(str::str_info *parent, unsigned long offset, unsigned long len):
+cstr::str_info_subs::str_info_subs(cstr::str_info *parent, unsigned long offset, unsigned long len):
         str_info(parent->block + offset, len), parent(parent)
 {
     ASSERT(offset + len <= parent->len);
@@ -398,14 +398,14 @@ str::str_info_subs::str_info_subs(str::str_info *parent, unsigned long offset, u
     this->parent->links++;
 }
 
-str::str_info_subs::~str_info_subs()
+cstr::str_info_subs::~str_info_subs()
 {
     block = nullptr;
     if(--parent->links == 0)
         delete parent;
 }
 
-char str::str_info_subs::operator[](unsigned long i) const
+char cstr::str_info_subs::operator[](unsigned long i) const
 {
     ASSERT(i <= len);
     if(i < len)
@@ -413,16 +413,16 @@ char str::str_info_subs::operator[](unsigned long i) const
     return '\0';
 }
 
-unsigned char str::str_info_subs::cannot_change() const
+unsigned char cstr::str_info_subs::cannot_change() const
 {
     return ((links | parent->links) != 1);
 }
 
-str::str_info_cnct_char::str_info_cnct_char(str::str_info *s):
+cstr::str_info_cnct_char::str_info_cnct_char(cstr::str_info *s):
         str_info(s->len + 10, s), size(s->len + 10)
 {}
 
-void str::str_info_cnct_char::operator+=(char c)
+void cstr::str_info_cnct_char::operator+=(char c)
 {
     block[len++] = c;
     if(len == size)
@@ -435,13 +435,13 @@ void str::str_info_cnct_char::operator+=(char c)
         set_hash(get_hash_value() + static_cast<uint64_t>(c) * pow(hash_mult, len));
 }
 
-str::str_info_cnct::str_info_cnct(str::str_info *lpart, str::str_info *rpart):
+cstr::str_info_cnct::str_info_cnct(cstr::str_info *lpart, cstr::str_info *rpart):
         str_info(lpart, lpart->len + rpart->len), rpart(rpart)
 {
     rpart->links++; //lpart->links incremented by str_info constructor
 }
 
-str::str_info_cnct::~str_info_cnct()
+cstr::str_info_cnct::~str_info_cnct()
 {
     if(--lpart->links == 0)
         delete lpart;
@@ -450,20 +450,20 @@ str::str_info_cnct::~str_info_cnct()
     block = nullptr; //for ~str_info to not to try to delete str_info *lpart as char*
 }
 
-char str::str_info_cnct::operator[](unsigned long i) const
+char cstr::str_info_cnct::operator[](unsigned long i) const
 {
     if(i < lpart->len)
         return (*lpart)[i];
     return (*rpart)[i - lpart->len];
 }
 
-void str::str_info_cnct::copy_to_array(char* dst) const
+void cstr::str_info_cnct::copy_to_array(char* dst) const
 {
     lpart->copy_to_array(dst);
     rpart->copy_to_array(dst + lpart->len);
 }
 
-void str::str_info_cnct::copy_to_array(char* dst, unsigned long from, unsigned long to) const
+void cstr::str_info_cnct::copy_to_array(char* dst, unsigned long from, unsigned long to) const
 {
     ASSERT(from < to);
     ASSERT(to <= len);
@@ -478,17 +478,17 @@ void str::str_info_cnct::copy_to_array(char* dst, unsigned long from, unsigned l
         rpart->copy_to_array(dst, from - lpart->len, to - lpart->len);
 }
 
-unsigned char str::str_info_cnct::cannot_change() const
+unsigned char cstr::str_info_cnct::cannot_change() const
 {
     return 1;
 }
 
-uint64_t str::str_info_cnct::hash_recalc() const
+uint64_t cstr::str_info_cnct::hash_recalc() const
 {
-    return lpart->hash() + rpart->hash() * pow(str::hash_mult, lpart->len);
+    return lpart->hash() + rpart->hash() * pow(cstr::hash_mult, lpart->len);
 }
 
-str::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)
+cstr::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)
 {
     const char *s = lpart->block;
     pi = new unsigned long[len];
@@ -503,7 +503,7 @@ str::str_info_pi::str_info_pi(str_info *i): str_info(i, i->len)
     }
 }
 
-str::str_info_pi::~str_info_pi()
+cstr::str_info_pi::~str_info_pi()
 {
     if(--lpart->links == 0)
         delete lpart;
@@ -511,37 +511,37 @@ str::str_info_pi::~str_info_pi()
     delete[] pi;
 }
 
-char str::str_info_pi::operator[](unsigned long i) const
+char cstr::str_info_pi::operator[](unsigned long i) const
 {
     return (*lpart)[i];
 }
 
-void str::str_info_pi::copy_to_array(char* dst) const
+void cstr::str_info_pi::copy_to_array(char* dst) const
 {
     lpart->copy_to_array(dst);
 }
 
-void str::str_info_pi::copy_to_array(char* dst, unsigned long from, unsigned long to) const
+void cstr::str_info_pi::copy_to_array(char* dst, unsigned long from, unsigned long to) const
 {
     lpart->copy_to_array(dst, from, to);
 }
 
-unsigned char str::str_info_pi::cannot_change() const
+unsigned char cstr::str_info_pi::cannot_change() const
 {
     return 2 - lpart->cannot_change() == 0;
 }
 
-uint64_t str::str_info_pi::hash_recalc() const
+uint64_t cstr::str_info_pi::hash_recalc() const
 {
     return lpart->hash();
 }
 
-str::str(): s(empty().block), info(&empty())
+cstr::cstr(): s(empty().block), info(&empty())
 {
     empty().links++;
 }
 
-str::str(bool f): s(new char[6]), info(new str_info(s, 4))
+cstr::cstr(bool f): s(new char[6]), info(new str_info(s, 4))
 {
     if(f)
         s[0] = 't', s[1] = 'r', s[2] = 'u', s[3] = 'e', s[4] = '\0';
@@ -552,14 +552,14 @@ str::str(bool f): s(new char[6]), info(new str_info(s, 4))
     }
 }
 
-str::str(char c): s(new char[2]), info(new str_info(s, 1))
+cstr::cstr(char c): s(new char[2]), info(new str_info(s, 1))
 {
     s[0] = c;
     s[1] = '\0';
 }
 
 template<typename I, typename>
-str::str(I x)
+cstr::cstr(I x)
 {
     if(x)
     {
@@ -585,27 +585,27 @@ str::str(I x)
     }
 }
 
-template str::str<signed char, void>(signed char);
+template cstr::cstr<signed char, void>(signed char);
 
-template str::str<unsigned char, void>(unsigned char);
+template cstr::cstr<unsigned char, void>(unsigned char);
 
-template str::str<short, void>(short);
+template cstr::cstr<short, void>(short);
 
-template str::str<unsigned short, void>(unsigned short);
+template cstr::cstr<unsigned short, void>(unsigned short);
 
-template str::str<int, void>(int);
+template cstr::cstr<int, void>(int);
 
-template str::str<unsigned int, void>(unsigned int);
+template cstr::cstr<unsigned int, void>(unsigned int);
 
-template str::str<long, void>(long);
+template cstr::cstr<long, void>(long);
 
-template str::str<unsigned long, void>(unsigned long);
+template cstr::cstr<unsigned long, void>(unsigned long);
 
-template str::str<long long, void>(long long);
+template cstr::cstr<long long, void>(long long);
 
-template str::str<unsigned long long, void>(unsigned long long);
+template cstr::cstr<unsigned long long, void>(unsigned long long);
 
-str::str(const char *s)
+cstr::cstr(const char *s)
 {
     unsigned len = 0;
     while(s[len++] != '\0');
@@ -613,13 +613,13 @@ str::str(const char *s)
     info = new str_info(this->s, --len);
 }
 
-str::str(const char *s, unsigned long len)
+cstr::cstr(const char *s, unsigned long len)
 {
     this->s = _new_copy(s, len, len + 1);
     info = new str_info(this->s, len);
 }
 
-str::str(no_copy c): s(c.s)
+cstr::cstr(no_copy c): s(c.s)
 {
     unsigned len = 0;
     while(s[len] != '\0')
@@ -628,14 +628,14 @@ str::str(no_copy c): s(c.s)
     info -> links++;    //we not own this resource
 }
 
-str::str(no_copy c, unsigned long len): s(c.s)
+cstr::cstr(no_copy c, unsigned long len): s(c.s)
 {
     ASSERT(s[len] == '\0');
     info = new str_info(s, len);
     info -> links++;    //we not own this resource
 }
 
-str::str(to_own c): s(c.s)
+cstr::cstr(to_own c): s(c.s)
 {
     unsigned len = 0;
     while(s[len] != '\0')
@@ -643,42 +643,42 @@ str::str(to_own c): s(c.s)
     info = new str_info(s, len);
 }
 
-str::str(to_own c, unsigned long len): s(c.s)
+cstr::cstr(to_own c, unsigned long len): s(c.s)
 {
     ASSERT(s[len] == '\0');
     info = new str_info(s, len);
 }
 
-str::str(const std::string& s): str(s.c_str(), static_cast<unsigned long>(s.length()))
+cstr::cstr(const std::string& s): cstr(s.c_str(), static_cast<unsigned long>(s.length()))
 {}
 
-str::str(const str& s): s(s.s), info(s.info)
+cstr::cstr(const cstr& s): s(s.s), info(s.info)
 {
     info->links++;
 }
 
-str::str(std::string&& s): str(s.c_str(), static_cast<unsigned long>(s.length()))
+cstr::cstr(std::string&& s): cstr(s.c_str(), static_cast<unsigned long>(s.length()))
 {
     s.clear();
 }
 
-str::str(str&& s) noexcept: s(s.s), info(s.info)
+cstr::cstr(cstr&& s) noexcept: s(s.s), info(s.info)
 {
     s.s = empty().block;
     s.info = &empty();
     s.info->links++;
 }
 
-str::str(str::str_info *parent, unsigned long from, unsigned long to):
+cstr::cstr(cstr::str_info *parent, unsigned long from, unsigned long to):
         s(parent->block + from), info(new str_info_subs(parent, from, to - from))
 {}
 
-str::~str()
+cstr::~cstr()
 {
     unlink();
 }
 
-str& str::operator=(const str& b)
+cstr& cstr::operator=(const cstr& b)
 {
     if(info != b.info)
     {
@@ -690,7 +690,7 @@ str& str::operator=(const str& b)
     return *this;
 }
 
-str& str::operator=(str &&b) noexcept
+cstr& cstr::operator=(cstr &&b) noexcept
 {
     str_info *tmp = info;
     info = b.info;
@@ -702,7 +702,7 @@ str& str::operator=(str &&b) noexcept
     return *this;
 }
 
-char str::at(unsigned long i) const
+char cstr::at(unsigned long i) const
 {
     ASSERT(i <= info->len);
     if(s)
@@ -710,12 +710,12 @@ char str::at(unsigned long i) const
     return (*static_cast<str_info_cnct*>(info))[i]; // NOLINT (we are sure about info type)
 }
 
-char str::operator[](unsigned long i) const
+char cstr::operator[](unsigned long i) const
 {
     return at(i);
 }
 
-char& str::operator[](unsigned long i)
+char& cstr::operator[](unsigned long i)
 {
     ASSERT(i < info->len);
     prepare_change();
@@ -728,14 +728,14 @@ char& str::operator[](unsigned long i)
     return s[i];
 }
 
-str& str::operator+=(const str &b)
+cstr& cstr::operator+=(const cstr &b)
 {
     s = nullptr;
     info = new str_info_cnct(info, b.info);
     return *this;
 }
 
-str& str::operator+=(char c)
+cstr& cstr::operator+=(char c)
 {
     if(typeid(info) == typeid(str_info_pi*))
     {
@@ -757,7 +757,7 @@ str& str::operator+=(char c)
     return *this;
 }
 
-str& str::operator*=(unsigned times)
+cstr& cstr::operator*=(unsigned times)
 {
     if((times == 1) || (info->len == 0))
         return *this;
@@ -780,44 +780,44 @@ str& str::operator*=(unsigned times)
     return *this;
 }
 
-bool str::operator==(const str &b) const
+bool cstr::operator==(const cstr &b) const
 {
     if(info->len != b.length() || !this->hash_equals(b))
         return false;
     return (cmp_call(b) == 2);
 }
 
-bool str::operator!=(const str &b) const
+bool cstr::operator!=(const cstr &b) const
 {
     return !(*this == b);
 }
 
-bool str::operator<(const str& b) const
+bool cstr::operator<(const cstr& b) const
 {
     return (cmp_call(b) == 0);
 }
 
-bool str::operator<=(const str& b) const
+bool cstr::operator<=(const cstr& b) const
 {
     return (cmp_call(b) != 1);
 }
 
-bool str::operator>(const str& b) const
+bool cstr::operator>(const cstr& b) const
 {
     return (cmp_call(b) == 1);
 }
 
-bool str::operator>=(const str& b) const
+bool cstr::operator>=(const cstr& b) const
 {
     return (cmp_call(b) != 0);
 }
 
-unsigned long str::length() const
+unsigned long cstr::length() const
 {
     return info->len;
 }
 
-const char *str::c_str() const
+const char *cstr::c_str() const
 {
     if((!s) || (s[info->len] != '\0'))
     {
@@ -835,7 +835,7 @@ const char *str::c_str() const
     return s;
 }
 
-str::operator char*() const
+cstr::operator char*() const
 {
     auto *block = new char[info->len + 1];
     info->copy_to_array(block);
@@ -843,30 +843,30 @@ str::operator char*() const
     return block;
 }
 
-str::operator std::string() const
+cstr::operator std::string() const
 {
     return std::string(this->c_str());
 }
 
-str str::copy() const
+cstr cstr::copy() const
 {
     auto *s_new = new char[info->len + 1];
     info->copy_to_array(s_new);
     s_new[info->len] = '\0';
-    return str(to_own(s_new), info->len);
+    return cstr(to_own(s_new), info->len);
 }
 
-str str::invert() const
+cstr cstr::invert() const
 {
     auto *s_inv = new char[info->len + 1];
     for(unsigned i = 0; i < info->len; i++)
         s_inv[i] = s[info->len - i - 1];
     s_inv[info->len] = '\0';
-    return str(to_own(s_inv), info->len);
+    return cstr(to_own(s_inv), info->len);
 }
 
 template<bool copy_sub>
-str str::compact() const
+cstr cstr::compact() const
 {
     if((!s) || (copy_sub && s[info->len] != '\0'))
     {
@@ -880,142 +880,142 @@ str str::compact() const
     return *this;
 }
 
-template str str::compact<false>() const;
+template cstr cstr::compact<false>() const;
 
-template str str::compact<true>() const;
+template cstr cstr::compact<true>() const;
 
-str str::operator()(unsigned long from, unsigned long to) const
+cstr cstr::operator()(unsigned long from, unsigned long to) const
 {
     ASSERT(from <= to);
     ASSERT(to <= info->len);
     if(s)
-        return str(info, from, to);
+        return cstr(info, from, to);
     else
     {
         char *new_array = new char[to - from + 1];
         new_array[to - from] = '\0';
         info->copy_to_array(new_array, from, to);
-        return str(to_own(new_array), to - from);
+        return cstr(to_own(new_array), to - from);
     }
 }
 
-str str::operator()(unsigned long from) const
+cstr cstr::operator()(unsigned long from) const
 {
     return (*this)(from, info->len);
 }
 
-str str::substr(unsigned long from, unsigned long to) const
+cstr cstr::substr(unsigned long from, unsigned long to) const
 {
     return (*this)(from, to);
 }
 
-str str::substr(unsigned long from) const
+cstr cstr::substr(unsigned long from) const
 {
     return (*this)(from);
 }
 
-bool str::startswith(const str& prefix) const
+bool cstr::startswith(const cstr& prefix) const
 {
     if(prefix.length() > length())
         return false;
     return (prefix == substr(0, prefix.length()));
 }
 
-bool str::endswith(const str& suffix) const
+bool cstr::endswith(const cstr& suffix) const
 {
     if(suffix.length() > length())
         return false;
     return (suffix == substr(length() - suffix.length()));
 }
 
-bool str::contains_char(char ch) const
+bool cstr::contains_char(char ch) const
 {
     return count_r_find_char<2>(ch) != not_found;
 }
 
-unsigned long str::count_char(char ch) const
+unsigned long cstr::count_char(char ch) const
 {
     return count_r_find_char<0>(ch);
 }
 
-unsigned long str::rfind_char(char ch, unsigned long to) const
+unsigned long cstr::rfind_char(char ch, unsigned long to) const
 {
     return count_r_find_char<1>(ch, to);
 }
 
-unsigned long str::find_char(char ch, unsigned long from) const
+unsigned long cstr::find_char(char ch, unsigned long from) const
 {
     return count_r_find_char<2>(ch, from);
 }
 
-vect<unsigned long> str::find_all_char(char ch) const
+vect<unsigned long> cstr::find_all_char(char ch) const
 {
     return count_r_find_char<3>(ch);
 }
 
-bool str::contains(const str& o) const
+bool cstr::contains(const cstr& o) const
 {
     return count_r_find<2, false>(o) != not_found;
 }
 
-unsigned long str::count(const str& o) const
+unsigned long cstr::count(const cstr& o) const
 {
     return count_r_find<0, false>(o);
 }
 
-unsigned long str::count_intersect(const str& o) const
+unsigned long cstr::count_intersect(const cstr& o) const
 {
     return count_r_find<0, true>(o);
 }
 
-unsigned long str::rfind(const str& o, unsigned long to) const
+unsigned long cstr::rfind(const cstr& o, unsigned long to) const
 {
     return count_r_find<1, true>(o, to);
 }
 
-unsigned long str::find(const str& o, unsigned long from) const
+unsigned long cstr::find(const cstr& o, unsigned long from) const
 {
     return count_r_find<2, false>(o, from);
 }
 
-vect<unsigned long> str::find_all(const str& o) const
+vect<unsigned long> cstr::find_all(const cstr& o) const
 {
     return count_r_find<3, false>(o);
 }
 
-vect<unsigned long> str::find_all_intersect(const str& o) const
+vect<unsigned long> cstr::find_all_intersect(const cstr& o) const
 {
     return count_r_find<3, true>(o);
 }
 
-str::str_iterable str::split(const str& delim) const
+cstr::str_iterable cstr::split(const cstr& delim) const
 {
     return str_iterable(*this, delim);
 }
 
-str::const_iterator str::begin() const
+cstr::const_iterator cstr::begin() const
 {
     return const_iterator(*this);
 }
 
-str::const_iterator str::end() const
+cstr::const_iterator cstr::end() const
 {
     return const_iterator(*this, length());
 }
 
-void str::unlink() const noexcept
+void cstr::unlink() const noexcept
 {
     if(--info->links == 0)
         delete info;
 }
 
-void str::unlink(str_info *inf) const noexcept
+void cstr::unlink(str_info *inf) const noexcept
 {
     if(--inf->links == 0)
         delete inf;
 }
 
-void str::prepare_change()
+void cstr::prepare_change()
 {
     switch(info->cannot_change())
     {
@@ -1030,12 +1030,12 @@ void str::prepare_change()
     }
 }
 
-uint64_t str::hash() const noexcept
+uint64_t cstr::hash() const noexcept
 {
     return info->hash();
 }
 
-unsigned char str::cmp_call(const str &b) const
+unsigned char cstr::cmp_call(const cstr &b) const
 {
     compact();
     b.compact<true>();
@@ -1044,7 +1044,7 @@ unsigned char str::cmp_call(const str &b) const
 
 template<unsigned char count_r_find_all,
     typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
-RType str::count_r_find_char(char ch, unsigned long from) const
+RType cstr::count_r_find_char(char ch, unsigned long from) const
 {
     CFVT<count_r_find_all> v;
     compact();
@@ -1068,7 +1068,7 @@ RType str::count_r_find_char(char ch, unsigned long from) const
 
 template<unsigned char count_r_find_all, bool intersect,
     typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
-RType str::count_r_find(const str &o, unsigned long from) const
+RType cstr::count_r_find(const cstr &o, unsigned long from) const
 {
     if(o.length() < 2)
     {
@@ -1112,14 +1112,14 @@ RType str::count_r_find(const str &o, unsigned long from) const
     return v.result();
 }
 
-STATIC_VAR_CONSTRUCTOR(str::str_info, str::empty, new char[1](), 0)
+STATIC_VAR_CONSTRUCTOR(cstr::str_info, cstr::empty, new char[1](), 0)
 
-str operator+(str a, const str &b)
+cstr operator+(cstr a, const cstr &b)
 {
     return a += b;
 }
 
-str operator*(str a, unsigned times)
+cstr operator*(cstr a, unsigned times)
 {
     return a *= times;
 }
@@ -1131,7 +1131,7 @@ bool check_eof()
     return eof;
 }
 
-str read_str()
+cstr read_cstr()
 {
     vect<char> s(101);
     int c;
@@ -1141,10 +1141,10 @@ str read_str()
     if(c == -1)
         eof = true;
     s[i] = '\0';
-    return str(s.toArray(), i);
+    return cstr(s.toArray(), i);
 }
 
-std::ostream &operator<<(std::ostream &o, const str &s)
+std::ostream &operator<<(std::ostream &o, const cstr &s)
 {
     return o << s.c_str();
 }

@@ -2,6 +2,6 @@
 
 #define DEBUG
 
-#include "../string/str.h"
+#include "../string/cstr.h"
 
-bool run_test(str test_name, str subtest_mask = "*");
+bool run_test(cstr test_name, cstr subtest_mask = "*");

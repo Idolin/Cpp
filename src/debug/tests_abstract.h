@@ -4,7 +4,7 @@
 #include "../other/term.h"
 #include "../container/vector.hpp"
 #include "def_debug.h"
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../flow_processing/welford.hpp"
 
 #include <exception>
@@ -27,7 +27,7 @@ namespace test_namespace
         process_time_counter counter;
         welford<VARIANCE> time_measurement;
         bool test_ok, exception_expected, exception_occured, first_run;
-        str test_info_str;
+        cstr test_info_str;
         vect<_test_class_abstract*> subtests;
 
         explicit _test_class_abstract(const char *test_name, unsigned show_level=1);
@@ -79,7 +79,7 @@ namespace test_namespace
 
         ~_test_pack_class();
 
-        bool test(str mask);
+        bool test(cstr mask);
         
         void print_failed() const;
     };

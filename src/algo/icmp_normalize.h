@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../ImageMagick-7/Magick++.h"
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../template/arraymethods.hpp"
 
 const Magick::Geometry image_geometry = Magick::Geometry("64x64!");

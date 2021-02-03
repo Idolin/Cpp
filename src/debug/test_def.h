@@ -5,7 +5,7 @@
 #include "tests_abstract.h"
 #include "../other/defdef.h"
 #include "def_debug.h"
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../template/t_useful.hpp"
 
 #include <cmath>
@@ -24,7 +24,7 @@ static vect<test_namespace::_test_class_abstract *> *test_classes_main_sequence;
 
 namespace test_namespace
 {
-    struct comma_split_iterator: public std::iterator<std::input_iterator_tag, str>
+    struct comma_split_iterator: public std::iterator<std::input_iterator_tag, cstr>
     {
         private:
             const char *s;
@@ -49,7 +49,7 @@ namespace test_namespace
 
             comma_split_iterator operator++(int);
 
-            str operator*() const;
+            cstr operator*() const;
             
             operator bool() const;
             
@@ -214,7 +214,7 @@ namespace test_namespace
 #define WITH_VALUES(_value_type_, _value_name_, ...) \
     for(test_namespace::comma_split_iterator _test_iterate_value = test_namespace::comma_split_iterator(QUOTE(__VA_ARGS__)); _test_iterate_value;) \
         for(_value_type_ _value_name_ : std::initializer_list<_value_type_>{  __VA_ARGS__ }) \
-            SUBTEST_CSTR_NAME(_this_test_ptr->test_name, TEST_INFO_STR(str("with " #_value_type_ " " #_value_name_ " = ") + *_test_iterate_value++))
+            SUBTEST_CSTR_NAME(_this_test_ptr->test_name, TEST_INFO_STR(cstr("with " #_value_type_ " " #_value_name_ " = ") + *_test_iterate_value++))
 
 #define _EXPECT_TRUE(a, ...) \
     { \

@@ -2,7 +2,7 @@
 
 #include "../debug/def_debug.h"
 
-PAMImageWriter::keep_exact::keep_exact(const str &s): filename(s)
+PAMImageWriter::keep_exact::keep_exact(const cstr &s): filename(s)
 {}
 
 PAMImageWriter::PAMImageWriter(const keep_exact &filename, unsigned width, unsigned height, colors mode, unsigned short max_value, bool binary):
@@ -15,20 +15,20 @@ PAMImageWriter::PAMImageWriter(const keep_exact &filename, unsigned width, unsig
 }
 
 
-PAMImageWriter::PAMImageWriter(const str &filename, unsigned width, unsigned height, colors mode, unsigned short max_value, bool binary):
+PAMImageWriter::PAMImageWriter(const cstr &filename, unsigned width, unsigned height, colors mode, unsigned short max_value, bool binary):
     PAMImageWriter(keep_exact(filename), width, height, mode, max_value, binary)
 {
-    str ext = str('.') + get_format_extension();
+    cstr ext = cstr('.') + get_format_extension();
     if(!this->filename.endswith(ext))
         this->filename += ext;
 }
 
-void PAMImageWriter::set_comment(const str &comment)
+void PAMImageWriter::set_comment(const cstr &comment)
 {
     this->comment = comment;
 }
 
-void PAMImageWriter::add_comment(const str &comment)
+void PAMImageWriter::add_comment(const cstr &comment)
 {
     if(this->comment.length() > 0)
         this->comment += '\n';
@@ -62,12 +62,12 @@ void PAMImageWriter::write_bits(unsigned char *data)
     fclose(out);
 }
 
-const str& PAMImageWriter::get_filename() const
+const cstr& PAMImageWriter::get_filename() const
 {
     return filename;
 }
 
-str PAMImageWriter::get_format_extension() const
+cstr PAMImageWriter::get_format_extension() const
 {
     return mode == colors::WHITE_AND_BLACK ? ".pbm" : (mode == colors::GRAYSCALE ? ".pgm" : ".ppm");
 }
@@ -78,7 +78,7 @@ void PAMImageWriter::write_header()
     ASSERT(out != NULL, "Can't write to file: %s", filename.c_str());
     fprintf(out, "P%d\n", mode + (binary ? 3 : 0));
     if(comment)
-        for(str comment_line : comment.split())
+        for(cstr comment_line : comment.split())
             fprintf(out, "#%s\n", comment_line.c_str());
     fprintf(out, "%u %u\n", width, height);
     if(mode != colors::WHITE_AND_BLACK)

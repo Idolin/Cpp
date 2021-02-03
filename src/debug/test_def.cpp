@@ -64,11 +64,11 @@ namespace test_namespace
         return copy;
     }
 
-    str comma_split_iterator::operator*() const
+    cstr comma_split_iterator::operator*() const
     {
         if(next == 0)
             get_next();
-        return str(s).substr(0, next);
+        return cstr(s).substr(0, next);
     }
     
     comma_split_iterator::operator bool() const

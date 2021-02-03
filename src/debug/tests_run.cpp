@@ -4,7 +4,7 @@
 #include "tests_abstract.h"
 #include "tests_run.h"
 
-bool run_test(str test_pack_mask, str test_mask)
+bool run_test(cstr test_pack_mask, cstr test_mask)
 {
     bool run_ok = true;
     unsigned run_test_packs = 0;

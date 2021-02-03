@@ -1,6 +1,6 @@
 #pragma once
 
-#include "str.h"
+#include "cstr.h"
 
 inline unsigned getPeriod(const unsigned *const pi, unsigned len)
 {

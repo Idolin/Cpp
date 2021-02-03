@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../string/str.h"
+#include "../string/cstr.h"
 #include "../template/typemethods.hpp"
 
 #include <type_traits>
@@ -98,7 +98,7 @@ struct serialized
         return *this;
     }
 
-    void read(str file, size_t offset = 0, size_t size = to_end)
+    void read(cstr file, size_t offset = 0, size_t size = to_end)
     {
         FILE *f = fopen(file.c_str(), "rb");
         buffer_length = size;
