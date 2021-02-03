@@ -536,9 +536,17 @@ uint64_t cstr::str_info_pi::hash_recalc() const
     return lpart->hash();
 }
 
-cstr::cstr(): s(empty().block), info(&empty())
+cstr::str_info_empty_make_block_nullptr_at_exit::~str_info_empty_make_block_nullptr_at_exit()
 {
-    empty().links++;
+    empty_str_info.block = nullptr;
+}
+
+cstr::str_info cstr::empty = str_info();
+cstr::str_info_empty_make_block_nullptr_at_exit cstr::called_before_empty_destructor {cstr::empty};
+
+cstr::cstr(): s(empty.block), info(&empty)
+{
+    empty.links++;
 }
 
 cstr::cstr(bool f): s(new char[6]), info(new str_info(s, 4))
@@ -664,8 +672,8 @@ cstr::cstr(std::string&& s): cstr(s.c_str(), static_cast<unsigned long>(s.length
 
 cstr::cstr(cstr&& s) noexcept: s(s.s), info(s.info)
 {
-    s.s = empty().block;
-    s.info = &empty();
+    s.s = empty.block;
+    s.info = &empty;
     s.info->links++;
 }
 
@@ -695,8 +703,8 @@ cstr& cstr::operator=(cstr &&b) noexcept
     str_info *tmp = info;
     info = b.info;
     s = b.s;
-    b.info = &empty();
-    b.s = empty().block;
+    b.info = &empty;
+    b.s = empty.block;
     b.info->links++;
     unlink(tmp);
     return *this;
@@ -763,9 +771,9 @@ cstr& cstr::operator*=(unsigned times)
         return *this;
     if(times == 0)
     {
-        s = empty().block;
+        s = empty.block;
         unlink();
-        info = &empty();
+        info = &empty;
         info->links++;
         return *this;
     }
@@ -1112,7 +1120,7 @@ RType cstr::count_r_find(const cstr &o, unsigned long from) const
     return v.result();
 }
 
-STATIC_VAR_CONSTRUCTOR(cstr::str_info, cstr::empty, new char[1](), 0)
+//STATIC_VAR_CONSTRUCTOR(cstr::str_info, cstr::empty, new char[1](), 0)
 
 cstr operator+(cstr a, const cstr &b)
 {
