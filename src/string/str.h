@@ -320,7 +320,7 @@ struct str::str_iterable
     {
         friend struct str;
     private:
-        const str &s, &f;
+        const str s, f;
         unsigned long now_index, next_index;
 
         str_iterator();
