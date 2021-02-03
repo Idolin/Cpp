@@ -17,3 +17,12 @@ add_custom_command(TARGET icmp_diff
         
 add_executable(pictures pictures.cpp)
 target_link_libraries(pictures pam_writer_lib str_lib debug_lib rand_lib)
+
+add_executable(pic_dvt pic_deviation.cpp)
+target_link_libraries(pic_dvt -lMagick++-7.Q16HDRI -lMagickWand-7.Q16HDRI -lMagickCore-7.Q16HDRI)
+target_compile_options(pic_dvt PRIVATE -O2 -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16)
+target_include_directories(pic_dvt PRIVATE /usr/include/ImageMagick-7 /usr/include/ImageMagick-7/Magick++)
+
+add_custom_command(TARGET pic_dvt
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pic_dvt> $ENV{HOME}/Documents/Programming/C++/functions/pic_dvt)
