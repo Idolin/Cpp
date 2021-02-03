@@ -311,9 +311,9 @@ namespace test_namespace
                 {
                     fputc('.', DEBUG_OUTPUT_STREAM);
                     fflush(DEBUG_OUTPUT_STREAM);
-                    if(t >= 2000)
+                    if(t >= 500)
                         flag = false;
-                    t += 200;
+                    t += 50;
                 }
             }
             fputs("\n\n", DEBUG_OUTPUT_STREAM);
