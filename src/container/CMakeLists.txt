@@ -24,10 +24,4 @@ add_test(queue_test queue.test.cpp)
 list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/queue.test.cpp)
 
 
-add_library(bit_array_lib STATIC bit_array.cpp)
-
-add_test(bit_array_test bit_array.test.cpp)
-list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/bit_array.test.cpp)
-
-
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
