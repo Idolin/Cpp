@@ -50,7 +50,7 @@ struct HashableStored: Hashable
 {};
 
 template<bool lazy=true>
-struct NoHashableStrored: protected AnyHashable
+struct NoHashableStored: protected AnyHashable
 {
     bool is_changed() const
     {
@@ -143,7 +143,7 @@ public:
 };
 
 template<bool lazy=true, bool enabled=true>
-using HashableStoredConditional = typename std::conditional<enabled, HashableStored<lazy>, NoHashableStrored<lazy>>::type;
+using HashableStoredConditional = typename std::conditional<enabled, HashableStored<lazy>, NoHashableStored<lazy>>::type;
 
 template<typename T>
 constexpr typename std::enable_if<std::is_integral<T>::value || 
