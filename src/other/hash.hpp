@@ -74,10 +74,10 @@ private:
     mutable uint64_t hash_value;
     mutable bool changed;
 public:
-    HashableStored(uint64_t hash_value): hash_value(hash_value), changed(false)
+    constexpr HashableStored(uint64_t hash_value) noexcept: hash_value(hash_value), changed(false)
     {}
 
-    HashableStored(): changed(true)
+    constexpr HashableStored() noexcept: hash_value(0), changed(true)
     {}
 
     HashableStored(const HashableStored& otr): hash_value(otr.hash_value), changed(otr.changed)
@@ -121,7 +121,7 @@ struct HashableStored<false>: Hashable
 private:
     mutable uint64_t hash_value;
 public:
-    HashableStored(uint64_t hash_value = 0): hash_value(hash_value)
+    constexpr HashableStored(uint64_t hash_value = 0) noexcept: hash_value(hash_value)
     {}
 
 protected:
