@@ -39,10 +39,10 @@ static void update_linef(const char *format, ...)
 using namespace Magick;
 using namespace std::chrono_literals;
 
-bool is_picture(const str &name)
+bool is_picture(const cstr &name)
 {
-    static const str extensions[] = {".jpeg", ".jpg", ".png", ".bmp", ".xmp", ".svg", ".gif", ".xcf"};
-    for(const str& ext : extensions)
+    static const cstr extensions[] = {".jpeg", ".jpg", ".png", ".bmp", ".xmp", ".svg", ".gif", ".xcf"};
+    for(const cstr& ext : extensions)
         if(name.endswith(ext))
             return true;
     return false;
@@ -50,10 +50,10 @@ bool is_picture(const str &name)
 
 struct picture
 {
-    str path, name, inode;
+    cstr path, name, inode;
 };
 
-unsigned char file_type(const str &name, ino_t &inode)  //0 - not exists, 1 - regular file, 2 - directory, 3 - something else
+unsigned char file_type(const cstr &name, ino_t &inode)  //0 - not exists, 1 - regular file, 2 - directory, 3 - something else
 {
     struct stat buffer; //NOLINT (will be initialized in stat)
     if(stat(name.c_str(), &buffer))
@@ -70,27 +70,27 @@ unsigned char file_type(const str &name, ino_t &inode)  //0 - not exists, 1 - re
     }
 }
 
-inline unsigned char file_type(const str &name)
+inline unsigned char file_type(const cstr &name)
 {
     ino_t ignored;
     return file_type(name, ignored);
 }
 
-bool is_program(const str &name)
+bool is_program(const cstr &name)
 {
-    if(name.find(" ") != str::not_found)
+    if(name.find(" ") != cstr::not_found)
         return false;
-    str no_output_compose = str("hash ") + name + " &>/dev/null";
+    cstr no_output_compose = cstr("hash ") + name + " &>/dev/null";
     return (system(no_output_compose.c_str()) == 0);
 }
 
-vect<std::tuple<str, str, unsigned char>> to_show;
+vect<std::tuple<cstr, cstr, unsigned char>> to_show;
 std::mutex show_lock;
 std::condition_variable show_cond;
 std::atomic<std::size_t> elements_amount {0};
 bool show_diff = false;
 
-str tmp_dir = "/tmp/diff/", ext = ".pgm", fs_del = "/", dot = ".", application = "";
+cstr tmp_dir = "/tmp/diff/", ext = ".pgm", fs_del = "/", dot = ".", application = "";
 
 void* pictures_show(void*)
 {
@@ -105,7 +105,7 @@ void* pictures_show(void*)
             while(i == to_show.size())
                 show_cond.wait(s_lock);
         }
-        std::tuple<str, str, double> e = to_show[i++];
+        std::tuple<cstr, cstr, double> e = to_show[i++];
         if(std::get<0>(e).length() == 0)
             break;
         if(file_type(std::get<0>(e), ignore) == 0 || file_type(std::get<1>(e), ignore) == 0)
@@ -127,16 +127,16 @@ void* pictures_show(void*)
         pid_t notification = fork();
         if(notification == 0)
         {
-            str diff_msg = std::get<2>(e) == 101 ? str("=") : str("~");
+            cstr diff_msg = std::get<2>(e) == 101 ? cstr("=") : cstr("~");
             auto diff_value = _min(std::get<2>(e), 100);
-            str message = std::get<0>(e);
+            cstr message = std::get<0>(e);
             message += " ";
             message += diff_msg + "=(";
-            message += str(diff_value);
+            message += cstr(diff_value);
             message += "%)=";
             message += diff_msg + " ";
             message += std::get<1>(e);
-            diff_msg = str(diff_value) + "% (" + str(i) + "/" + str(elements_amount.load()) + ")";
+            diff_msg = cstr(diff_value) + "% (" + cstr(i) + "/" + cstr(elements_amount.load()) + ")";
             close(1);
             close(2);
             execlp("notify-send", "notification", diff_msg.c_str(), message.c_str(), NULL);
@@ -163,7 +163,7 @@ void* pictures_show(void*)
             {
                 close(1);
                 close(2);
-                execlp("gwenview", "diff", str(tmp_dir + str("1d2.bmp")).c_str(), NULL);
+                execlp("gwenview", "diff", cstr(tmp_dir + cstr("1d2.bmp")).c_str(), NULL);
             }
         }
         while(true)
@@ -197,22 +197,21 @@ void* pictures_show(void*)
     return nullptr;
 }
 
-double get_coeff(str file_name)
+double get_coeff(cstr file_name)
 {
     FILE *img = fopen(file_name.c_str(), "rb");
     ASSERT(img != nullptr, "Can't read from file: %s", file_name.c_str());
     char buffer[100]{};
+    double res = -1;
     size_t r = fread(&buffer, 100, 1, img);
-    if(!c_str_equals(buffer, "P5\n#Coefficient:", 16))
-        return -1;
-    for(int i = 16;i < 90;i++)
-        if(buffer[i] == '\n')
-            goto get_result;
-    return -1;
-    get_result:
-    double res;
-    if(!sscanf(buffer + 16, "%lf", &res))
-        res = -1;
+    if((r == 1) && c_str_equals(buffer, "P5\n#Coefficient:", 16))
+        for(int i = 16;i < 90;i++)
+            if(buffer[i] == '\n')
+            {
+                if(!sscanf(buffer + 16, "%lf", &res))
+                    res = -1;
+                break;
+            }
     fclose(img);
     return res;
 }
@@ -226,11 +225,11 @@ int main(int argc, char **argv)
     unsigned i, range_i = 0;
     unsigned char threads_amount = 4;
     double sensibility = 25.0;
-    vect<std::pair<str, bool>> dirs_and_files;
+    vect<std::pair<cstr, bool>> dirs_and_files;
     bool unique = false, file_arguments = false, clear_cache = false, all_ok = true, show_in_background = false;
     bool symmetry_h = false, symmetry_v = false, symmetry;
-    bool show_on = true;
-    for(str application_try : {"eog", "gwenview", "feh"})
+    bool show_on = true, readable_format = false;
+    for(const cstr &application_try : {"eog", "gwenview", "feh"})
         if(is_program(application_try))
         {
             application = application_try;
@@ -240,7 +239,16 @@ int main(int argc, char **argv)
         if(file_arguments || argv[i][0] != '-')
         {
             file_arguments = true;
-            dirs_and_files.push(std::make_pair(str(argv[i]), false));
+            cstr filepath = cstr(argv[i]);
+            unsigned cut_to = filepath.length();
+            while(cut_to > 0)
+                if(filepath[--cut_to] != '/')
+                {
+                    cut_to++;
+                    break;
+                }
+            filepath = filepath.substr(0, cut_to);
+            dirs_and_files.push(std::make_pair(filepath, false));
         }
         else
         {
@@ -248,6 +256,8 @@ int main(int argc, char **argv)
                 unique = true;
             elif(c_str_equals(argv[i], "-N") || c_str_equals(argv[i], "--not-show"))
                 show_on = false;
+            elif(c_str_equals(argv[i], "-1") || c_str_equals(argv[i], "--readable"))
+                readable_format = true;
             elif(c_str_equals(argv[i], "-d") || c_str_equals(argv[i], "--diff"))
                 show_diff = true, show_on = true;
             elif(c_str_equals(argv[i], "-c") || c_str_equals(argv[i], "--clear-cache"))
@@ -257,7 +267,7 @@ int main(int argc, char **argv)
                 if(++i == argc)
                     fprintf(stderr, "Expected path to directory after %s option, but no argument followed\n", argv[i - 1]), all_ok = false;
                 else
-                    tmp_dir = str(argv[i]) + "/";
+                    tmp_dir = cstr(argv[i]) + "/";
                 if(all_ok && file_type(tmp_dir) != 2)
                     fprintf(stderr, "No such directory: %s\n", tmp_dir.c_str()), all_ok = false;
                 if(all_ok && (access(tmp_dir.c_str(), R_OK  | W_OK)))
@@ -291,16 +301,17 @@ int main(int argc, char **argv)
                 file_arguments = true;
             elif(c_str_equals(argv[i], "-h") || c_str_equals(argv[i], "--help"))
             {
-                printf("icmp - program for comparing images[TODO:FDFT,NTT?]\n"
-                       "\tUsage:\n"
+                printf("icmp - program for comparing images\n" // [TODO:FDFT,NTT?]
+                       "Usage:\n"
                        "\ticmp [options] [--] (file1|dir1) [file2|dir2] ... [fileN|dirN]\n"
-                       "\tOptions:\\n\\\n"
+                       "Options:\\n\\\n"
                        "\t-h or --help: show this help and exit\n"
                        "\t-u or --unique: assume what every given directory contain only unique images\n"
                        "\t-s or --sensibility <float>: count two pictures different if they similarity more than given number percents[25 by default]\n"
                        "\t-a or --app <program_name>: choose a program for showing pictures\n"
                        "\t-d or --diff: show difference between pictures\n"
                        "\t-N or --not-show: don't show pictures\n"
+                       "\t-1 or --readable: print info on console in readable format ({filename, diff percent, filename} divided by newline)\n"
                        "\t-n or --no-wait: don't wait for showing process, exit immediately after comparison\n"
                        "\t-t or --tmp <dir>: choose tmp directory(/tmp/diff for default)\n"
                        "\t-c or --clear-cache: clear converted pictures cache at exit\n"
@@ -323,7 +334,7 @@ int main(int argc, char **argv)
     if(clear_cache || method_efficiency)
     {
         if(tmp_dir.startswith("/tmp/"))
-            system(str("rm -rf ") + tmp_dir);
+            system(cstr("rm -rf ") + tmp_dir);
         else
             fprintf(stderr, "Can remove cache only placed in /tmp directory\n");
     }
@@ -331,7 +342,7 @@ int main(int argc, char **argv)
         unique = false, show_on = false, dirs_and_files.clear(), dirs_and_files.push(std::make_pair("/home/cynder/Изображения/pic8/ICMPTests/TestDir", false));
     vect<picture> files;
     unsigned *unique_ranges = unique ? new unsigned[dirs_and_files.size()] : nullptr;
-    for(std::pair<str, bool>& f : dirs_and_files)
+    for(std::pair<cstr, bool>& f : dirs_and_files)
     {
         ino_t inode;
         unsigned char type = file_type(f.first, inode);
@@ -345,16 +356,19 @@ int main(int argc, char **argv)
             fprintf(stderr, "File doesn't seems to be a picture: %s\n", f.first.c_str()), all_ok = false;
         elif(all_ok)
         {
-            files.push(picture{f.first, f.first.substr(f.first.rfind(fs_del) + 1), str(inode)});
+            files.push(picture{f.first, f.first.substr(f.first.rfind(fs_del) + 1), cstr(inode)});
             if(unique)
                 unique_ranges[range_i++] = static_cast<unsigned>(files.size());
         }
     }
     if(!all_ok)
-        return 1;
-    for(const std::pair<str, bool>& f : dirs_and_files)
     {
-        if(f.second && all_ok)
+        delete[] unique_ranges;
+        return 1;
+    }
+    for(const std::pair<cstr, bool>& f : dirs_and_files)
+    {
+        if(f.second)
         {
             bool contain_pictures = false;
             ino_t inode;
@@ -364,9 +378,9 @@ int main(int argc, char **argv)
             {
                 while((ent = readdir(dir)) != nullptr)
                 {
-                    str full_path = f.first + "/" + ent->d_name;
+                    cstr full_path = f.first + fs_del + ent->d_name;
                     if(file_type(full_path, inode) == 1 && is_picture(ent->d_name))
-                        files.push(picture{full_path, str(ent->d_name), str(inode)}), contain_pictures = true;
+                        files.push(picture{full_path, cstr(ent->d_name), cstr(inode)}), contain_pictures = true;
                 }
                 closedir(dir);
                 if(unique)
@@ -376,17 +390,21 @@ int main(int argc, char **argv)
             {
                 fprintf(stderr, "Can't open directory: %s\n", f.first.c_str());
                 all_ok = false;
-                continue;
+                break;
             }
             if(!contain_pictures)
             {
                 fprintf(stderr, "No pictures found in the directory: %s\n", f.first.c_str());
                 all_ok = false;
+                break;
             }
         }
     }
     if(!all_ok)
+    {
+        delete[] unique_ranges;
         return 1;
+    }
     unsigned long long comparisons = 0;
     if(unique)
         for(i = 1;i < range_i;i++)
@@ -395,10 +413,12 @@ int main(int argc, char **argv)
         comparisons = static_cast<unsigned long long>(files.size()) * (files.size() - 1) >> 1u;
     if(comparisons == 0)
     {
+        delete[] unique_ranges;
         fprintf(stderr, "Nothing to compare\n");
         return 1;
     }
-    printf("Comparisons: %llu\n", comparisons);
+    if(!readable_format)
+        printf("Comparisons: %llu\n", comparisons);
     if(file_type(tmp_dir) == 0)
         mkdir(tmp_dir.c_str(), 0777);
     unsigned wh = 64;
@@ -413,7 +433,8 @@ int main(int argc, char **argv)
     unsigned converted = 0;
     for(unsigned file_i = 0; file_i < files.size(); file_i++)
     {
-        update_linef("Converting: %u/%lu", converted++, files.size());
+        if(!readable_format)
+            update_linef("Converting: %u/%lu", converted++, files.size());
         if(file_type(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext) &&
            ((coeff[file_i] = get_coeff(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext)) >= 0))
             continue;
@@ -421,13 +442,15 @@ int main(int argc, char **argv)
         {
             coeff[file_i] = image_convert_diff(files[file_i].path.c_str(), pixels_diff);
             PAMImageWriter writer(PAMImageWriter::keep_exact(tmp_dir + files[file_i].name + dot + files[file_i].inode + ext), wh, wh);
-            writer.set_comment(str("Coefficient:") + std::to_string(coeff[file_i]));
+            writer.set_comment(cstr("Coefficient:") + std::to_string(coeff[file_i]));
             writer.write(pixels_diff);
         }
         catch(std::exception &exception)
         {
-            update_linef("Exception occurred while processing following image: %s\nImage will be ignored\n", files[file_i].path.c_str());
-            printf("what(): %s\n", exception.what());
+            if(!readable_format)
+                update_linef("");
+            fprintf(stderr, "Exception occurred while processing following image: %s\nImage will be ignored\n", files[file_i].path.c_str());
+            fprintf(stderr, "what(): %s\n", exception.what());
             files[file_i].path = "";
             continue;
         }
@@ -442,18 +465,21 @@ int main(int argc, char **argv)
 //        coeff2[file_i] = coeff[file_i];
 //#endif
     }
-    update_linef("Converted    ");
-    unsigned cc = 1;
-    while(cc <= files.size())
+    if(!readable_format)
     {
-        printf("  ");
-        unsigned tmp_cc = cc * 10;
-        if(tmp_cc < cc)
-            break;
-        cc = tmp_cc;
+        update_linef("Converted    ");
+        unsigned cc = 1;
+        while(cc <= files.size())
+        {
+            printf("  ");
+            unsigned tmp_cc = cc * 10;
+            if(tmp_cc < cc)
+                break;
+            cc = tmp_cc;
+        }
+        putchar('\n');
+        fflush(stdout);
     }
-    putchar('\n');
-    fflush(stdout);
     delete[] pixels;
     delete[] pixels_diff;
     pthread_t show = 0;
@@ -505,7 +531,8 @@ int main(int argc, char **argv)
         }
         for(unsigned k = compare_from;k < files.size();k++)
         {
-            update_linef("Comparing: %llu%% (%llu/%llu)", compared * 100 / comparisons, compared, comparisons);
+            if(!readable_format)
+                update_linef("Comparing: %llu%% (%llu/%llu)", compared * 100 / comparisons, compared, comparisons);
             compared++;
             if(!file_type(files[k].path))
                 continue;
@@ -589,21 +616,27 @@ int main(int argc, char **argv)
                     }
                 }
                 else
-                    printf("\r%s %s=(%hhu%%)=%s %s                  \n", files[i].path.c_str(), diff == 0 ? "=" : "~", p_diff,
+                {
+                    if(readable_format)
+                        printf("%s\n%hhu\n%s\n", files[i].path.c_str(), p_diff, files[k].path.c_str());
+                    else
+                        printf("\r%s %s=(%hhu%%)=%s %s                  \n", files[i].path.c_str(), diff == 0 ? "=" : "~", p_diff,
                            diff == 0 ? "=" : "~", files[k].path.c_str());
+                }
                 fflush(stdout);
                 if(show_on)
                 {
                     std::unique_lock<std::mutex> s_lock(show_lock);
                     elements_amount++;
-                    to_show.push(std::tuple<str, str, unsigned char>(files[i].path, files[k].path, diff == 0 ? 101 : p_diff));
+                    to_show.push(std::tuple<cstr, cstr, unsigned char>(files[i].path, files[k].path, diff == 0 ? 101 : p_diff));
                     s_lock.unlock();
                     show_cond.notify_one();
                 }
             }
         }
     }
-    update_linef("Compared (%llu comparisons)                 \n", compared);
+    if(!readable_format)
+        update_linef("Compared (%llu comparisons)                 \n", compared);
     delete[] coeff;
     delete[] unique_ranges;
     if(method_efficiency)
@@ -625,11 +658,12 @@ int main(int argc, char **argv)
     if(show_on)
     {
         std::unique_lock<std::mutex> s_lock(show_lock);
-        to_show.push(std::make_tuple(str(), str(), 0));
+        to_show.push(std::make_tuple(cstr(), cstr(), 0));
         s_lock.unlock();
         show_cond.notify_one();
     }
-    printf("Comparison process ended\n");
+    if(!readable_format)
+        printf("Comparison process ended\n");
     if(show_on)
     {
         if(show_in_background)
