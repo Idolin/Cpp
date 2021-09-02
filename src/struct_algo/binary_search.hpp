@@ -1,10 +1,12 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
 
 #include "../debug/def_debug.h"
+#include "../template/commonmethods.hpp"
 #include "../template/type_tags.hpp"
 #include "../template/typemethods.hpp"
 

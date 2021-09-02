@@ -5,6 +5,7 @@
 #include "type_tags.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <type_traits>
 
 template<typename T, typename = typename def_get_by_value<T>::type>
