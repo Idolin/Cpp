@@ -27,7 +27,7 @@ big_integer_exception::big_integer_exception(const std::string &s)
     message = s;
 }
 
-const char *big_integer_exception::what() const throw()
+const char* big_integer_exception::what() const throw()
 {
     return message.c_str();
 }
@@ -53,12 +53,12 @@ big_integer::big_integer_container::~big_integer_container()
     delete[] number;
 }
 
-uint32_t &big_integer::big_integer_container::operator[](int index)
+uint32_t& big_integer::big_integer_container::operator[](int index)
 {
     return number[index];
 }
 
-const uint32_t &big_integer::big_integer_container::operator[](int index) const
+const uint32_t& big_integer::big_integer_container::operator[](int index) const
 {
     return number[index];
 }
@@ -119,7 +119,7 @@ void big_integer::big_integer_container::clear()
     _fill(number, size);
 }
 
-void big_integer::big_integer_container::resize(unsigned int new_size)
+void big_integer::big_integer_container::resize(unsigned new_size)
 {
     if(new_size == size)
         return;
@@ -131,7 +131,7 @@ void big_integer::big_integer_container::resize(unsigned int new_size)
     size = new_size;
 }
 
-void big_integer::big_integer_container::ensure_capacity(unsigned int capacity)
+void big_integer::big_integer_container::ensure_capacity(unsigned capacity)
 {
     if(capacity > size)
         resize(capacity);
@@ -268,20 +268,15 @@ string big_integer::to_string() const
     {
         int64_t l = a.div_uint(1000000000);
         l = (l < 0) ? -l : l;
-        if(l)
+        while(zeroCount-- > 0)
+            s = '0' + s;
+        zeroCount = 9;
+        while(l)
         {
-            while(zeroCount-- > 0)
-                s = '0' + s;
-            zeroCount = 9;
-            while(l)
-            {
-                zeroCount--;
-                s = (char) (l % 10 + '0') + s;
-                l /= 10;
-            }
+            zeroCount--;
+            s = (char) (l % 10 + '0') + s;
+            l /= 10;
         }
-        else
-            zeroCount += 9;
     }
     if(_number.get_sign() < 0)
         return "-" + s;
@@ -289,7 +284,7 @@ string big_integer::to_string() const
         return s;
 }
 
-uint32_t &big_integer::operator[](int index)
+uint32_t& big_integer::operator[](int index)
 {
     return _number[index];
 }
@@ -301,35 +296,35 @@ uint32_t big_integer::operator[](int index) const
 
 bool big_integer::operator==(const big_integer &b) const
 {
-    return (_comp(*this, b) == 0);
+    return (_comp(b) == 0);
 }
 
 bool big_integer::operator!=(const big_integer &b) const
 {
-    return (_comp(*this, b) != 0);
+    return (_comp(b) != 0);
 }
 
 bool big_integer::operator<(const big_integer &b) const
 {
-    return (_comp(*this, b) < 0);
+    return (_comp(b) < 0);
 }
 
 bool big_integer::operator>(const big_integer &b) const
 {
-    return (_comp(*this, b) > 0);
+    return (_comp(b) > 0);
 }
 
 bool big_integer::operator<=(const big_integer &b) const
 {
-    return (_comp(*this, b) <= 0);
+    return (_comp(b) <= 0);
 }
 
 bool big_integer::operator>=(const big_integer &b) const
 {
-    return (_comp(*this, b) >= 0);
+    return (_comp(b) >= 0);
 }
 
-big_integer &big_integer::operator>>=(int k)
+big_integer& big_integer::operator>>=(int k)
 {
     if(k < 0)
         return (*this <<= -k);
@@ -359,7 +354,7 @@ big_integer &big_integer::operator>>=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator<<=(int k)
+big_integer& big_integer::operator<<=(int k)
 {
     if(k < 0)
         return (*this >>= -k);
@@ -385,7 +380,7 @@ big_integer &big_integer::operator<<=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator&=(const big_integer &b)
+big_integer& big_integer::operator&=(const big_integer &b)
 {
     if(this->_number.get_sign() == 0)
         return *this;
@@ -456,7 +451,7 @@ big_integer &big_integer::operator&=(const big_integer &b)
     return *this;
 }
 
-big_integer &big_integer::operator|=(const big_integer &b)
+big_integer& big_integer::operator|=(const big_integer &b)
 {
     if(this->_number.get_sign() == 0)
         return (*this = b);
@@ -515,7 +510,7 @@ big_integer &big_integer::operator|=(const big_integer &b)
     return *this;
 }
 
-big_integer &big_integer::operator^=(const big_integer &b)
+big_integer& big_integer::operator^=(const big_integer &b)
 {
     
     if(b._number.get_sign() == 0)
@@ -603,7 +598,7 @@ big_integer big_integer::operator-() const
 }
 
 
-big_integer &big_integer::operator++()
+big_integer& big_integer::operator++()
 {
     return (*this += 1);
 }
@@ -615,7 +610,7 @@ big_integer big_integer::operator++(int)
     return r;
 }
 
-big_integer &big_integer::operator--()
+big_integer& big_integer::operator--()
 {
     return (*this -= 1);
 }
@@ -627,7 +622,7 @@ big_integer big_integer::operator--(int)
     return r;
 }
 
-big_integer &big_integer::operator+=(int k)
+big_integer& big_integer::operator+=(int k)
 {
     if(_number.get_sign() == 0)
         _number.set_sign(-1);
@@ -638,7 +633,7 @@ big_integer &big_integer::operator+=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator-=(int k)
+big_integer& big_integer::operator-=(int k)
 {
     if(_number.get_sign() == 0)
         _number.set_sign(-1);
@@ -649,7 +644,7 @@ big_integer &big_integer::operator-=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator+=(uint32_t k)
+big_integer& big_integer::operator+=(uint32_t k)
 {
     if(_number.get_sign() == 0)
         return (*this = k);
@@ -657,13 +652,13 @@ big_integer &big_integer::operator+=(uint32_t k)
     return *this;
 }
 
-big_integer &big_integer::operator-=(uint32_t k)
+big_integer& big_integer::operator-=(uint32_t k)
 {
     this->_sub(k);
     return *this;
 }
 
-big_integer &big_integer::operator+=(const big_integer &b)
+big_integer& big_integer::operator+=(const big_integer &b)
 {
     if(b._number.get_max_set() + 2 > this->_number.get_size())
         this->_resize(b._number.get_max_set() + 2);
@@ -676,7 +671,7 @@ big_integer &big_integer::operator+=(const big_integer &b)
     return *this;
 }
 
-big_integer &big_integer::operator-=(const big_integer &b)
+big_integer& big_integer::operator-=(const big_integer &b)
 {
     if(b._number.get_sign() == 0)
         return *this;
@@ -691,7 +686,7 @@ big_integer &big_integer::operator-=(const big_integer &b)
     return *this;
 }
 
-big_integer &big_integer::operator*=(int k)
+big_integer& big_integer::operator*=(int k)
 {
     uint32_t kr = _abs(k);
     *this *= kr;
@@ -700,7 +695,7 @@ big_integer &big_integer::operator*=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator*=(uint32_t k)
+big_integer& big_integer::operator*=(uint32_t k)
 {
     if(k == 0)
         _number.clear();
@@ -747,13 +742,13 @@ big_integer big_integer::operator*(const big_integer &b) const
     return r;
 }
 
-big_integer &big_integer::operator*=(const big_integer &b)
+big_integer& big_integer::operator*=(const big_integer &b)
 {
     return (*this = *this * b);
 }
 
 
-big_integer &big_integer::operator/=(int k)
+big_integer& big_integer::operator/=(int k)
 {
     if(k < 0)
         this->_number.set_sign();
@@ -761,10 +756,10 @@ big_integer &big_integer::operator/=(int k)
     return *this;
 }
 
-big_integer &big_integer::operator/=(const big_integer &b)
+big_integer& big_integer::operator/=(const big_integer &b)
 {
     big_integer l;
-    return this->div_big(b, l);
+    return div_big(b, l);
 }
 
 int big_integer::operator%(int k) const
@@ -789,7 +784,7 @@ int big_integer::operator%=(int k)
     return a;
 }
 
-big_integer &big_integer::operator%=(const big_integer &b)
+big_integer& big_integer::operator%=(const big_integer &b)
 {
     big_integer l;
     div_big(b, l);
@@ -817,64 +812,70 @@ int64_t big_integer::div_uint(uint32_t k)
     return remainder;
 }
 
-big_integer &big_integer::div_big(const big_integer &b, big_integer &remainder)
+big_integer& big_integer::div_big(const big_integer &divisor, big_integer &remainder)
 {
-    if(b._number.get_sign() == 0) // <number> / 0 - error
+    if(divisor._number.get_sign() == 0) // <number> / 0 - error
         throw big_integer_exception("Division by zero");
-    remainder = 0;
-    if(this->_number.get_sign() == 0) // 0 / <number> = 0
-        return *this;
-    if(b._number.get_max_set() == 0) // b is actually < 2^32
+    if((this->_number.get_max_set() < divisor._number.get_max_set()) ||
+            (this->_number.get_max_set() == divisor._number.get_max_set() && _comp_abs_size_eq(divisor) < 0)) // abs(this) < abs(divisor)
     {
-        remainder = static_cast<long long>(div_uint(b[0]));
-        if(b._number.get_sign() < 0)
+        remainder = std::move(*this);
+        return (*this = 0);
+    }
+    if(divisor._number.get_max_set() == 0) // if divisor < 2^32
+    {
+        remainder = static_cast<long long>(div_uint(divisor[0]));
+        if(divisor._number.get_sign() < 0)
             _number.set_sign();
         return *this;
     }
+
+    remainder = 0;
     remainder._number.set_sign(this->_number.get_sign()); // till the end of the function remainder is quotient
-    if(b._number.get_sign() < 0)
-        this->_number.set_sign(); // +1 / -1 = -1, -1 / -1 = +1
-    int k = 0;
-    big_integer c = b;
-    c._number.set_sign(1);
-    while(c[c._number.get_max_set()] < 0x80000000)
+    big_integer divisor_ = divisor;
+    if(divisor._number.get_sign() < 0)
     {
-        c <<= 1;
+        this->_number.set_sign(); // + / - = -, - / - = +
+        divisor_._number.set_sign(1);
+    }
+
+    int k = 0;
+    while(divisor_[divisor_._number.get_max_set()] < 0x80000000)
+    {
+        divisor_ <<= 1;
         k++;
     }
     *this <<= k;
+
     signed char sign = this->_number.get_sign();
     this->_number.set_sign(1);
-    unsigned df = this->_number.get_max_set() - c._number.get_max_set();
+
+    unsigned df = this->_number.get_max_set() - divisor_._number.get_max_set();
     remainder._resize(df + 1);
+
     remainder._number.set_max_set(df);
-    big_integer m = c << (32 * df);
+
+    big_integer m = divisor_ << (32 * df);
     if(*this < m)
-    {
-        if(remainder._number.get_max_set() == 0)
-        {
-            remainder = *this;
-            return (*this = 0);
-        }
-        remainder._number.set_max_set(remainder._number.get_max_set() - 1);
-    }
+        remainder._number.set_max_set(df - 1);
     else
     {
-        remainder._number[remainder._number.get_max_set()] = 1;
+        remainder._number[df] = 1;
         *this -= m;
     }
-    for(int i = df - 1; i >= 0; i--)
+
+    for(int i = df - 1;i >= 0;i--)
     {
-        uint64_t t = (uint64_t) (this->_number[this->_number.get_max_set()]) << 32;
+        uint64_t t = static_cast<uint64_t>(this->_number[this->_number.get_max_set()]) << 32;
         if(this->_number.get_max_set())
             t += this->_number[this->_number.get_max_set() - 1];
-        remainder._number[i] = (uint32_t) min(t / c[c._number.get_max_set()], (uint64_t) 0xffffffff);
-        m = c << (32 * i);
+        remainder._number[i] = static_cast<uint32_t>(min(t / divisor_[divisor_._number.get_max_set()], UINT64_C(0xffffffff)));
+        m = divisor_ << (32 * i);
         *this -= m * remainder._number[i];
         while(*this < 0)
         {
             remainder._number[i]--;
-            *this += c << (32 * i);
+            *this += divisor_ << (32 * i);
         }
     }
     swap(remainder);
@@ -887,17 +888,22 @@ void big_integer::swap(big_integer &c)
     _number.swap(c._number);
 }
 
-signed char big_integer::_comp(const big_integer &a, const big_integer &b) const
+signed char big_integer::_comp(const big_integer &b) const
 {
-    if(a._number.get_sign() != b._number.get_sign())
-        return static_cast<signed char>((a._number.get_sign() < b._number.get_sign()) ? -1 : 1);
-    if(a._number.get_sign() == 0)
+    if(this->_number.get_sign() != b._number.get_sign())
+        return static_cast<signed char>((this->_number.get_sign() < b._number.get_sign()) ? -1 : 1);
+    if(this->_number.get_sign() == 0)
         return 0;
-    if(a._number.get_max_set() != b._number.get_max_set())
-        return static_cast<signed char>((a._number.get_max_set() < b._number.get_max_set()) ? -1 : 1);
-    for(int i = a._number.get_max_set(); i >= 0; i--)
-        if(a[i] != b[i])
-            return static_cast<signed char>((a[i] < b[i]) ? -1 : 1);
+    if(this->_number.get_max_set() != b._number.get_max_set())
+        return static_cast<signed char>((this->_number.get_max_set() < b._number.get_max_set()) ? -1 : 1);
+    return _comp_abs_size_eq(b);
+}
+
+signed char big_integer::_comp_abs_size_eq(const big_integer &b) const
+{
+    for(int i = this->_number.get_max_set(); i >= 0; i--)
+        if((*this)[i] != b[i])
+            return static_cast<signed char>(((*this)[i] < b[i]) ? -1 : 1);
     return 0;
 }
 
@@ -1083,7 +1089,7 @@ string to_string(big_integer const &a)
     return a.to_string();
 }
 
-std::ostream &operator<<(std::ostream &s, big_integer const &a)
+std::ostream& operator<<(std::ostream &s, big_integer const &a)
 {
     return s << to_string(a);
 }

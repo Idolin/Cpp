@@ -743,6 +743,38 @@ TEST_PACK(big_integer)
         EXPECT_EQ(a / b, c);
     }
 
+    TEST(div_to_greater_num)
+    {
+        big_integer a("100000000000000000000000000000000000000000000000000000");
+        big_integer b("-100000000000000000000000000000000000000000000000000000");
+        big_integer c = a + 1;
+        big_integer d("100000000000000000000000000000000000000000000000000000000000000000000000000");
+
+        EXPECT_EQ(a / a, 1);
+        EXPECT_EQ(a % a, 0);
+        EXPECT_EQ(b / b, 1);
+        EXPECT_EQ(b % b, 0);
+        EXPECT_EQ(c / c, 1);
+        EXPECT_EQ(c % c, 0);
+        EXPECT_EQ(d / d, 1);
+        EXPECT_EQ(d % d, 0);
+
+        EXPECT_EQ(a / b, -1);
+        EXPECT_EQ(a % b, 0);
+
+        EXPECT_EQ(a / c, 0);
+        EXPECT_EQ(a % c, a);
+
+        EXPECT_EQ(a / d, 0);
+        EXPECT_EQ(a % d, a);
+
+        EXPECT_EQ(b / c, 0);
+        EXPECT_EQ(b % c, b);
+
+        EXPECT_EQ(b / d, 0);
+        EXPECT_EQ(b % d, b);
+    }
+
     TEST(negation_long)
     {
         big_integer a("10000000000000000000000000000000000000000000000000000");

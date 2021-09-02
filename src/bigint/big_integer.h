@@ -16,7 +16,7 @@ class big_integer_exception : public std::exception
 public:
     big_integer_exception(const std::string &s);
 
-    virtual const char *what() const throw();
+    virtual const char* what() const throw();
 private:
     std::string message;
 };
@@ -36,9 +36,9 @@ private:
         big_integer_container(const big_integer_container &c);
         ~big_integer_container();
 
-        uint32_t &operator[](int index);
+        uint32_t& operator[](int index);
 
-        const uint32_t &operator[](int index) const;
+        const uint32_t& operator[](int index) const;
         void set_max_set(unsigned new_max_set);
         void set_sign(signed char new_sign);
         void set_sign();
@@ -76,7 +76,7 @@ public:
     ~big_integer();
     std::string to_string() const;
 private:
-    uint32_t &operator[](int index);
+    uint32_t& operator[](int index);
 public:
     uint32_t operator[](int index) const;
     bool operator==(const big_integer &b) const;
@@ -86,57 +86,58 @@ public:
     bool operator<=(const big_integer &b) const;
     bool operator>=(const big_integer &b) const;
 
-    big_integer &operator>>=(int k);
+    big_integer& operator>>=(int k);
 
-    big_integer &operator<<=(int k);
+    big_integer& operator<<=(int k);
 
-    big_integer &operator&=(const big_integer &b);
+    big_integer& operator&=(const big_integer &b);
 
-    big_integer &operator|=(const big_integer &b);
+    big_integer& operator|=(const big_integer &b);
 
-    big_integer &operator^=(const big_integer &b);
+    big_integer& operator^=(const big_integer &b);
     big_integer operator~() const;
     big_integer operator+() const;
     big_integer operator-() const;
 
-    big_integer &operator++();
+    big_integer& operator++();
     big_integer operator++(int);
 
-    big_integer &operator--();
+    big_integer& operator--();
     big_integer operator--(int);
 
-    big_integer &operator+=(int k);
+    big_integer& operator+=(int k);
 
-    big_integer &operator-=(int k);
+    big_integer& operator-=(int k);
 
-    big_integer &operator+=(uint32_t k);
+    big_integer& operator+=(uint32_t k);
 
-    big_integer &operator-=(uint32_t k);
+    big_integer& operator-=(uint32_t k);
 
-    big_integer &operator+=(const big_integer &b);
+    big_integer& operator+=(const big_integer &b);
 
-    big_integer &operator-=(const big_integer &b);
+    big_integer& operator-=(const big_integer &b);
 
-    big_integer &operator*=(int k);
+    big_integer& operator*=(int k);
 
-    big_integer &operator*=(uint32_t k);
+    big_integer& operator*=(uint32_t k);
     big_integer operator*(const big_integer &b) const;
 
-    big_integer &operator*=(const big_integer &b);
+    big_integer& operator*=(const big_integer &b);
 
-    big_integer &operator/=(int k);
+    big_integer& operator/=(int k);
 
-    big_integer &operator/=(const big_integer &b);
+    big_integer& operator/=(const big_integer &b);
     int operator%(int k) const;
     int operator%=(int k);
 
-    big_integer &operator%=(const big_integer &b);
+    big_integer& operator%=(const big_integer &b);
     void swap(big_integer &c);
 private:
     int64_t div_uint(uint32_t k);
 
-    big_integer &div_big(const big_integer &b, big_integer &l);
-    signed char _comp(const big_integer &a, const big_integer &b) const;
+    big_integer& div_big(const big_integer &b, big_integer &l);
+    signed char _comp(const big_integer &b) const;
+    signed char _comp_abs_size_eq(const big_integer &b) const;
     void _add(unsigned k);
     void _sub(unsigned k);
 
@@ -170,4 +171,4 @@ big_integer operator^(big_integer a, big_integer const &b);
 
 std::string to_string(big_integer const &a);
 
-std::ostream &operator<<(std::ostream &s, big_integer const &a);
+std::ostream& operator<<(std::ostream &s, big_integer const &a);
