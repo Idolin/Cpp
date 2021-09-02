@@ -65,6 +65,13 @@
 // another GET_ARG_DEF(to use inside GET_ARG_DEF_I)
 #define GET_ARG_DEF_II(def, ...) D_INTR_CONCAT(D_INTR_GET_ARG_DEF_, D_INTR_GET_ARGS_COUNT_3(def, ## __VA_ARGS__))(def, ## __VA_ARGS__)
 
+// returns def1, def2 if they are only arguments provided, otherwise returns all arguments after def2
+#define GET_ARG_DEF2(def1, def2, ...) D_INTR_CONCAT(D_INTR_GET_ARG_DEF2_, D_INTR_GET_ARGS_COUNT_3(def2, ## __VA_ARGS__))(def1, def2, ## __VA_ARGS__)
+// another GET_ARG_DEF2(to use inside GET_ARG_DEF2)
+#define GET_ARG_DEF2_I(def1, def2, ...) D_INTR_CONCAT(D_INTR_GET_ARG_DEF2_, D_INTR_GET_ARGS_COUNT_3(def2, ## __VA_ARGS__))(def1, def2, ## __VA_ARGS__)
+// another GET_ARG_DEF2(to use inside GET_ARG_DEF2_I)
+#define GET_ARG_DEF2_II(def1, def2, ...) D_INTR_CONCAT(D_INTR_GET_ARG_DEF2_, D_INTR_GET_ARGS_COUNT_3(def2, ## __VA_ARGS__))(def1, def2, ## __VA_ARGS__)
+
 // returns function(args...) if amount of arguments more then zero, returns nothing otherwise
 #define START_IF_ARGS(function, ...) D_INTR_CONCAT(D_INTR_START_IF_ARGS_, D_INTR_GET_ARGS_COUNT_2(__VA_ARGS__))(function, ## __VA_ARGS__)
 

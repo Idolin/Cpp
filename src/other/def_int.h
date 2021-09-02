@@ -43,6 +43,10 @@
 #define D_INTR_GET_ARG_DEF_1(a) a
 #define D_INTR_GET_ARG_DEF_2(a, ...) __VA_ARGS__
 
+#define D_INTR_GET_ARG_DEF2_0(a) NO_SUCH_ARG
+#define D_INTR_GET_ARG_DEF2_1(a, b) a, b
+#define D_INTR_GET_ARG_DEF2_2(a, b, ...) __VA_ARGS__
+
 #define D_INTR_START_IF_ARGS_NDEF_0(...)
 #define D_INTR_START_IF_ARGS_NDEF_1(f, ...) f(__VA_ARGS__)
 #define D_INTR_START_IF_ARGS_NDEF_2(f, ...) D_INTR_START_IF_ARGS_NDEF_1(f, ## __VA_ARGS__)
