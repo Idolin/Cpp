@@ -45,6 +45,7 @@ inline void _fill(T *start, size_t len, const T x = 0)
 
 inline char* _readstr(size_t &len)
 {
+    ASSERT(len > 0);
     int c;
     char *str = new char[len];
     len = 0;
@@ -224,6 +225,7 @@ inline typename std::enable_if<!is_bit_movable<T>::value>::type
 template<typename T>
 inline T* _resize(T *source, size_t now_length, size_t new_length)
 {
+    ASSERT(new_length > 0);
     DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
     _move(source, _min(now_length, new_length), new_array);
@@ -234,6 +236,7 @@ inline T* _resize(T *source, size_t now_length, size_t new_length)
 template<typename T>
 inline T* _resize(T *source, T *end, size_t new_length)
 {
+    ASSERT(end >= source);
     return _resize(source, end - source, new_length);
 }
 
@@ -241,7 +244,7 @@ template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value, T*>::type
 _resize_alloc(T *source, size_t new_length)
 {
-    return static_cast<T*>(realloc(source, new_length));
+    return reinterpret_cast<T*>(realloc(source, new_length));
 }
 
 template<typename T>
@@ -438,11 +441,6 @@ inline void _reverse(T *start, size_t length)
 template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
          && std::is_integral<ShiftType>::value>>
-inline void shr_range(T *start, size_t length, ShiftType shift);
-
-template<typename T, typename ShiftType=unsigned,
-    typename = typename std::enable_if_t<std::is_unsigned<T>::value
-         && std::is_integral<ShiftType>::value>>
 inline void shl_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
@@ -477,8 +475,8 @@ inline void shl_range(T *start, size_t length, ShiftType shift)
 }
 
 template<typename T, typename ShiftType=unsigned,
-    typename = typename std::enable_if_t<std::is_unsigned<T>::value
-         && std::is_integral<ShiftType>::value>>
+    std::enable_if_t<std::is_unsigned<T>::value
+         && std::is_integral<ShiftType>::value, bool> = true>
 inline void shr_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
@@ -523,11 +521,6 @@ inline void shr_range(T *start, T *end, ShiftType shift)
 {
     shr_range(start, end - start, shift);
 }
-
-template<typename T, typename ShiftType=unsigned,
-    typename = typename std::enable_if_t<std::is_unsigned<T>::value
-         && std::is_integral<ShiftType>::value>>
-void ror_range(T *start, size_t length, ShiftType shift);
 
 template<typename T, typename ShiftType=unsigned,
     typename = typename std::enable_if_t<std::is_unsigned<T>::value
@@ -577,8 +570,8 @@ void rol_range(T *start, size_t length, ShiftType shift)
 }
 
 template<typename T, typename ShiftType=unsigned,
-    typename = typename std::enable_if_t<std::is_unsigned<T>::value
-         && std::is_integral<ShiftType>::value>>
+    std::enable_if_t<std::is_unsigned<T>::value
+         && std::is_integral<ShiftType>::value, bool> = true>
 void ror_range(T *start, size_t length, ShiftType shift)
 {
     if(length == 0)
