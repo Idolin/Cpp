@@ -33,7 +33,7 @@ bool run_test(cstr test_pack_mask, cstr test_mask)
                 fprintf(DEBUG_OUTPUT_STREAM, "\t%s\n", test_pack->test_pack_name);
         }
         else
-            color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM, "All %u test packs succeeded", run_test_packs);
+            color_fprintf(term_color::GREEN, DEBUG_OUTPUT_STREAM, "All %u test packs succeeded\n", run_test_packs);
         set_term_color(term_color::DEFAULT, DEBUG_OUTPUT_STREAM);
     }
     return run_ok;
