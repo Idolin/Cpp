@@ -78,7 +78,7 @@ void PAMImageWriter::write_header()
     ASSERT(out != NULL, "Can't write to file: %s", filename.c_str());
     fprintf(out, "P%d\n", mode + (binary ? 3 : 0));
     if(comment)
-        for(cstr comment_line : comment.split())
+        for(const cstr &comment_line : comment.split())
             fprintf(out, "#%s\n", comment_line.c_str());
     fprintf(out, "%u %u\n", width, height);
     if(mode != colors::WHITE_AND_BLACK)
