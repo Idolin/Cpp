@@ -19,7 +19,7 @@ add_subdirectory(src/struct_algo)
 add_subdirectory(src/sort)
 add_subdirectory(src/template)
 add_subdirectory(src/tree)
-#add_subdirectory(src/program)
+add_subdirectory(src/program)
 add_subdirectory(src/parallelism)
 add_subdirectory(src/algo)
 add_subdirectory(src/window)
@@ -29,7 +29,7 @@ set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
 add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 
-target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib cstr_lib term_lib parallel_lib bit_array_lib)
+target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib cstr_lib term_lib parallel_lib bit_array_lib int128_lib)
 
 add_executable(only_main "${MAIN_FILE}")
 
