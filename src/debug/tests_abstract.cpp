@@ -17,24 +17,29 @@ void fprinttime(FILE *SOUT, unsigned long long nanoseconds, unsigned long long t
     
     if(tick_ns_precision == 0)
         tick_ns_precision = 1;
+
+    // nanoseconds = round(nanoseconds, tick_ns_precision)
     unsigned long long nanoseconds_reminder = nanoseconds % tick_ns_precision;
     nanoseconds -= nanoseconds_reminder;
     if(nanoseconds_reminder * 2 >= tick_ns_precision)
         nanoseconds += tick_ns_precision;
 
-    unsigned value[7];
+    unsigned value[7]{};
     unsigned start_from = 7;
     while(--start_from > 0)
     {
         value[start_from] = static_cast<unsigned>(nanoseconds % coefficient[start_from - 1]);
-        if((nanoseconds /= coefficient[start_from - 1]) == 0)
+        if((nanoseconds /= coefficient[start_from - 1]) == 0) // start_from is an index of the first meaningful value in a value array
             break;
     }
     value[0] = static_cast<unsigned>(nanoseconds);
     
+    // finding maximal meaningful index based on tick_ns_precision (result is offset by 1)
     unsigned to = 6;
     while(to > 0 && tick_ns_precision >= coefficient[to - 1])
         tick_ns_precision /= coefficient[--to];
+
+    // finding maximal meaningful index based on given value (we don't want to output microseconds if given value more than few minutes)
     unsigned max_to = start_from + 2 + (value[start_from] == 1);
     if(++to > max_to)
         to = max_to;
@@ -195,7 +200,7 @@ namespace test_namespace
             len += 2;
             for(unsigned i = 0;i < (show_level < 16 ? show_level : 16) - len;i++)
                 fputc('+', DEBUG_OUTPUT_STREAM);
-            fprintf(DEBUG_OUTPUT_STREAM, ">%s>", &buf);
+            fprintf(DEBUG_OUTPUT_STREAM, ">%s>", buf);
         }
         fputc(' ', DEBUG_OUTPUT_STREAM);
         if(color != term_color::KEEP)
@@ -219,8 +224,8 @@ namespace test_namespace
             print_level();
             va_list args;
             va_start(args, format);
-            va_end(args);
             vfprintf(DEBUG_OUTPUT_STREAM, format, args);
+            va_end(args);
             fprintf(DEBUG_OUTPUT_STREAM, " at line %d\n", line);
             if(errors_occured == max_error_amount_show)
             {
@@ -263,7 +268,8 @@ namespace test_namespace
         parent->subtests.push(this);
     }
     
-    _subtest_class::_subtest_class(_test_class_abstract *parent, const char *subtest_name, std::function<void(_test_class_abstract*)> init): _subtest_class(parent, subtest_name)
+    _subtest_class::_subtest_class(_test_class_abstract *parent, const char *subtest_name, std::function<void(_test_class_abstract*)> init):
+        _subtest_class(parent, subtest_name)
     {
         init(this);
     }
