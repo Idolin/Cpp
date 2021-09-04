@@ -6,13 +6,43 @@
 
 #include "../container/vector.hpp"
 #include "../other/hash.hpp"
+#include "../other/endianness.h"
 
 #include <iostream>
 #include <string>
 #include <type_traits>
+#include <uchar.h>
 
 struct str: Hashable
 {
+    enum byte_order
+    {
+        LE = 0,
+        little_endian = 0,
+        BE = 1,
+        big_endian = 1,
+        native_endianness =
+#ifdef LITTLE_ENDIAN
+        little_endian,
+#elif BIG_ENDIAN
+        big_endian,
+#else
+    #error "No endianness specicfied"
+#endif
+    };
+
+    enum unicode_normalization_form
+    {
+        NFD = 0,
+        canonical_decomposition = 0,
+        NFC = 1,
+        canonical_composition = 1,
+        NFKD = 2,
+        compatibility_decomposition = 2,
+        NFKC = 3,
+        compatibility_composition = 2
+    };
+
     using meta_type = union
         {
             void *ptr;
@@ -43,9 +73,9 @@ struct str: Hashable
      * and text will be encoded according to presenetd BOM
     */
 
-    str(const char16_t*, byte_order = byte_order::default_order); // assumes UTF-16
+    str(const char16_t*, byte_order = byte_order::native_endianness); // assumes UTF-16
 
-    str(const char32_t*, byte_order = byte_order::default_order); // asuumes UTF-32
+    str(const char32_t*, byte_order = byte_order::native_endianness); // asuumes UTF-32
 
     /*
      * if sizeof(wchar_t) == 1: assumes UTF-8
@@ -98,7 +128,7 @@ struct str: Hashable
 
     bool is_valid() const;
 
-    str& normalize(unicode_composition_type);
+    str& normalize(unicode_normalization_form);
 
     str& operator=(const str&);
 
