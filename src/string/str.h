@@ -8,14 +8,17 @@
 #include "../other/hash.hpp"
 #include "../other/endianness.h"
 
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <type_traits>
 #include <uchar.h>
 
+using std::size_t;
+
 struct str: Hashable
 {
-    enum byte_order
+    enum class byte_order
     {
         LE = 0,
         little_endian = 0,
@@ -43,25 +46,60 @@ struct str: Hashable
         compatibility_composition = 2
     };
 
-    using meta_type = union
+    struct str_info: Hashable
+    {
+        union str_block_meta
         {
-            void *ptr;
-            std::size_t val;
+            str_info *block;
+            size_t index;
         };
 
-    struct str_info: HashableStored<true>
-    {
         union
         {
             char *block8;
             char16_t *block16;
             char32_t *block32;
+            /*
+             *  Points to other str_info's
+             *  On concatenation operations all str_block_meta* blocks will be copyied from childs if it's amount less than some limit
+             *  If it points to slice of some str_info when it will saved in blocks in following format: <nullptr>, <str_info*>, <size_t from>, <size_t to>
+             */
+            str_block_meta *blocks;
         };
 
-        std::size_t len, links;
-        meta_type *meta_info;
-        char flags;
-        char[3] offsets;
+        size_t len, links;
+
+        /* meta_info:
+         *  Can contain following values in given order:
+         *   size(size >= len) - length of block, hash, amount of code units(for length method in str), prefix function
+         *  hash can occupy few size_t cells
+         */
+        size_t *meta_info;
+
+        struct flagsType
+        {
+            /*
+             * is_aligned: all code units consist of only one code point
+             * has_hash: is hash presented in meta_info
+             * has_len_cu: is amount of code units presented in meta_info
+             * has_pi: is prefix function presented in meta_info
+             * has_size: is size presented in meta_info
+             */
+            bool reserved : 1, has_size : 1, is_aligned : 1, has_hash : 1, has_len_cu : 1, has_pi : 1;
+            enum blockType : unsigned char
+            {
+                UTF_8 = 0,
+                UTF_16 = 1,
+                UTF_32 = 2,
+                STR_INFO = 3
+            };
+            blockType block_type : 2;
+        };
+        flagsType flags;
+
+        unsigned char offsets[3];
+
+        uint64_t hash() const noexcept;
     };
 
     str();
@@ -71,7 +109,7 @@ struct str: Hashable
     /*
      *  if BOM (byte order mark) will be presented then given byte_order will be ignored
      * and text will be encoded according to presenetd BOM
-    */
+     */
 
     str(const char16_t*, byte_order = byte_order::native_endianness); // assumes UTF-16
 
@@ -81,7 +119,7 @@ struct str: Hashable
      * if sizeof(wchar_t) == 1: assumes UTF-8
      * if sizeof(wchar_t) == 2: assumes UTF-16
      * otherwise: assumes UTF-32
-    */
+     */
     str(const wchar_t*);
 
     str(const std::string&); // assumes UTF-8
@@ -92,14 +130,14 @@ struct str: Hashable
      * if sizeof(wchar_t) == 1: assumes UTF-8
      * if sizeof(wchar_t) == 2: assumes UTF-16
      * otherwise: assumes UTF-32
-    */
+     */
     str(const std::wstring&);
 
     /*
      * if sizeof(wchar_t) == 1: assumes UTF-8
      * if sizeof(wchar_t) == 2: assumes UTF-16
      * otherwise: assumes UTF-32
-    */
+     */
     str(std::wstring&&);
 
     str(const str&);
@@ -154,7 +192,7 @@ struct str: Hashable
      *  All comparison & search operators will compare strings
      * based on the raw code point values.
      *  It will not take unicode collation into consideration.
-    */
+     */
 
     bool operator==(const str&) const;
 
@@ -246,7 +284,7 @@ struct str: Hashable
 
     size_t length() const; // amount of code points
 
-    size_t raw_length() const; // amount of code units
+    size_t length_raw() const; // amount of code units
 
     uint64_t hash() const noexcept;
 
