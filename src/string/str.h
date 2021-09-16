@@ -46,6 +46,29 @@ struct str: Hashable
         compatibility_composition = 2
     };
 
+    struct flags
+    {
+        enum rehashType : unsigned char
+        {
+            NEVER_REHASH,
+            SINGLE_CHANGE, // char change, char append, str with precalculated hash append
+            MULTI_CHANGE, // appending/inserting/erasing relatively small amount of chars
+            ALWAYS_REHASH
+        } rehash : 2;
+
+        enum repiType: unsigned char
+        {
+            NEVER_UPDATE_PI,
+            CHAR_APPEND,
+            STR_APPEND,
+            ALWAYS_UPDATE_PI
+        } repi : 2;
+
+        bool update_through : 1, reserved : 3; // when updating info: update meta_info/str representation in referenced blocks as well
+    };
+
+private:
+
     struct str_info: Hashable
     {
         union str_block_meta
@@ -76,7 +99,7 @@ struct str: Hashable
          */
         size_t *meta_info;
 
-        struct flagsType
+        struct
         {
             /*
              * is_aligned: all code units consist of only one code point
@@ -85,21 +108,53 @@ struct str: Hashable
              * has_pi: is prefix function presented in meta_info
              * has_size: is size presented in meta_info
              */
-            bool reserved : 1, has_size : 1, is_aligned : 1, has_hash : 1, has_len_cu : 1, has_pi : 1;
-            enum blockType : unsigned char
+            bool reserved : 1, is_aligned : 1, has_size : 1, has_hash : 1, has_len_cu : 1, has_pi : 1;
+            enum class blockType : unsigned char
             {
-                UTF_8 = 0,
-                UTF_16 = 1,
-                UTF_32 = 2,
-                STR_INFO = 3
+                UTF_8,
+                UTF_16,
+                UTF_32,
+                STR_INFO
             };
             blockType block_type : 2;
-        };
-        flagsType flags;
 
-        unsigned char offsets[3];
+            // is_raw = !is_aligned && (block_type == UTF_32)
+            bool is_raw();
+        } flags_meta;
+
+        flags flags_control;
+
+        unsigned char offset_hash, offset_len_cu_or_pi;
 
         uint64_t hash() const noexcept;
+    };
+
+    str_info s;
+
+public:
+    struct randomAccess
+    {
+    private:
+        str_info &s;
+
+        randomAccess(str_info &s);
+
+    public:
+        ra_iterator begin();
+
+        ra_iterator end();
+
+        const_ra_iterator cbegin() const;
+
+        const_ra_iterator cend() const;
+
+        rev_ra_iterator rbegin();
+
+        rev_ra_iterator rend();
+
+        const_rev_ra_iterator crbegin() const;
+
+        const_rev_ra_iterator crend() const;
     };
 
     str();
@@ -107,8 +162,8 @@ struct str: Hashable
     str(const char*); // assumes UTF-8
 
     /*
-     *  if BOM (byte order mark) will be presented then given byte_order will be ignored
-     * and text will be encoded according to presenetd BOM
+     * if BOM (byte order mark) will be presented then given byte_order will be ignored
+     *  and text will be encoded according to presenetd BOM
      */
 
     str(const char16_t*, byte_order = byte_order::native_endianness); // assumes UTF-16
@@ -189,9 +244,9 @@ struct str: Hashable
     str& set_char(size_t, char32_t);
 
     /*
-     *  All comparison & search operators will compare strings
-     * based on the raw code point values.
-     *  It will not take unicode collation into consideration.
+     * All comparison & search operators will compare strings
+     *  based on the raw code point values.
+     * It will not take unicode collation into consideration.
      */
 
     bool operator==(const str&) const;
@@ -298,25 +353,27 @@ struct str: Hashable
 
     iterator end();
 
-    const_iterator begin() const;
+    const_iterator cbegin() const;
 
-    const_iterator end() const;
+    const_iterator cend() const;
 
     iterator rbegin();
 
     iterator rend();
 
-    const_iterator rbegin() const;
+    const_iterator crbegin() const;
 
-    const_iterator rend() const;
+    const_iterator crend() const;
+
+    randomAccess random_iterators() const;
 
     friend std::ostream& operator<<(std::ostream &out, const str&);
 
     friend std::istream& operator>>(std::istream &in, str&);
 
-    void set_flags(str_flag) const;
+    void set_flags(flags) const;
 
-    str_flag get_flags() const;
+    flags get_flags() const;
 
     static ucode_type code_point_type(char32_t) const;
 
