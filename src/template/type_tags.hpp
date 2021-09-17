@@ -133,7 +133,19 @@ IMPL_TYPE_TAGS_STRUCT_HAS(pre_increment_operator,
         std::is_same<decltype(++std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
 
 IMPL_TYPE_TAGS_STRUCT_HAS(post_increment_operator,
-        std::is_convertible<decltype(std::declval<T>()++), T>::value)
+        std::is_convertible<decltype(std::declval<T>()++), std::add_const_t<std::add_lvalue_reference_t<T>>>::value)
+
+IMPL_TYPE_TAGS_STRUCT_HAS(increment_method,
+        std::is_same<decltype(std::declval<T>().increment()), void>::value)
+
+IMPL_TYPE_TAGS_STRUCT_HAS(pre_decrement_operator,
+        std::is_same<decltype(--std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
+
+IMPL_TYPE_TAGS_STRUCT_HAS(post_decrement_operator,
+        std::is_convertible<decltype(std::declval<T>()--), std::add_const_t<std::add_lvalue_reference_t<T>>>::value)
+
+IMPL_TYPE_TAGS_STRUCT_HAS(decrement_method,
+        std::is_same<decltype(std::declval<T>().decrement()), void>::value)
 
 IMPL_TYPE_TAGS_STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
