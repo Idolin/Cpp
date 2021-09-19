@@ -3,7 +3,6 @@
 #include "./iterator_impl.hpp"
 
 #include <iterator>
-#include <utility>
 
 namespace iterator_impl_def {
 
@@ -30,8 +29,6 @@ namespace iterator_impl_def {
         typedef reference_t reference;
         typedef pointer_t pointer;
         typedef void difference_type;
-
-    public:
 
         // forward constructor
         template<typename... Types>
