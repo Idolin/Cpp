@@ -16,19 +16,22 @@ namespace iterator_impl_def {
             iterator_impl_def::_notEqualDefault<Impl, iterator_t>,
             // adds operator-> if not declared based on operator*
             iterator_impl_def::_arrowDefault<Impl, iterator_t, pointer_t>,
+            //adds pre-increment operator++() if not declared based on increment() method
+            iterator_impl_def::_preIncrementDefault<Impl, iterator_t>,
             /*
-             * adds pre-increment operator++() if not declared based on increment() method
              * adds post-increment operator++(int) if not declared based on either
              *  - pre-increment operator++()
              *  - increment() method
              */
-            iterator_impl_def::_incrementDefault<Impl, iterator_t>
+            iterator_impl_def::_postIncrementDefault<Impl, iterator_t>
     {
         typedef std::input_iterator_tag iterator_category;
         typedef value_type_t value_type;
         typedef reference_t reference;
         typedef pointer_t pointer;
         typedef void difference_type;
+
+    public:
 
         // forward constructor
         template<typename... Types>
@@ -41,15 +44,13 @@ namespace iterator_impl_def {
          */
         iterator_t& operator++()
         {
-            iterator_impl_def::_incrementDefault<Impl, iterator_t>::_preIncrement();
+            iterator_impl_def::_preIncrementDefault<Impl, iterator_t>::_preIncrement();
             return *static_cast<iterator_t*>(this);
         }
 
-        iterator_t operator++(int)
+        auto operator++(int)
         {
-            iterator_t copy = *static_cast<iterator_t*>(this);
-            iterator_impl_def::_incrementDefault<Impl, iterator_t>::_postIncrement();
-            return copy;
+            return iterator_impl_def::_postIncrementDefault<Impl, iterator_t>::_postIncrement();
         }
     };
 

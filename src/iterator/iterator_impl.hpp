@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <iostream>
+
 namespace iterator_impl_def
 {
     namespace
@@ -56,10 +58,11 @@ namespace iterator_impl_def
     struct _notEqualDefault
     {
         static_assert(has_equality_operator_v<Impl>, "Iterator must have bool operator==");
+        static_assert(has_equality_operator_v<const Impl>, "Iterator's operator== must be const");
 
-        bool operator!=(const It& otr)
+        bool operator!=(const It& otr) const
         {
-            return !((*static_cast<It*>(this)).Impl::operator==(otr));
+            return !((*static_cast<const It*>(this)).Impl::operator==(otr));
         }
     };
 
@@ -67,6 +70,7 @@ namespace iterator_impl_def
     struct _notEqualDefault<Impl, It, typename std::enable_if_t<has_inequality_operator_v<Impl>>>
     {
         static_assert(has_equality_operator_v<Impl>, "Iterator must have bool operator==");
+        static_assert(has_equality_operator_v<const Impl>, "Iterator's operator== must be const");
     };
 
 
@@ -94,39 +98,52 @@ namespace iterator_impl_def
         static_assert(!has_pre_increment_operator_v<Impl> || !has_increment_method_v<Impl>,
             "Iterator must have either pre-increment operator or increment method");
 
-        void _postIncrement()
+        It _postIncrement()
         {
+            It copy = *static_cast<It*>(this);
             (*static_cast<It*>(this)).Impl::operator++();
+            return copy;
         }
     };
 
     template<typename Impl, typename It>
     struct _postIncrementDefault<Impl, It, typename std::enable_if_t<has_increment_method_v<Impl> && !has_post_increment_operator_v<Impl>>>
     {
-        void _postIncrement()
+        It _postIncrement()
         {
+            It copy = *static_cast<It*>(this);
             (*static_cast<It*>(this)).Impl::increment();
+            return copy;
         }
     };
 
     template<typename Impl, typename It>
     struct _postIncrementDefault<Impl, It, typename std::enable_if_t<has_post_increment_operator_v<Impl>>>
     {
+    private:
+        // Impl::operator++(int) return type
+        typedef decltype(std::declval<Impl>()++) post_increment_t;
+
+        // type iterator helper(It) will return for operator++(int): either It or Impl::operator++(int) return type
+        typedef std::conditional_t<
+            is_same_omit_cv_v<post_increment_t, Impl>,
+                copy_cv_refernce_t<Impl, It>, post_increment_t> post_increment_ret;
+
+    public:
         static_assert(!has_post_increment_operator_v<Impl> || !has_increment_method_v<Impl>,
             "Iterator must have either post-increment operator or increment method, not both");
+        static_assert(is_dereferencable_v<post_increment_t>,
+            "Iterator post-increment operator must return dereferencable object");
 
-        void _postIncrement()
+        post_increment_ret _postIncrement()
         {
-            (*static_cast<It*>(this)).Impl::operator++(0);
+            return (*static_cast<It*>(this)).Impl::operator++(0);
         }
     };
 
 
-    template<typename Impl, typename It, bool has_pre_increment>
-    struct _preIncrementDefault;
-
-    template<typename Impl, typename It>
-    struct _preIncrementDefault<Impl, It, false>
+    template<typename Impl, typename It, typename Enable = void>
+    struct _preIncrementDefault
     {
         static_assert(!has_pre_increment_operator_v<Impl> || !has_increment_method_v<Impl>,
             "Iterator must have either pre-increment operator or increment method");
@@ -138,7 +155,7 @@ namespace iterator_impl_def
     };
 
     template<typename Impl, typename It>
-    struct _preIncrementDefault<Impl, It, true>
+    struct _preIncrementDefault<Impl, It, typename std::enable_if_t<has_pre_increment_operator_v<Impl>>>
     {
         static_assert(!has_pre_increment_operator_v<Impl> || !has_increment_method_v<Impl>,
             "Iterator must have either pre-increment operator or increment method, not both");
@@ -148,12 +165,6 @@ namespace iterator_impl_def
            (*static_cast<It*>(this)).Impl::operator++();
         }
     };
-
-
-    template<typename Impl, typename It>
-    struct _incrementDefault: _preIncrementDefault<Impl, It, has_pre_increment_operator_v<Impl>>,
-            _postIncrementDefault<Impl, It>
-    {};
 
 
     template<typename It, typename R, typename Enable = void>
