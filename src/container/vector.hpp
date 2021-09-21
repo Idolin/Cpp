@@ -126,7 +126,7 @@ struct vect
             return *ptr;
         }
 
-        T *operator->()
+        T* operator->()
         {
             return ptr;
         }
