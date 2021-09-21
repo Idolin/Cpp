@@ -5,10 +5,11 @@
 
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 template<class Impl>
-struct output_iterator: Impl,
-        //adds pre-increment operator++() if not declared based on increment() method
+struct output_iterator: public Impl,
+        // adds pre-increment operator++() if not declared based on increment() method
         iterator_impl_def::_preIncrementDefault<Impl, output_iterator<Impl>>,
         /*
          * adds post-increment operator++(int) if not declared based on either
@@ -17,6 +18,10 @@ struct output_iterator: Impl,
          */
         iterator_impl_def::_postIncrementDefault<Impl, output_iterator<Impl>>
 {
+private:
+    typedef output_iterator<Impl> self;
+
+public:
     typedef std::output_iterator_tag iterator_category;
     typedef void value_type;
     typedef void reference;
@@ -34,17 +39,19 @@ struct output_iterator: Impl,
      * Increment operators implemented here, in upper score,
      *  to ensure they will be called instead of original ones declared in Impl class
      */
-    output_iterator<Impl>& operator++()
+    self& operator++()
     {
-        iterator_impl_def::_preIncrementDefault<Impl, output_iterator<Impl>>::_preIncrement();
-        return *static_cast<output_iterator<Impl>*>(this);
+        iterator_impl_def::_preIncrementDefault<Impl, self>::_preIncrement();
+        return *static_cast<self*>(this);
     }
 
     auto operator++(int)
     {
-        typedef decltype(iterator_impl_def::_postIncrementDefault<Impl, output_iterator<Impl>>::_postIncrement()) return_t;
-        static_assert(std::is_convertible<return_t, const Impl&>::value, "Output iterator post-increment return type must be convertible to const It&");
+        typedef decltype(std::declval<iterator_impl_def::_postIncrementDefault<Impl, self>>()._postIncrement()) post_increment_return_t;
 
-        return iterator_impl_def::_postIncrementDefault<Impl, output_iterator<Impl>>::_postIncrement();
+        static_assert(std::is_convertible<post_increment_return_t, const Impl&>::value,
+                "Output iterator post-increment return type must be convertible to const It&");
+
+        return iterator_impl_def::_postIncrementDefault<Impl, self>::_postIncrement();
     }
 };
