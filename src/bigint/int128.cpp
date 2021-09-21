@@ -16,14 +16,14 @@ uint128_t::uint128_t(uint64_t value): p_high(0), p_low(value)
 uint128_t::uint128_t(uint64_t value_high, uint64_t value_low): p_high(value_high), p_low(value_low)
 {}
 
-uint128_t uint128_t::operator=(uint64_t value)
+uint128_t& uint128_t::operator=(uint64_t value)
 {
     p_high = 0;
     p_low = value;
     return *this;
 }
 
-uint128_t uint128_t::operator+=(uint64_t value)
+uint128_t& uint128_t::operator+=(uint64_t value)
 {
     p_low += value;
     if(p_low < value)
@@ -31,7 +31,7 @@ uint128_t uint128_t::operator+=(uint64_t value)
     return *this;
 }
     
-uint128_t uint128_t::operator+=(uint128_t otr)
+uint128_t& uint128_t::operator+=(uint128_t otr)
 {
     p_low += otr.p_low;
     if(p_low < otr.p_low)
@@ -40,7 +40,7 @@ uint128_t uint128_t::operator+=(uint128_t otr)
     return *this;
 }
     
-uint128_t uint128_t::operator-=(uint64_t value)
+uint128_t& uint128_t::operator-=(uint64_t value)
 {
     if(value > p_low)
         p_high--;
@@ -48,7 +48,7 @@ uint128_t uint128_t::operator-=(uint64_t value)
     return *this;
 }
     
-uint128_t uint128_t::operator-=(uint128_t otr)
+uint128_t& uint128_t::operator-=(uint128_t otr)
 {
     if(otr.p_low > p_low)
         p_high--;
@@ -69,7 +69,7 @@ uint128_t uint128_t::operator-() const
     return ++copy;
 }
 
-uint128_t uint128_t::operator++()
+uint128_t& uint128_t::operator++()
 {
     if(++p_low == 0)
         p_high++;
@@ -83,7 +83,7 @@ uint128_t uint128_t::operator++(int)
     return copy;
 }
         
-uint128_t uint128_t::operator--()
+uint128_t& uint128_t::operator--()
 {
     if(p_low-- == 0)
         p_high--;
@@ -97,7 +97,7 @@ uint128_t uint128_t::operator--(int)
     return copy;
 }
     
-uint128_t uint128_t::operator*=(uint64_t value)
+uint128_t& uint128_t::operator*=(uint64_t value)
 {
     p_high *= value;
     
@@ -123,7 +123,7 @@ uint128_t uint128_t::operator*=(uint64_t value)
     return *this;
 }
     
-uint128_t uint128_t::operator*=(uint128_t otr)
+uint128_t& uint128_t::operator*=(uint128_t otr)
 {
     uint64_t low_copy = p_low;
     *this *= otr.p_low;
@@ -131,7 +131,7 @@ uint128_t uint128_t::operator*=(uint128_t otr)
     return *this;
 }
 
-uint128_t uint128_t::udivmod(uint64_t divisor, uint64_t *remainder)
+void uint128_t::udivmod(uint64_t divisor, uint64_t *remainder)
 {
     ASSERT(divisor != 0);
     if((divisor & (divisor - 1)) == 0) // value = 2 ^ x
@@ -152,7 +152,6 @@ uint128_t uint128_t::udivmod(uint64_t divisor, uint64_t *remainder)
         if(remainder)
             *remainder = p_low & ((UINT64_C(1) << shift) - 1);
         *this >>= shift;
-        return *this;
     }
 
     uint64_t remainder_ = p_high;
@@ -183,11 +182,9 @@ uint128_t uint128_t::udivmod(uint64_t divisor, uint64_t *remainder)
 
     if(remainder)
         *remainder = remainder_;
-
-    return *this;
 }
 
-uint128_t uint128_t::udivmod(uint128_t divisor, uint128_t *remainder)
+void uint128_t::udivmod(uint128_t divisor, uint128_t *remainder)
 {
     if(divisor.p_high == 0)
     {
@@ -278,20 +275,21 @@ uint128_t uint128_t::udivmod(uint128_t divisor, uint128_t *remainder)
             *this = quotient;
         }
     }
+}
+
+uint128_t& uint128_t::operator/=(uint64_t divisor)
+{
+    udivmod(divisor);
     return *this;
 }
 
-uint128_t uint128_t::operator/=(uint64_t divisor)
+uint128_t& uint128_t::operator/=(uint128_t divisor)
 {
-    return udivmod(divisor);
+    udivmod(divisor);
+    return *this;
 }
 
-uint128_t uint128_t::operator/=(uint128_t divisor)
-{
-    return udivmod(divisor);
-}
-
-uint128_t uint128_t::operator%=(uint64_t divisor)
+uint128_t& uint128_t::operator%=(uint64_t divisor)
 {
     ASSERT(divisor != 0);
     if((divisor & (divisor - 1)) == 0) // value = 2 ^ x
@@ -305,14 +303,14 @@ uint128_t uint128_t::operator%=(uint64_t divisor)
     return *this;
 }
         
-uint128_t uint128_t::operator%=(uint128_t divisor)
+uint128_t& uint128_t::operator%=(uint128_t divisor)
 {
     uint128_t copy = *this;
     copy.udivmod(divisor, this);
     return *this;
 }
 
-uint128_t uint128_t::operator<<=(unsigned shift)
+uint128_t& uint128_t::operator<<=(unsigned shift)
 {
     ASSERT(shift < 128);
     if(shift >= 64)
@@ -329,7 +327,7 @@ uint128_t uint128_t::operator<<=(unsigned shift)
     return *this;
 }
         
-uint128_t uint128_t::operator>>=(unsigned shift)
+uint128_t& uint128_t::operator>>=(unsigned shift)
 {
     ASSERT(shift < 128);
     if(shift >= 64)
@@ -346,21 +344,21 @@ uint128_t uint128_t::operator>>=(unsigned shift)
     return *this;
 }
 
-uint128_t uint128_t::operator&=(uint128_t otr)
+uint128_t& uint128_t::operator&=(uint128_t otr)
 {
     p_high &= otr.p_high;
     p_low &= otr.p_low;
     return *this;
 }
         
-uint128_t uint128_t::operator|=(uint128_t otr)
+uint128_t& uint128_t::operator|=(uint128_t otr)
 {
     p_high |= otr.p_high;
     p_low |= otr.p_low;
     return *this;
 }
         
-uint128_t uint128_t::operator^=(uint128_t otr)
+uint128_t& uint128_t::operator^=(uint128_t otr)
 {
     p_high ^= otr.p_high;
     p_low ^= otr.p_low;

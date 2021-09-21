@@ -23,53 +23,53 @@
         
         uint128_t(uint64_t, uint64_t);
         
-        uint128_t operator=(uint64_t);
+        uint128_t& operator=(uint64_t);
 
-        uint128_t operator+=(uint64_t);
+        uint128_t& operator+=(uint64_t);
         
-        uint128_t operator+=(uint128_t);
+        uint128_t& operator+=(uint128_t);
         
-        uint128_t operator-=(uint64_t);
+        uint128_t& operator-=(uint64_t);
         
-        uint128_t operator-=(uint128_t);
+        uint128_t& operator-=(uint128_t);
         
         uint128_t operator+() const;
         
         uint128_t operator-() const;
         
-        uint128_t operator++();
+        uint128_t& operator++();
         
         uint128_t operator++(int);
         
-        uint128_t operator--();
+        uint128_t& operator--();
         
         uint128_t operator--(int);
         
-        uint128_t operator*=(uint64_t);
+        uint128_t& operator*=(uint64_t);
         
-        uint128_t operator*=(uint128_t);
+        uint128_t& operator*=(uint128_t);
 
-        uint128_t udivmod(uint64_t divisor, uint64_t *remainder = nullptr);
+        void udivmod(uint64_t divisor, uint64_t *remainder = nullptr);
         
-        uint128_t udivmod(uint128_t divisor, uint128_t *remainder = nullptr);
+        void udivmod(uint128_t divisor, uint128_t *remainder = nullptr);
 
-        uint128_t operator/=(uint64_t);
+        uint128_t& operator/=(uint64_t);
         
-        uint128_t operator/=(uint128_t);
+        uint128_t& operator/=(uint128_t);
         
-        uint128_t operator%=(uint64_t);
+        uint128_t& operator%=(uint64_t);
         
-        uint128_t operator%=(uint128_t);
+        uint128_t& operator%=(uint128_t);
         
-        uint128_t operator<<=(unsigned);
+        uint128_t& operator<<=(unsigned);
         
-        uint128_t operator>>=(unsigned);
+        uint128_t& operator>>=(unsigned);
         
-        uint128_t operator&=(uint128_t);
+        uint128_t& operator&=(uint128_t);
         
-        uint128_t operator|=(uint128_t);
+        uint128_t& operator|=(uint128_t);
         
-        uint128_t operator^=(uint128_t);
+        uint128_t& operator^=(uint128_t);
         
         uint128_t operator~() const;
         
