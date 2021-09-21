@@ -3,7 +3,25 @@ cmake_minimum_required(VERSION 3.2)
 set(SOURCE_TGT_ITERATOR_IMPL iterator_impl.hpp)
 add_custom_target(iterator_impl_tgt)
 
+set(SOURCE_TGT_INPUT_ITERATOR input_iterator.hpp)
+add_custom_target(input_iterator_tgt DEPENDS iterator_impl_tgt)
+
+set(SOURCE_TGT_OUTPUT_ITERATOR output_iterator.hpp)
+add_custom_target(output_iterator_tgt DEPENDS iterator_impl_tgt)
+
+set(SOURCE_TGT_FORWARD_ITERATOR forward_iterator.hpp)
+add_custom_target(forward_iterator_tgt DEPENDS input_iterator_tgt iterator_impl_tgt)
+
+set(SOURCE_TGT_BIDIRECTIONAL_ITERATOR bidirectional_iterator.hpp)
+add_custom_target(bidirectional_iterator_tgt DEPENDS forward_iterator_tgt iterator_impl_tgt)
+
+set(SOURCE_TGT_RANDOM_ACCESS_ITERATOR random_access_iterator.hpp)
+add_custom_target(random_access_iterator_tgt DEPENDS bidirectional_iterator_tgt iterator_impl_tgt)
+
 set(SOURCE_TGT_ITERATOR iterator.hpp)
-add_custom_target(iterator_tgt DEPENDS iterator_impl_tgt)
+add_custom_target(iterator_tgt DEPENDS input_iterator_tgt outuput_iterator_tgt forward_iterator_tgt bidirectional_iterator_tgt random_access_iterator_tgt)
+
+#add_library(iterator_lib STATIC iterator.hpp)
+#add_dependencies(iterator_lib input_iterator_tgt outuput_iterator_tgt)
 
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
