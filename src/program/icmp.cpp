@@ -98,6 +98,7 @@ void* pictures_show(void*)
     g.aspect(true);
     std::size_t i = 0;
     ino_t ignore;
+    bool something_was_shown = false;
     while(true)
     {
         {
@@ -149,6 +150,7 @@ void* pictures_show(void*)
             close(2);
             execlp("gwenview", "show", std::get<0>(e).c_str(), NULL);
         }
+        usleep(100000); // sleep for 100ms
         p2 = fork();
         if(p2 == 0)
         {
@@ -158,6 +160,7 @@ void* pictures_show(void*)
         }
         if(show_diff && std::get<2>(e) <= 100)
         {
+            usleep(100000); // sleep for 100ms
             p3 = fork();
             if(p3 == 0)
             {
@@ -184,16 +187,20 @@ void* pictures_show(void*)
             remove(tmp_dir + "1d2.bmp");
             kill(p3, SIGKILL);
         }
-        while(wait(nullptr) > 0);
+        while(wait(nullptr) > 0); // wait for all childs to finish
+        something_was_shown = true;
     }
-    pid_t notification = fork();
-    if(notification == 0)
+    if(something_was_shown)
     {
-        close(1);
-        close(2);
-        execlp("notify-send", "notification", "No more alike pictures", "", NULL);
+        pid_t notification = fork();
+        if(notification == 0)
+        {
+            close(1);
+            close(2);
+            execlp("notify-send", "notification", "No more alike pictures", "", NULL);
+        }
+        waitpid(notification, nullptr, 0);
     }
-    waitpid(notification, nullptr, 0);
     return nullptr;
 }
 
