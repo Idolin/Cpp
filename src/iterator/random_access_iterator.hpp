@@ -10,15 +10,6 @@
 
 namespace iterator_impl_def {
 
-    namespace
-    {
-
-        // struct to tag random_access_iterator
-        struct _random_access_iterator_adapter_tag
-        {};
-
-    }
-
     template<class Impl, typename value_type_t,
              typename reference_t,
              typename pointer_t,
@@ -83,9 +74,7 @@ namespace iterator_impl_def {
              *  - increment(integral_type) method
              *  - getIndex() and setIndex(integral_type) methods
              */
-            _additionDefault<Impl, iterator_t, difference_t>,
-            // tag struct for additional type check for template non-member function operator+(integral_type, const &random_access_iterator_adapter&)
-            _random_access_iterator_adapter_tag
+            _additionDefault<Impl, iterator_t, difference_t>
     {
         typedef std::random_access_iterator_tag iterator_category;
 
@@ -106,13 +95,31 @@ namespace iterator_impl_def {
         using _additionDefault<Impl, iterator_t, difference_t>::operator+;
     };
 
-    // function operator+(integral_type, const _random_access_iterator_adapter<It, ...>&) if provided function operator+(integral_type, const It&)
-    template<typename T>
-    typename std::enable_if_t<std::is_base_of<_random_access_iterator_adapter_tag, T>::value && // checks if T is derived from _random_access_iterator_adapter
-        is_addable_v<typename T::difference_type, typename T::Impl>, // checks if compiles: difference_type + It
-            std::remove_reference_t<std::remove_cv_t<T>>> // return type = T without const and refernce
-        operator+(typename T::difference_type value, const T& it)
+    namespace
     {
+
+        template<class Impl, typename value_type_t,
+                 typename reference_t,
+                 typename pointer_t,
+                 typename difference_t,
+                 typename iterator_t>
+        using _RAI = _random_access_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t, iterator_t>;
+
+    }
+
+    // function operator+(integral_type, const _random_access_iterator_adapter<It, ...>&) if provided function operator+(integral_type, const It&)
+    template<class I, // Impl
+             typename V, // value_type
+             typename R, // reference
+             typename P, // pointer
+             typename D, // difference_type
+             typename IT> // iterator (CRTP)
+    typename std::enable_if_t<is_addable_v<D, I>, // checks if compiles: difference_type + It
+            std::remove_reference_t<std::remove_cv_t<IT>>> // return type = IT without const and refernce
+        operator+(typename _RAI<I, V, R, P, D, IT>::difference_type value, const _RAI<I, V, R, P, D, IT>& it)
+    {
+        using T = _RAI<I, V, R, P, D, IT>;
+
         static_assert(is_addable_v<typename T::difference_type, const typename T::Impl&>,
           "Random access iterator It: this addition expression must be valid: integral_type + const It&");
         static_assert(std::is_same<typename T::Impl, decltype(std::declval<typename T::difference_type>() + std::declval<typename T::Impl>())>::value,
@@ -123,11 +130,15 @@ namespace iterator_impl_def {
     }
 
     // function operator+(integral_type, const _random_access_iterator_adapter<It, ...>&) if function operator+(integral_type, const It&) not provided
-    template<typename T>
-    typename std::enable_if_t<std::is_base_of<_random_access_iterator_adapter_tag, T>::value && // checks if T is derived from _random_access_iterator_adapter
-        !is_addable_v<typename T::difference_type, typename T::Impl>, // checks if not compiles: difference_type + It
-            std::remove_reference_t<std::remove_cv_t<T>>> // return type = T without const and refernce
-        operator+(typename T::difference_type value, const T& it)
+    template<class I, // Impl
+             typename V, // value_type
+             typename R, // reference
+             typename P, // pointer
+             typename D, // difference_type
+             typename IT> // iterator (CRTP)
+    typename std::enable_if_t<!is_addable_v<D, I>, // checks if not compiles: difference_type + It
+            std::remove_reference_t<std::remove_cv_t<IT>>> // return type = IT without const and refernce
+        operator+(typename _RAI<I, V, R, P, D, IT>::difference_type value, const _RAI<I, V, R, P, D, IT>& it)
     {
         return it + value; // return It + different_type
     }
