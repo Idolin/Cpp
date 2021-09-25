@@ -114,20 +114,28 @@ struct is_mergeable
 #define IMPL_TYPE_TAGS_STRUCT_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
 
-IMPL_TYPE_TAGS_STRUCT_IS(less_comparable, std::is_same<
-        decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>() <
-         std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>()), bool>::value)
+// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(less_comparable, std::is_constructible<bool, decltype(std::declval<T>() < std::declval<T>())>::value)
+
+// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(less_or_equal_comparable, std::is_constructible<bool, decltype(std::declval<T>() <= std::declval<T>())>::value)
+
+// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(greater_comparable, std::is_constructible<bool, decltype(std::declval<T>() > std::declval<T>())>::value)
+
+// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(greater_or_equal_comparable, std::is_constructible<bool, decltype(std::declval<T>() >= std::declval<T>())>::value)
+
+// using is_constructible instead of is_convertible to allow operator== return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(equal_comparable, std::is_constructible<bool, decltype(std::declval<T>() == std::declval<T>())>::value)
+
+// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
+IMPL_TYPE_TAGS_STRUCT_IS(not_equal_comparable, std::is_constructible<bool, decltype(std::declval<T>() != std::declval<T>())>::value)
 
 IMPL_TYPE_TAGS_STRUCT_IS(dereferencable, std::is_lvalue_reference<
         decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
 
 IMPL_TYPE_TAGS_STRUCT_HAS(arrow_operator, std::is_pointer<decltype(std::declval<T>().operator->())>::value)
-
-// using is_constructible instead of is_convertible to allow operator== return type contextually convertible to bool as well
-IMPL_TYPE_TAGS_STRUCT_HAS(equality_operator, std::is_constructible<bool, decltype(std::declval<T>() == std::declval<T>())>::value)
-
-// using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
-IMPL_TYPE_TAGS_STRUCT_HAS(inequality_operator, std::is_constructible<bool, decltype(std::declval<T>() != std::declval<T>())>::value)
 
 IMPL_TYPE_TAGS_STRUCT_HAS(pre_increment_operator,
         std::is_same<decltype(++std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
@@ -146,6 +154,12 @@ IMPL_TYPE_TAGS_STRUCT_CHECK(has_post_decrement_operator,
 
 IMPL_TYPE_TAGS_STRUCT_HAS(decrement_method,
         std::is_same<decltype(std::declval<T>().decrement()), void>::value)
+
+IMPL_TYPE_TAGS_STRUCT_HAS(subscript_operator,
+        !std::is_same<decltype(std::declval<T>().operator[](0)), void>::value)
+
+IMPL_TYPE_TAGS_STRUCT_CHECK(is_exists,
+        decltype(std::declval<T>(), void()))
 
 IMPL_TYPE_TAGS_STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
@@ -207,13 +221,24 @@ IMPL_TYPE_TAGS_STRUCT_T_IS(block_iterable, is_block_iterable_class<T>::value)
 #define IMPL_TYPE_TAGS_CHECK_TWO_IS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO(is_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 #define IMPL_TYPE_TAGS_CHECK_TWO_COPY_IS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
+#define IMPL_TYPE_TAGS_CHECK_TWO_T_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_T(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_COPY_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
 IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_subtractable,
                               decltype(std::declval<T>() - std::declval<U>(), void()))
+
 IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_addable,
                               decltype(std::declval<T>() + std::declval<U>(), void()))
+
 IMPL_TYPE_TAGS_CHECK_TWO_IS(explicitly_convertible,
                             std::is_constructible<U, T>::value && !std::is_convertible<T, U>::value)
+
+IMPL_TYPE_TAGS_CHECK_TWO_HAS(addition_operator,
+                             std::is_same<decltype(std::declval<T>().operator+=(std::declval<U>())), std::add_lvalue_reference_t<T>>::value)
+
+IMPL_TYPE_TAGS_CHECK_TWO_HAS(subtraction_operator,
+                             std::is_same<decltype(std::declval<T>().operator-=(std::declval<U>())), std::add_lvalue_reference_t<T>>::value)
 
 
 template<typename T, typename U>
