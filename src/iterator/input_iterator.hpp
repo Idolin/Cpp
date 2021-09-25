@@ -15,18 +15,30 @@ namespace iterator_impl_def {
              typename difference_t,
              typename iterator_t>
     struct _input_iterator_adapter: public Impl,
-            // adds operator!= if not declared based on operator==
+            // adds operator==(const It&) if not declared (and not declared non-member function operator==(const It&, const It&)) based on getIndex() method
+            iterator_impl_def::_equalDefault<Impl, iterator_t>,
+            /*
+             * adds operator!=(const It&) if not declared (and not declared non-member function operator!=(const It&, const It&)) based on either
+             *  - operator==(const It&)
+             *  - non-member function operator==(const It&, const It&)
+             *  - getIndex() method
+             */
             iterator_impl_def::_notEqualDefault<Impl, iterator_t>,
             // adds operator-> if not declared based on operator*
             iterator_impl_def::_arrowDefault<Impl, iterator_t, pointer_t>,
-            // adds pre-increment operator++() if not declared based on increment() method
+            /*
+             * adds pre-increment operator++() if not declared based on either
+             *  - increment() method
+             *  - getIndex() and setIndex(integral_type) methods
+             */
             iterator_impl_def::_preIncrementDefault<Impl, iterator_t>,
             /*
              * adds post-increment operator++(int) if not declared based on either
              *  - pre-increment operator++()
              *  - increment() method
+             *  - getIndex() and setIndex(integral_type) methods
              */
-            iterator_impl_def::_postIncrementDefault<Impl, iterator_t>
+            iterator_impl_def::_postIncrementDefault<Impl, iterator_t, value_type_t>
     {
         typedef std::input_iterator_tag iterator_category;
         typedef value_type_t value_type;
@@ -48,24 +60,9 @@ namespace iterator_impl_def {
         _input_iterator_adapter(Types&&... values): Impl(std::forward<Types>(values)...)
         {}
 
-        /*
-         * Increment operators implemented here, in upper score,
-         *  to ensure they will be called instead of original ones declared in Impl class
-         */
-        iterator_t& operator++()
-        {
-            iterator_impl_def::_preIncrementDefault<Impl, iterator_t>::_preIncrement();
-            return *static_cast<iterator_t*>(this);
-        }
-
-        auto operator++(int)
-        {
-            typedef decltype(*(std::declval<iterator_impl_def::_postIncrementDefault<Impl, iterator_t>>()._postIncrement())) return_deref_t;
-            static_assert(std::is_convertible<return_deref_t, value_type>::value,
-                    "Input iterator post-increment return type must be convertible to value_type after dereferencing");
-
-            return iterator_impl_def::_postIncrementDefault<Impl, iterator_t>::_postIncrement();
-        }
+        // Use using-declaration for intoducing operator++() and operator++(int) in this class to avoid abmigious name lookup for this operators
+        using _preIncrementDefault<Impl, iterator_t>::operator++;
+        using _postIncrementDefault<Impl, iterator_t, value_type>::operator++;
     };
 
 }

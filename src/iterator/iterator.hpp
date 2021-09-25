@@ -8,6 +8,10 @@
 
 /*
  * These iterator adapters can be used to make iterator classes from any struct which meets following requirements:
+ *  It can't have operator++() and increment() method at the same time.
+ *  It can't have operator--() and decrement() method at the same time.
+ *  It can't have operator+=(integral_type) and increment(integral_type) method at the same time.
+ *  It can't have operator-=(integral_type) and decrement(integral_type) method at the same time.
  *  For output iterator:
  *      Requires:
  *          - It must provide operator*()
@@ -18,12 +22,12 @@
  *
  *  For input iterator:
  *      Requires:
- *          - It must provide either operator==(const It&) or getIndex() method
+ *          - It must provide either operator==(const It&) or non-member function operator==(const It&, const It&) or getIndex() method
  *          - It must provide operator*()
  *          - It must provide either operator++() or increment() method or
  *              getIndex() & setIndex(integral_type) methods
  *      Optionally:
- *          - It can provide operator!=(const It&)
+ *          - It can provide operator!=(const It&) or non-member function operator!=(const It&, const It&)
  *          - It can provide operator->()
  *          - It can provide operator++(int)
  *
@@ -45,13 +49,13 @@
  *              getIndex() & setIndex(integral_type) methods
  *          - It must provide either operator-=(integral_type) or decrement(integral_type) or
  *              getIndex() & setIndex(integral_type) methods
- *          - It must provide either operator-=(const It&) or
+ *          - It must provide either operator-(const It&) or
  *              getIndex() & setIndex(integral_type) methods
- *          - It must provide either operator<(const It&) or getIndex() method
+ *          - It must provide either member operator<(const It&) or non-member function operator<(const It&, const It&) or getIndex() method
  *      Optionally:
- *          - It can provide non-member function operator+(const It&, integral_type)
+ *          - It can provide non-member function operator+(const It&, integral_type) or member operator+(integral_type)
  *          - It can provide non-member function operator+(integral_type, const It&)
- *          - It can provide non-member function operator-(const It&, integral_type)
+ *          - It can provide non-member function operator-(const It&, integral_type) or member operator-(integral_type)
  *          - It can provide operator[integral_type]
  *          - It can provide operator>()
  *          - It can provide operator>=()
