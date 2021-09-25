@@ -225,10 +225,10 @@ IMPL_TYPE_TAGS_STRUCT_T_IS(block_iterable, is_block_iterable_class<T>::value)
 #define IMPL_TYPE_TAGS_CHECK_TWO_COPY_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
 IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_subtractable,
-                              decltype(std::declval<T>() - std::declval<U>(), void()))
+                              void(decltype(std::declval<T>() - std::declval<U>())))
 
 IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_addable,
-                              decltype(std::declval<T>() + std::declval<U>(), void()))
+                              void(decltype(std::declval<T>() + std::declval<U>())))
 
 IMPL_TYPE_TAGS_CHECK_TWO_IS(explicitly_convertible,
                             std::is_constructible<U, T>::value && !std::is_convertible<T, U>::value)
