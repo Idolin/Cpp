@@ -113,6 +113,8 @@ struct is_mergeable
 #define IMPL_TYPE_TAGS_STRUCT_T_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK_T(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 #define IMPL_TYPE_TAGS_STRUCT_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(has_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
+IMPL_TYPE_TAGS_STRUCT_CHECK(is_valid_type,
+        void(decltype(std::declval<T>())))
 
 // using is_constructible instead of is_convertible to allow operator!= return type contextually convertible to bool as well
 IMPL_TYPE_TAGS_STRUCT_IS(less_comparable, std::is_constructible<bool, decltype(std::declval<T>() < std::declval<T>())>::value)
@@ -141,7 +143,7 @@ IMPL_TYPE_TAGS_STRUCT_HAS(pre_increment_operator,
         std::is_same<decltype(++std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
 
 IMPL_TYPE_TAGS_STRUCT_CHECK(has_post_increment_operator,
-        decltype(std::declval<T>()++, void()))
+        void(decltype(std::declval<T>()++)))
 
 IMPL_TYPE_TAGS_STRUCT_HAS(increment_method,
         std::is_same<decltype(std::declval<T>().increment()), void>::value)
@@ -150,16 +152,13 @@ IMPL_TYPE_TAGS_STRUCT_HAS(pre_decrement_operator,
         std::is_same<decltype(--std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
 
 IMPL_TYPE_TAGS_STRUCT_CHECK(has_post_decrement_operator,
-        decltype(std::declval<T>()--, void()))
+        void(decltype(std::declval<T>()--)))
 
 IMPL_TYPE_TAGS_STRUCT_HAS(decrement_method,
         std::is_same<decltype(std::declval<T>().decrement()), void>::value)
 
 IMPL_TYPE_TAGS_STRUCT_HAS(subscript_operator,
         !std::is_same<decltype(std::declval<T>().operator[](0)), void>::value)
-
-IMPL_TYPE_TAGS_STRUCT_CHECK(is_exists,
-        decltype(std::declval<T>(), void()))
 
 IMPL_TYPE_TAGS_STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
