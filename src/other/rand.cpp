@@ -337,8 +337,8 @@ int64_t random64()
     return defaultRandomizer.random64();
 }
 
-template<typename T, typename = typename std::enable_if_t<std::is_unsigned<T>::value>>
-T randomA(T to)
+template<typename T>
+std::enable_if_t<std::is_unsigned<T>::value, T> randomA(T to)
 {
     ASSERT(to > 0);
     T mask = to_bit_mask(to);

@@ -15,7 +15,7 @@ struct pixel
 };
 
 template<bool centered=true, bool normalized = true, bool require_angle=true, unsigned iterations=1>
-void make_img(str name, unsigned width, unsigned height, const std::function<const pixel(double, double, double, double, unsigned)> &f)
+void make_img(cstr name, unsigned width, unsigned height, const std::function<const pixel(double, double, double, double, unsigned)> &f)
 {
 	PAMImageWriter im(name, width, height, PAMImageWriter::colors::RGB, 65535, false);
 	unsigned short *img = new unsigned short[width * height * 3];

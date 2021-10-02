@@ -51,11 +51,11 @@ struct pqueue
 
         ~pvqueue()
         {
-            if(own and 1)
+            if(own & 1)
                 delete t;
-            if(own and 2)
+            if(own & 2)
                 delete n;
-            if(own and 4)
+            if(own & 4)
                 delete l;
         }
     };
