@@ -536,17 +536,9 @@ uint64_t cstr::str_info_pi::hash_recalc() const
     return lpart->hash();
 }
 
-cstr::str_info_empty_make_block_nullptr_at_exit::~str_info_empty_make_block_nullptr_at_exit()
+cstr::cstr(): s(empty().block), info(&empty())
 {
-    empty_str_info.block = nullptr;
-}
-
-cstr::str_info cstr::empty = str_info();
-cstr::str_info_empty_make_block_nullptr_at_exit cstr::called_before_empty_destructor {cstr::empty};
-
-cstr::cstr(): s(empty.block), info(&empty)
-{
-    empty.links++;
+    info->links++;
 }
 
 cstr::cstr(bool f): s(new char[6]), info(new str_info(s, 4))
@@ -593,25 +585,25 @@ cstr::cstr(I x)
     }
 }
 
-template cstr::cstr<signed char, void>(signed char);
+template cstr::cstr(signed char);
 
-template cstr::cstr<unsigned char, void>(unsigned char);
+template cstr::cstr(unsigned char);
 
-template cstr::cstr<short, void>(short);
+template cstr::cstr(short);
 
-template cstr::cstr<unsigned short, void>(unsigned short);
+template cstr::cstr(unsigned short);
 
-template cstr::cstr<int, void>(int);
+template cstr::cstr(int);
 
-template cstr::cstr<unsigned int, void>(unsigned int);
+template cstr::cstr(unsigned int);
 
-template cstr::cstr<long, void>(long);
+template cstr::cstr(long);
 
-template cstr::cstr<unsigned long, void>(unsigned long);
+template cstr::cstr(unsigned long);
 
-template cstr::cstr<long long, void>(long long);
+template cstr::cstr(long long);
 
-template cstr::cstr<unsigned long long, void>(unsigned long long);
+template cstr::cstr(unsigned long long);
 
 cstr::cstr(const char *s)
 {
@@ -672,8 +664,8 @@ cstr::cstr(std::string&& s): cstr(s.c_str(), static_cast<unsigned long>(s.length
 
 cstr::cstr(cstr&& s) noexcept: s(s.s), info(s.info)
 {
-    s.s = empty.block;
-    s.info = &empty;
+    s.s = empty().block;
+    s.info = &empty();
     s.info->links++;
 }
 
@@ -703,8 +695,8 @@ cstr& cstr::operator=(cstr &&b) noexcept
     str_info *tmp = info;
     info = b.info;
     s = b.s;
-    b.info = &empty;
-    b.s = empty.block;
+    b.info = &empty();
+    b.s = empty().block;
     b.info->links++;
     unlink(tmp);
     return *this;
@@ -771,9 +763,9 @@ cstr& cstr::operator*=(unsigned times)
         return *this;
     if(times == 0)
     {
-        s = empty.block;
+        s = empty().block;
         unlink();
-        info = &empty;
+        info = &empty();
         info->links++;
         return *this;
     }
@@ -1011,13 +1003,13 @@ cstr::const_iterator cstr::end() const
     return const_iterator(*this, length());
 }
 
-void cstr::unlink() const noexcept
+void cstr::unlink() const
 {
     if(--info->links == 0)
         delete info;
 }
 
-void cstr::unlink(str_info *inf) const noexcept
+void cstr::unlink(str_info *inf) const
 {
     if(--inf->links == 0)
         delete inf;
@@ -1050,8 +1042,7 @@ unsigned char cstr::cmp_call(const cstr &b) const
     return cmp(s, b.s, info->len);
 }
 
-template<unsigned char count_r_find_all,
-    typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+template<unsigned char count_r_find_all, typename RType>
 RType cstr::count_r_find_char(char ch, unsigned long from) const
 {
     CFVT<count_r_find_all> v;
@@ -1074,8 +1065,7 @@ RType cstr::count_r_find_char(char ch, unsigned long from) const
     return v.result();
 }
 
-template<unsigned char count_r_find_all, bool intersect,
-    typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
+template<unsigned char count_r_find_all, bool intersect, typename RType>
 RType cstr::count_r_find(const cstr &o, unsigned long from) const
 {
     if(o.length() < 2)
@@ -1120,7 +1110,7 @@ RType cstr::count_r_find(const cstr &o, unsigned long from) const
     return v.result();
 }
 
-//STATIC_VAR_CONSTRUCTOR(cstr::str_info, cstr::empty, new char[1](), 0)
+STATIC_VAR_CONSTRUCTOR(cstr::str_info, cstr::empty, new char[1](), 0)
 
 cstr operator+(cstr a, const cstr &b)
 {

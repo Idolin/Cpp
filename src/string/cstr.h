@@ -37,9 +37,6 @@ protected:
         unsigned long len, links;
         mutable unsigned long cell_changed;
 
-        constexpr str_info() noexcept:
-            block(const_cast<char*>("\0")), len(0), links(2), cell_changed(std::numeric_limits<unsigned long>::max())
-        {};
         str_info(char *s, unsigned long len) noexcept;
         str_info(str_info *lpart, unsigned long len) noexcept;
         str_info(str_info *copy_from);
@@ -156,22 +153,12 @@ protected:
 
     struct str_iterable;
 
-private:
-    struct str_info_empty_make_block_nullptr_at_exit
-    {
-        str_info &empty_str_info;
-
-        ~str_info_empty_make_block_nullptr_at_exit();
-    };
-
 protected:
     mutable char *s;
     mutable str_info *info;
 
 private:
     static const uint64_t hash_mult = 137;
-    static str_info empty; // static initialization time
-    static str_info_empty_make_block_nullptr_at_exit called_before_empty_destructor; // dynamic initialization time
 
 public:
     cstr();
@@ -306,9 +293,9 @@ public:
     static const unsigned long not_found = std::numeric_limits<unsigned long>::max() - 1;
 
 protected:
-    void unlink() const noexcept;
+    void unlink() const;
 
-    void unlink(str_info*) const noexcept;
+    void unlink(str_info*) const;
 
     void prepare_change();
 
@@ -323,6 +310,9 @@ protected:
     template<unsigned char count_r_find_all, bool intersect,
         typename RType = typename std::conditional_t<count_r_find_all == 3, vect<unsigned long>, unsigned long>>
     RType count_r_find(const cstr &o, unsigned long from = 0) const;
+
+private:
+    static str_info& empty();
 };
 
 struct cstr::str_iterable
