@@ -14,7 +14,7 @@ namespace iterator_impl_def
         template<typename It>
         struct get_def_value
         {
-            static_assert(is_dereferencable_v<It>, "Iterator must be dereferencable");
+            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
             typedef std::remove_reference_t<decltype(*std::declval<It>())> type;
         };
@@ -22,7 +22,7 @@ namespace iterator_impl_def
         template<typename It>
         struct get_def_reference
         {
-            static_assert(is_dereferencable_v<It>, "Iterator must be dereferencable");
+            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
             typedef decltype(*std::declval<It>()) type;
         };
@@ -30,7 +30,7 @@ namespace iterator_impl_def
         template<typename It, typename Enable = void>
         struct get_def_pointer
         {
-            static_assert(is_dereferencable_v<It>, "Iterator must be dereferencable");
+            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
             typedef std::add_pointer_t<std::remove_reference_t<decltype(*std::declval<It>())>> type;
         };
@@ -38,7 +38,7 @@ namespace iterator_impl_def
         template<typename It>
         struct get_def_pointer<It, typename std::enable_if_t<has_arrow_operator_v<It>>>
         {
-            static_assert(is_dereferencable_v<It>, "Iterator must be dereferencable");
+            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
             typedef decltype(std::declval<It>().operator->()) type;
         };
@@ -50,7 +50,7 @@ namespace iterator_impl_def
         };
 
         template<typename It, bool is_random_access_iterator>
-        struct get_def_difference<It, is_random_access_iterator, typename std::enable_if_t<is_subtractable_v<It>>>
+        struct get_def_difference<It, is_random_access_iterator, typename std::enable_if_t<has_subtraction_operator_v<It>>>
         {
             static_assert(!is_random_access_iterator || is_subtractable_v<const It>,
                 "Random access iterator It: this subtract expression must be valid: const It - const It");
@@ -66,39 +66,27 @@ namespace iterator_impl_def
         template<typename It, typename Enable = void>
         struct has_get_index_method
         {
-            enum
-            {
-                value = false
-            };
+            static constexpr bool value = false;
         };
 
         template<typename It>
         struct has_get_index_method<It,
                 typename std::enable_if_t<std::is_integral<decltype(std::declval<It>().getIndex())>::value>>
         {
-            enum
-            {
-                value = true
-            };
+            static constexpr bool value = true;
         };
 
         template<typename It, typename Enable = void>
         struct has_set_index_method
         {
-            enum
-            {
-                value = false
-            };
+            static constexpr bool value = false;
         };
 
         template<typename It>
         struct has_set_index_method<It,
                 decltype(std::declval<It>().setIndex(std::declval<typename get_def_difference<It>::type>()), void())>
         {
-            enum
-            {
-                value = true
-            };
+            static constexpr bool value = true;
         };
 
         template<typename It>
@@ -108,43 +96,64 @@ namespace iterator_impl_def
         constexpr bool has_set_index_method_v = has_set_index_method<It>::value;
 
 
+        template<typename It, typename Enable = void>
+        struct has_increment_method
+        {
+            static constexpr bool value = false;
+        };
+
+        template<typename It>
+        struct has_increment_method<It, decltype(std::declval<It>().increment(), void())>
+        {
+            static constexpr bool value = true;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct has_decrement_method
+        {
+            static constexpr bool value = false;
+        };
+
+        template<typename It>
+        struct has_decrement_method<It, decltype(std::declval<It>().decrement(), void())>
+        {
+            static constexpr bool value = true;
+        };
+
+
+        template<typename It>
+        constexpr bool has_increment_method_v = has_increment_method<It>::value;
+
+        template<typename It>
+        constexpr bool has_decrement_method_v = has_decrement_method<It>::value;
+
+
         template<typename It, typename difference_t, typename Enable = void>
         struct has_increment_value_method
         {
-            enum
-            {
-                value = false
-            };
+            static constexpr bool value = false;
         };
 
         template<typename It, typename difference_t>
         struct has_increment_value_method<It, difference_t,
                 decltype(std::declval<It>().increment(std::declval<difference_t>()), void())>
         {
-            enum
-            {
-                value = true
-            };
+            static constexpr bool value = true;
         };
 
 
         template<typename It, typename difference_t, typename Enable = void>
         struct has_decrement_value_method
         {
-            enum
-            {
-                value = false
-            };
+            static constexpr bool value = false;
         };
 
         template<typename It, typename difference_t>
         struct has_decrement_value_method<It, difference_t,
                 decltype(std::declval<It>().decrement(std::declval<difference_t>()), void())>
         {
-            enum
-            {
-                value = true
-            };
+            static constexpr bool value = true;
         };
 
 
@@ -183,9 +192,10 @@ namespace iterator_impl_def
     };
 
     template<typename Impl, typename It>
-    struct _equalDefault<Impl, It, typename std::enable_if_t<is_equal_comparable_v<Impl>>>
+    struct _equalDefault<Impl, It, typename std::enable_if_t<has_equal_operator_v<Impl>>>
     {
-        static_assert(is_equal_comparable_v<const Impl>, "Input iterator It: this comparison expression must be valid: const It == const It");
+        static_assert(has_equal_operator_v<const Impl>, "Input iterator It: this comparison expression must be valid: const It == const It");
+        static_assert(is_equal_comparable_v<const Impl>, "Input iterator It: this comparison expression must return value implicitly convertable to bool: const It == const It");
         static_assert(std::is_convertible<decltype(std::declval<Impl>() == std::declval<Impl>()), bool>::value,
             "Input iterator It: expression consi It == const It must return type implicitly convertible to bool");
     };
@@ -230,9 +240,9 @@ namespace iterator_impl_def
     template<typename Impl, typename It, typename R, typename Enable = void>
     struct _arrowDefault
     {
-        static_assert(is_dereferencable_v<R>, "Iterator pointer type better be dereferencable");
-        static_assert(is_dereferencable_v<Impl>, "Iterator must be dereferncable");
-        static_assert(is_dereferencable_v<const Impl>, "Iterator derefernce operator*() must be const");
+        static_assert(has_dereference_operator_v<R>, "Iterator pointer type better be dereferencable");
+        static_assert(has_dereference_operator_v<Impl>, "Iterator must be dereferncable");
+        static_assert(has_dereference_operator_v<const Impl>, "Iterator derefernce operator*() must be const");
 
         R operator->() const
         {
@@ -243,9 +253,9 @@ namespace iterator_impl_def
     template<typename Impl, typename It, typename R>
     struct _arrowDefault<Impl, It, R, typename std::enable_if_t<has_arrow_operator_v<Impl>>>
     {
-        static_assert(is_dereferencable_v<R>, "Iterator pointer type better be dereferencable");
-        static_assert(is_dereferencable_v<Impl>, "Iterator must be dereferncable");
-        static_assert(is_dereferencable_v<const Impl>, "Iterator derefernce operator*() must be const");
+        static_assert(has_dereference_operator_v<R>, "Iterator pointer type better be dereferencable");
+        static_assert(has_dereference_operator_v<Impl>, "Iterator must be dereferncable");
+        static_assert(has_dereference_operator_v<const Impl>, "Iterator derefernce operator*() must be const");
     };
 
 
@@ -334,13 +344,13 @@ namespace iterator_impl_def
         // Impl::operator++(int) return type
         typedef decltype(std::declval<Impl>()++) post_increment_t;
 
-        // type iterator helper(It) will return for operator++(int): either It or Impl::operator++(int) return type
+        // type iterator adapter(It) will return for operator++(int): either It or Impl::operator++(int) return type
         typedef std::conditional_t<
             is_same_omit_cv_v<post_increment_t, Impl>,
                 copy_cv_refernce_t<Impl, It>, post_increment_t> post_increment_ret;
 
     public:
-        static_assert(is_dereferencable_v<post_increment_t>,
+        static_assert(has_dereference_operator_v<post_increment_t>,
             "Iterator post-increment operator++(int) must return dereferencable object");
         static_assert(std::is_same<value_type, void>::value ||
             is_same_omit_cv_v<post_increment_t, Impl> ||
@@ -439,13 +449,13 @@ namespace iterator_impl_def
         // Impl::operator--(int) return type
         typedef decltype(std::declval<Impl>()--) post_decrement_t;
 
-        // type iterator helper(It) will return for operator--(int): either It or Impl::operator--(int) return type
+        // type iterator adapter(It) will return for operator--(int): either It or Impl::operator--(int) return type
         typedef std::conditional_t<
             is_same_omit_cv_v<post_decrement_t, Impl>,
                 copy_cv_refernce_t<Impl, It>, post_decrement_t> post_decrement_ret;
 
     public:
-        static_assert(is_dereferencable_v<post_decrement_t>,
+        static_assert(has_dereference_operator_v<post_decrement_t>,
             "Bidirectional iterator post-decrement--(int) operator must return dereferencable object");
         static_assert(std::is_convertible<post_decrement_t, const Impl&>::value,
             "Bidirectional iterator It post-decrement return type must be convertible to const It&");
@@ -552,9 +562,9 @@ namespace iterator_impl_def
 
     template<typename Impl, typename It, typename difference_t>
     struct _iteratorSubtractionDefault<Impl, It, difference_t,
-           typename std::enable_if_t<is_subtractable_v<Impl, Impl>>>
+           typename std::enable_if_t<has_subscript_operator_v<Impl, Impl>>>
     {
-        static_assert(is_subtractable_v<const Impl, const Impl>,
+        static_assert(has_subtraction_operator_v<const Impl, const Impl>,
             "Random access iterator It: this subtract operation must be valid: const It - const It");
         static_assert(std::is_integral<decltype(std::declval<Impl>() - std::declval<Impl>())>::value,
             "Iterator subtraction must return integral type");
@@ -603,10 +613,14 @@ namespace iterator_impl_def
     };
 
     template<typename Impl, typename It>
-    struct _comparisonLessDefault<Impl, It, typename std::enable_if_t<is_less_comparable_v<Impl>>>
+    struct _comparisonLessDefault<Impl, It, typename std::enable_if_t<has_less_operator_v<Impl>>>
     {
-        static_assert(is_less_comparable_v<const Impl>,
+        static_assert(has_less_operator_v<const Impl>,
             "Random access iterator It: this comparison expression must be valid: const It < const It");
+        static_assert(is_less_comparable_v<Impl>,
+            "Random access iterator It: this comparison expression must return value contextually convertibel to bool: It < It");
+        static_assert(is_less_comparable_v<const Impl>,
+            "Random access iterator It: this comparison expression must return value contextually convertibel to bool: const It < const It");
     };
 
 
@@ -721,9 +735,9 @@ namespace iterator_impl_def
     };
 
     template<typename Impl, typename It, typename difference_t>
-    struct _subtractionDefault<Impl, It, difference_t, typename std::enable_if_t<is_subtractable_v<Impl, difference_t>>>
+    struct _subtractionDefault<Impl, It, difference_t, typename std::enable_if_t<has_subtraction_operator_v<Impl, difference_t>>>
     {
-        static_assert(is_subtractable_v<const Impl, difference_t>,
+        static_assert(has_subtraction_operator_v<const Impl, difference_t>,
             "Random access iterator It: this subtraction expression must be valid: const It - integral_type");
         static_assert(std::is_same<Impl, decltype(std::declval<Impl>() - std::declval<difference_t>())>::value,
             "Random access iterator It: this subtraction expression return type must be exactly It: It - integral_type");
@@ -747,9 +761,9 @@ namespace iterator_impl_def
     };
 
     template<typename Impl, typename It, typename difference_t>
-    struct _additionDefault<Impl, It, difference_t, typename std::enable_if_t<is_addable_v<Impl, difference_t>>>
+    struct _additionDefault<Impl, It, difference_t, typename std::enable_if_t<has_addition_operator_v<Impl, difference_t>>>
     {
-        static_assert(is_addable_v<const Impl, difference_t>,
+        static_assert(has_addition_operator_v<const Impl, difference_t>,
             "Random access iterator It: this addition expression must be valid: const It + integral_type");
         static_assert(std::is_same<Impl, decltype(std::declval<Impl>() + std::declval<difference_t>())>::value,
             "Random access iterator It: this addition expression return type must be exactly It: It + integral_type");
