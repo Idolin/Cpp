@@ -120,12 +120,12 @@ namespace iterator_impl_def {
     {
         using T = _RAI<I, V, R, P, D, IT>;
 
-        static_assert(is_addable_v<typename T::difference_type, const typename T::Impl&>,
-          "Random access iterator It: this addition expression must be valid: integral_type + const It&");
+        static_assert(is_addable_v<typename T::difference_type, const typename T::Impl>,
+          "Random access iterator It: this addition expression must be valid: integral_type + const It");
         static_assert(std::is_same<typename T::Impl, decltype(std::declval<typename T::difference_type>() + std::declval<typename T::Impl>())>::value,
           "Random access iterator It: this addition expression return type must be exactly It: integral_type + It");
-        static_assert(std::is_same<typename T::Impl, decltype(std::declval<typename T::difference_type>() + std::declval<const typename T::Impl&>())>::value,
-          "Random access iterator It: this addition expression return type must be exactly It: integral_type + const It&");
+        static_assert(std::is_same<typename T::Impl, decltype(std::declval<typename T::difference_type>() + std::declval<const typename T::Impl>())>::value,
+          "Random access iterator It: this addition expression return type must be exactly It: integral_type + const It");
         return value + it.Impl;
     }
 
