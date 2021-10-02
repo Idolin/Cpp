@@ -29,7 +29,7 @@ namespace iterator_impl_def {
         static_assert(std::is_default_constructible<Impl>::value,
             "Forward iterator must be default constructible");
         static_assert(std::is_same<reference_t, std::add_lvalue_reference_t<value_type_t>>::value ||
-            std::is_same<reference_t, std::add_const_t<std::add_lvalue_reference_t<value_type_t>>>::value,
+            std::is_same<reference_t, std::add_lvalue_reference_t<std::add_const_t<value_type_t>>>::value,
             "Forward iterator reference type must be exactly value_type& or const value_type&");
 
         static_assert(std::is_same<post_increment_return_t, iterator_t>::value,
