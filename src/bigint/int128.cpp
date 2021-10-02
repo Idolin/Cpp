@@ -152,6 +152,7 @@ void uint128_t::udivmod(uint64_t divisor, uint64_t *remainder)
         if(remainder)
             *remainder = p_low & ((UINT64_C(1) << shift) - 1);
         *this >>= shift;
+        return;
     }
 
     uint64_t remainder_ = p_high;
