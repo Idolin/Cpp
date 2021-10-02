@@ -21,7 +21,7 @@ add_custom_target(random_access_iterator_tgt DEPENDS bidirectional_iterator_tgt 
 set(SOURCE_TGT_ITERATOR iterator.hpp)
 add_custom_target(iterator_tgt DEPENDS input_iterator_tgt outuput_iterator_tgt forward_iterator_tgt bidirectional_iterator_tgt random_access_iterator_tgt)
 
-#add_library(iterator_lib STATIC iterator.hpp)
-#add_dependencies(iterator_lib input_iterator_tgt outuput_iterator_tgt)
+add_test(iterator_test iterator.test.cpp)
+list(APPEND TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/iterator.test.cpp)
 
 set(TEST_FILES ${TEST_FILES} PARENT_SCOPE)
