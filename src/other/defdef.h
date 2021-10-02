@@ -56,7 +56,7 @@
     MULT_ARG_R_C(D_INTR_LSELF, D_INTR_GET_FIRST, D_INTR_SKIP_1, ## __VA_ARGS__)
 
 // returns last argument from list
-#define GET_LAST(...) D_INTR_GET_ARG_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), __VA_ARGS__)
+#define GET_LAST(...) D_INTR_GET_ARG_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), NO_SUCH_ARG, __VA_ARGS__)
     
 // returns def if only def is provided, otherwise returns all arguments after def
 #define GET_ARG_DEF(def, ...) D_INTR_CONCAT(D_INTR_GET_ARG_DEF_, D_INTR_GET_ARGS_COUNT_3(def, ## __VA_ARGS__))(def, ## __VA_ARGS__)
@@ -77,7 +77,7 @@
 
 // arguments multiplied 50 - N times
 #define MULT_ARG_50_MN(N, ...) \
-    MULT_ARG(D_INTR_50MN(N), ## __VA_ARGS__)
+    MULT_ARG(D_INTR_50_MN(N), ## __VA_ARGS__)
 
 // returns amount of arguments - N
 #define GET_ARGS_COUNT_MN(N, ...) D_INTR_SELF(D_INTR_TAKE53 D_INTR_SELF() (1, ## __VA_ARGS__, D_INTR_MULT_ARG_50_MN(N, 1), 1, 0, 0, 0))
@@ -114,11 +114,11 @@
 // returns arguments list in reversed order
 #define REVERSE(...) D_INTR_REVERSE(__VA_ARGS__)
 
-// returns sequence S_n where s_i = i times applied operation on init, 0 <= i < length
+// returns sequence S_n, where s_i = i times applied operation on init, 0 <= i < length
 #define SEQUENCE(init, operation, length) \
     REVERSE(MULT_ARG_R_N(length, D_INTR_COMPOSE_SEQUENCE, D_INTR_SELF, D_INTR_SELF, init, operation))
 
-// returns sequence of T_n where t_i = 10^i, 0 <= i < length
+// returns sequence T_n, where t_i = 10^i, 0 <= i < length
 #define SEQ_10_POW(N) REVERSE(MULT_ARG_R_N(N, D_INTR_POW_10, D_INTR_EMPTY, D_INTR_EMPTY))
 
 // return N + 1(for N < 50)

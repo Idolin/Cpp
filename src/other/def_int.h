@@ -103,6 +103,7 @@
 #define D_INTR_POW_10(a, ...) a ## 0, a, ## __VA_ARGS__
 #define LAST_D_INTR_POW_10() 1
 
+// multiply arguments n times
 #define D_INTR_MULT_ARG_0(...)
 #define D_INTR_MULT_ARG_1(...) __VA_ARGS__
 #define D_INTR_MULT_ARG_2(...) D_INTR_MULT_ARG_1(__VA_ARGS__), ## __VA_ARGS__
@@ -158,7 +159,7 @@
 #define D_INTR_MULT_ARG_N(N, ...) D_INTR_CONCAT_I(D_INTR_MULT_ARG_, N)(__VA_ARGS__)
 
 // returns 50 - N
-#define D_INTR_50MN(N) D_INTR_SELF(D_INTR_TAKE53 D_INTR_SELF() (<?>, <?>, <?> D_INTR_CE(D_INTR_MULT_ARG_N(N, 0)), \
+#define D_INTR_50_MN(N) D_INTR_SELF(D_INTR_TAKE53 D_INTR_SELF() (<?>, <?>, <?> D_INTR_CE(D_INTR_MULT_ARG_N(N, 0)), \
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, \
     11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, \
     28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, \
@@ -166,17 +167,17 @@
 
 // arguments multiplied 50 - N times
 #define D_INTR_MULT_ARG_50_MN(N, ...) \
-    D_INTR_MULT_ARG_N(D_INTR_50MN(N), ## __VA_ARGS__)
+    D_INTR_MULT_ARG_N(D_INTR_50_MN(N), ## __VA_ARGS__)
 
 // returns amount of arguments - N
 #define D_INTR_GET_ARGS_COUNT_MN(N, ...) D_INTR_SELF(D_INTR_TAKE53 D_INTR_SELF() (1, ## __VA_ARGS__, D_INTR_MULT_ARG_50_MN(N, 1), 1, 0, 0, 0))
     
-// returns Nth argument from given argument list
+// returns Nth argument from given argument list (starting from 0)
 #define D_INTR_GET_ARG_N(N, ...) \
-    D_INTR_CONCAT(D_INTR_MULT_ARG_N_, N)(D_INTR_LSKIP_1, D_INTR_GET_FIRST, D_INTR_SKIP_1, ## __VA_ARGS__)
+    D_INTR_SELF(D_INTR_TAKE53 D_INTR_SELF() (<?>, <?> D_INTR_CE_I(D_INTR_MULT_ARG_50_MN(N, <?>)), ## __VA_ARGS__, NO_SUCH_ARG))
 
 // returns last argument from list
-#define D_INTR_GET_LAST(...) GET_ARG_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), __VA_ARGS__)
+#define D_INTR_GET_LAST(...) D_INTR_GET_ARG_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), NO_SUCH_ARG, ## __VA_ARGS__)
 
 // D_INTR_CEE shouldn't influence on macro expansion except for the extra space after commas
 #define MULT_ARG_R_0(C, G, N, ...)
@@ -279,6 +280,11 @@
     D_INTR_CALL(C,(D_INTR_CEE(G(__VA_ARGS__))(MULT_ARG_R_48(C, G, N, N(__VA_ARGS__)))))
 #define MULT_ARG_R_50(C, G, N, ...) \
     D_INTR_CALL(C,(D_INTR_CEE(G(__VA_ARGS__))(MULT_ARG_R_49(C, G, N, N(__VA_ARGS__)))))
+
+#define D_INTR_MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ...) \
+    D_INTR_CONCAT(MULT_ARG_R_, N)(compose, get_current, get_arg_next, ## __VA_ARGS__)
+#define D_INTR_MULT_ARG_R_N(N, compose, get_current, get_arg_next, ...) \
+    D_INTR_MULT_ARG_R_N_(N, compose, get_current, get_arg_next, ## __VA_ARGS__)
     
 #define D_INTR_COMPOSE_FOR_EACH(B, A, X, ...) { B X D_INTR_FREE(A) } __VA_ARGS__
 #define LAST_D_INTR_COMPOSE_FOR_EACH(B, A, X) { B X D_INTR_FREE(A) }
@@ -286,9 +292,9 @@
 #define D_INTR_REV_COMPOSE(a, ...) __VA_ARGS__, a
 #define LAST_D_INTR_REV_COMPOSE(a) a
     
-#define D_INTR_COMPOSE_SEQUENCE(init, operation, sequence, ...) (sequence operation), sequence, ## __VA_ARGS__
+#define D_INTR_COMPOSE_SEQUENCE(init, operation, sequence, ...) (sequence operation), sequence, __VA_ARGS__
 #define LAST_D_INTR_COMPOSE_SEQUENCE(init, operation) (init)
     
 // returns arguments list in reversed order
 #define D_INTR_REVERSE(...) \
-    MULT_ARG_R_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), D_INTR_REV_COMPOSE, D_INTR_GET_FIRST, D_INTR_SKIP_1, ## __VA_ARGS__)
+    D_INTR_MULT_ARG_R_N(D_INTR_GET_ARGS_COUNT(__VA_ARGS__), D_INTR_REV_COMPOSE, D_INTR_GET_FIRST, D_INTR_SKIP_1, __VA_ARGS__)
