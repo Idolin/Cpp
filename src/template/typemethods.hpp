@@ -286,3 +286,9 @@ struct getter_func
 
     constexpr static const unsigned short parts = getter_parts<T, R>();
 };
+
+template<typename T>
+constexpr std::add_const_t<T>& as_const(T& x)
+{
+    return x;
+}
