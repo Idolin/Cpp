@@ -36,7 +36,8 @@ public:
 
     static_assert(is_dereferencable_v<Impl>, "Output iterator must be dereferencable");
 
-    static_assert(std::is_convertible<post_increment_return_t, const Impl&>::value,
+    // if post_increment_return_t == self, then calling is_convertible on post_increment_return_t(self) is undefined behaviour, as self is incomplete type
+    static_assert(std::is_same<post_increment_return_t, self>::value || std::is_convertible<post_increment_return_t, const Impl&>::value,
             "Output iterator post-increment return type must be convertible to const It&");
 
     // forward constructor
