@@ -80,7 +80,7 @@ struct _getMMinType<T, T2, typename std::enable_if<
         (std::is_signed<T>::value && std::is_signed<T2>::value) ||
         (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
 {
-    typedef typename _getMinType<T, T2>::type type;
+    typedef typename get_smaller_type<T, T2>::type type;
 };
 
 template<typename T, typename T2>
@@ -105,7 +105,7 @@ struct _getMMaxType<T, T2, typename std::enable_if<
         std::is_signed<T>::value && std::is_signed<T2>::value ||
         std::is_unsigned<T>::value && std::is_unsigned<T2>::value>::type>
 {
-    typedef typename _getMaxType<T, T2>::type type;
+    typedef typename get_bigger_type<T, T2>::type type;
 };
 
 template<typename T, typename T2>
@@ -113,7 +113,7 @@ struct _getMMaxType<T, T2, typename std::enable_if<
         std::is_signed<T>::value && std::is_unsigned<T2>::value>::type>
 {
     typedef typename std::make_unsigned<
-            typename _getMaxType<T, T2>::type>::type type;
+            typename get_bigger_type<T, T2>::type>::type type;
 };
 
 template<typename T, typename T2>
@@ -191,7 +191,7 @@ template<typename T, typename = typename std::enable_if_t<std::is_integral<T>::v
 constexpr unsigned char max_bit_pos(T value)
 {
     if(value < 0)
-        return _typeSeq<T>::bit_length - static_cast<unsigned char>(1);
+        return type_info<T>::bit_length - static_cast<unsigned char>(1);
     T mask = ~static_cast<T>(0);
     unsigned char ans = 255;
     while(mask & value)

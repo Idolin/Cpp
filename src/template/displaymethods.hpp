@@ -6,7 +6,7 @@
 #include "typemethods.hpp"
 
 template<typename T>
-inline void _display(const T *start, const T *end, const char *prf = _typeSeq<T>::specifier,
+inline void _display(const T *start, const T *end, const char *prf = type_info<T>::specifier,
                      const char *del = " ", const char *end_s = "\n")
 {
     ASSERT(start <= end);
@@ -23,7 +23,7 @@ inline void _display(const T *start, const T *end, const char *prf = _typeSeq<T>
 
 template<typename T, typename SizeType = unsigned,
         typename = typename std::enable_if<std::is_integral<SizeType>::value>::type>
-inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>::specifier, const char *del = " ",
+inline void _display(const T *start, SizeType len, const char *prf = type_info<T>::specifier, const char *del = " ",
                      const char *end_s = "\n")
 {
     if(len == 0)
@@ -39,7 +39,7 @@ inline void _display(const T *start, SizeType len, const char *prf = _typeSeq<T>
 
 template<typename T, typename SizeTypeL = unsigned, typename SizeTypeH = unsigned>
 inline void _display2D(const T *const *array, SizeTypeL length, SizeTypeH height,
-                       const char *prf = _typeSeq<T>::specifier, const char *del = " ",
+                       const char *prf = type_info<T>::specifier, const char *del = " ",
                        const char *ldel = "\n")
 {
     if((height == 0) or (length == 0))

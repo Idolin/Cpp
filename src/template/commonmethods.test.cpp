@@ -105,10 +105,10 @@ TEST_PACK(commonmethods)
         EXPECT_EQ(max_bit_pos(2), 1);
         EXPECT_EQ(max_bit_pos(3), 1);
         EXPECT_EQ(max_bit_pos(128), 7);
-        EXPECT_EQ(max_bit_pos<int>(-1), _typeSeq<int>::bit_length - 1,
-                  "Expected %hhu, but %hhu received", _typeSeq<int>::bit_length - 1, max_bit_pos<int>(-1));
-        EXPECT_EQ(max_bit_pos<signed char>(-128), _typeSeq<signed char>::bit_length - 1);
-        EXPECT_EQ(max_bit_pos<long long>(-128), _typeSeq<long long>::bit_length - 1);
+        EXPECT_EQ(max_bit_pos<int>(-1), type_info<int>::bit_length - 1,
+                  "Expected %hhu, but %hhu received", type_info<int>::bit_length - 1, max_bit_pos<int>(-1));
+        EXPECT_EQ(max_bit_pos<signed char>(-128), type_info<signed char>::bit_length - 1);
+        EXPECT_EQ(max_bit_pos<long long>(-128), type_info<long long>::bit_length - 1);
     }
 
     TEST(min_bit_pos)
@@ -119,7 +119,7 @@ TEST_PACK(commonmethods)
         EXPECT_EQ(min_bit_pos(3), 0);
         EXPECT_EQ(min_bit_pos(128), 7);
         EXPECT_EQ(min_bit_pos<int>(-1), 0);
-        EXPECT_EQ(min_bit_pos<signed char>(-128), _typeSeq<signed char>::bit_length - 1);
+        EXPECT_EQ(min_bit_pos<signed char>(-128), type_info<signed char>::bit_length - 1);
         EXPECT_EQ(min_bit_pos<long long>(-128), 7);
     }
 

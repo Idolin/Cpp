@@ -161,11 +161,11 @@ public:
         unsigned firstSetID = this->getSetID(first);
         unsigned secondSetID = this->getSetID(second);
         if(firstSetID != secondSetID)
-            uniteImpl<_rank<_valueMethods<bool>::to_unsigned(
+            uniteImpl<rank_p<_valueMethods<bool>::to_unsigned(
                     balanced)>::value>(firstSetID, secondSetID);
     }
 
-    template<_rank<1>::valueType ignored>
+    template<rank_p<1>::valueType ignored>
     void uniteImpl(unsigned firstID, unsigned secondID)
     {
         if(s[firstID].balance >= s[secondID].balance)
@@ -182,7 +182,7 @@ public:
         }
     }
 
-    template<_rank<0>::valueType ignored>
+    template<rank_p<0>::valueType ignored>
     void uniteImpl(unsigned firstID, unsigned secondID)
     {
         if(randomB())
@@ -202,11 +202,11 @@ public:
         ASSERT(from <= to);
         if(to > s.size())
             this->add(to - s.size());
-        uniteRangeImpl<_rank<_valueMethods<bool>::to_unsigned(
+        uniteRangeImpl<rank_p<_valueMethods<bool>::to_unsigned(
                 fast_range_update)>::value>(from, to);
     }
 
-    template<_rank<1>::valueType ignored>
+    template<rank_p<1>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
         to--;
@@ -220,7 +220,7 @@ public:
         }
     }
 
-    template<_rank<0>::valueType ignored>
+    template<rank_p<0>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
         for(;from < to - 1;from++)
@@ -288,11 +288,11 @@ public:
         unsigned firstSetID = this->getSetID(first);
         unsigned secondSetID = this->getSetID(second);
         if(firstSetID != secondSetID)
-            uniteImpl<_rank<_valueMethods<bool>::to_unsigned(
+            uniteImpl<rank_p<_valueMethods<bool>::to_unsigned(
                     balanced)>::value>(firstSetID, secondSetID);
     }
 
-    template<_rank<1>::valueType ignored>
+    template<rank_p<1>::valueType ignored>
     void uniteImpl(unsigned firstID, unsigned secondID)
     {
         if(s[firstID].balance >= s[secondID].balance)
@@ -309,7 +309,7 @@ public:
         }
     }
 
-    template<_rank<0>::valueType ignored>
+    template<rank_p<0>::valueType ignored>
     void uniteImpl(unsigned firstID, unsigned secondID)
     {
         if(randomB())
@@ -329,11 +329,11 @@ public:
         ASSERT(from <= to);
         if(to > s.size())
             this->add(to - s.size());
-        uniteRangeImpl<_rank<_valueMethods<bool>::to_unsigned(
+        uniteRangeImpl<rank_p<_valueMethods<bool>::to_unsigned(
                 fast_range_update)>::value>(from, to);
     }
 
-    template<_rank<1>::valueType ignored>
+    template<rank_p<1>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
         to--;
@@ -347,7 +347,7 @@ public:
         }
     }
 
-    template<_rank<0>::valueType ignored>
+    template<rank_p<0>::valueType ignored>
     void uniteRangeImpl(unsigned from, unsigned to)
     {
         for(;from < to - 1;from++)

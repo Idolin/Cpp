@@ -6,15 +6,13 @@
 #include "t_useful.hpp"
 
 template<typename T, typename T2>
-struct _typeLower
+struct is_smaller_type
 {
-    enum {
-        value = sizeof(T) < sizeof(T2)
-    };
+    static constexpr bool value = sizeof(T) < sizeof(T2);
 };
 
 template<typename T>
-struct _typeSeq;
+struct type_info;
 
 namespace
 {
@@ -25,7 +23,7 @@ namespace
     struct _typeSeqBase<signed char>
     {
         typedef signed char type;
-        typedef _typeSeq<short> next;
+        typedef type_info<short> next;
         constexpr static const char *name = "signed char";
         constexpr static const char *specifier = "%hhd";
     };
@@ -35,7 +33,7 @@ namespace
     struct _typeSeqBase<short>
     {
         typedef short type;
-        typedef _typeSeq<int> next;
+        typedef type_info<int> next;
         constexpr static const char *name = "short";
         constexpr static const char *specifier = "%hd";
     };
@@ -44,7 +42,7 @@ namespace
     struct _typeSeqBase<int>
     {
         typedef int type;
-        typedef _typeSeq<long> next;
+        typedef type_info<long> next;
         constexpr static const char *name = "int";
         constexpr static const char *specifier = "%d";
     };
@@ -53,7 +51,7 @@ namespace
     struct _typeSeqBase<long>
     {
         typedef long type;
-        typedef _typeSeq<long long> next;
+        typedef type_info<long long> next;
         constexpr static const char *name = "long";
         constexpr static const char *specifier = "%ld";
     };
@@ -70,7 +68,7 @@ namespace
     struct _typeSeqBase<unsigned char>
     {
         typedef unsigned char type;
-        typedef _typeSeq<unsigned short> next;
+        typedef type_info<unsigned short> next;
         constexpr static const char *name = "unsigned char";
         constexpr static const char *specifier = "%hhu";
     };
@@ -79,7 +77,7 @@ namespace
     struct _typeSeqBase<unsigned short>
     {
         typedef unsigned short type;
-        typedef _typeSeq<unsigned> next;
+        typedef type_info<unsigned> next;
         constexpr static const char *name = "unsigned short";
         constexpr static const char *specifier = "%hu";
     };
@@ -88,7 +86,7 @@ namespace
     struct _typeSeqBase<unsigned>
     {
         typedef unsigned type;
-        typedef _typeSeq<unsigned long> next;
+        typedef type_info<unsigned long> next;
         constexpr static const char *name = "unsigned int";
         constexpr static const char *specifier = "%u";
     };
@@ -97,7 +95,7 @@ namespace
     struct _typeSeqBase<unsigned long>
     {
         typedef unsigned long type;
-        typedef _typeSeq<unsigned long long> next;
+        typedef type_info<unsigned long long> next;
         constexpr static const char *name = "unsigned long";
         constexpr static const char *specifier = "%lu";
     };
@@ -114,9 +112,9 @@ namespace
     struct _typeSeqBase<char>
     {
         typedef char type;
-        typedef typename std::conditional<std::is_signed<char>::value,
-                _typeSeq<short>,
-                _typeSeq<unsigned short>>::type next;
+        typedef std::conditional_t<std::is_signed<char>::value,
+                type_info<short>,
+                type_info<unsigned short>> next;
         constexpr static const char *name = "char";
         constexpr static const char *specifier = "%c";
     };
@@ -131,7 +129,7 @@ namespace
 }
 
 template<typename T>
-struct _typeSeq
+struct type_info
 {
     typedef T type;
     constexpr static const char *name = _typeSeqBase<T>::name;
@@ -141,86 +139,82 @@ struct _typeSeq
 };
 
 template<typename T, typename T2>
-struct _getMinType
+struct get_smaller_type
 {
-    typedef typename std::conditional<_typeLower<T, T2>::value, T, T2>::type type;
+    typedef std::conditional_t<is_smaller_type<T, T2>::value, T, T2> type;
 };
 
 template<typename T, typename T2>
-struct _getMaxType
+struct get_bigger_type
 {
-    typedef typename std::conditional<_typeLower<T, T2>::value, T2, T>::type type;
+    typedef std::conditional_t<is_smaller_type<T, T2>::value, T2, T> type;
 };
 
 template<typename T, typename Enable = void>
-struct _getNextType
+struct next_bigger_integral_type
 {};
 
 template<typename T>
-struct _getNextType<T, typename std::enable_if<
-        _typeLower<T, typename _typeSeq<T>::next::type>::value>::type>
+struct next_bigger_integral_type<T, typename std::enable_if<
+        is_smaller_type<T, typename type_info<T>::next::type>::value>::type>
 {
-    typedef typename _typeSeq<T>::next::type type;
+    typedef typename type_info<T>::next::type type;
 };
 
 template<typename T>
-struct _getNextType<T, typename std::enable_if<
-        !_typeLower<T, typename _typeSeq<T>::next::type>::value>::type>
+struct next_bigger_integral_type<T, typename std::enable_if<
+        !is_smaller_type<T, typename type_info<T>::next::type>::value>::type>
 {
-    typedef typename _getNextType<typename _typeSeq<T>::next::type>::type type;
+    typedef typename next_bigger_integral_type<typename type_info<T>::next::type>::type type;
 };
 
 template <typename T>
-struct _hasNextType
+struct has_next_bigger_integral_type
 {
 private:
     template<typename Enabled = void>
-    static uint8_t test(_rank<0>);
+    static uint8_t test(rank_p<0>);
 
-    template<typename _typeSeq<T>::next::type = 0>
-    static uint16_t test(_rank<1>);
+    template<typename type_info<T>::next::type = 0>
+    static uint16_t test(rank_p<1>);
 
 public:
-    enum
-    {
-        value = sizeof(test<>(_rank<1>())) == 2
-    };
+    static constexpr bool value = (sizeof(test<>(rank_p<1>())) == 2);
 };
 
 template<typename T, typename Enable = void>
-struct _getNextTypeIfExists;
+struct next_bigger_integral_type_is_exists;
 
 template<typename T>
-struct _getNextTypeIfExists<T, typename std::enable_if<!_hasNextType<T>::value>::type>
+struct next_bigger_integral_type_is_exists<T, typename std::enable_if<!has_next_bigger_integral_type<T>::value>::type>
 {
     typedef T type;
 };
 
 template<typename T>
-struct _getNextTypeIfExists<T, typename std::enable_if<
-        _typeLower<T, typename _typeSeq<T>::next::type>::value>::type>
+struct next_bigger_integral_type_is_exists<T, typename std::enable_if<
+        is_smaller_type<T, typename type_info<T>::next::type>::value>::type>
 {
-    typedef typename _typeSeq<T>::next::type type;
+    typedef typename type_info<T>::next::type type;
 };
 
 template<typename T>
-struct _getNextTypeIfExists<T, typename std::enable_if<
-        !_typeLower<T, typename _typeSeq<T>::next::type>::value>::type>
+struct next_bigger_integral_type_is_exists<T, typename std::enable_if<
+        !is_smaller_type<T, typename type_info<T>::next::type>::value>::type>
 {
-    typedef typename _getNextTypeIfExists<typename _typeSeq<T>::next::type>::type type;
+    typedef typename next_bigger_integral_type_is_exists<typename type_info<T>::next::type>::type type;
 };
 
 template<typename T, bool sign>
-struct _changeSigned
+struct change_signedness
 {
-    typedef typename std::conditional<sign, typename std::make_signed<T>::type,
-            typename std::make_unsigned<T>::type>::type type;
+    typedef std::conditional_t<sign, std::make_signed_t<T>, std::make_unsigned_t<T>> type;
 };
 
 template<typename T>
 struct clear_type
 {
-    typedef typename std::remove_cv<typename std::remove_reference<T>::type>::type type;
+    typedef std::remove_cv_t<std::remove_reference_t<T>> type;
 };
 
 template<typename T, typename Enable = void>

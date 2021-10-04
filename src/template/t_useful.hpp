@@ -11,8 +11,10 @@ struct none
     {}
 };
 
+// may be sometimes useful for SFINAE as rank<N> always more prefferable than rank<N - 1>
+// https://stackoverflow.com/questions/30766965/is-there-a-generic-way-to-negate-a-decltype-condition-with-sfinae/30767152#30767152
 template<unsigned N>
-struct _rank: _rank<N - 1>
+struct rank_p: rank_p<N - 1>
 {
     enum valueType
     {
@@ -21,7 +23,7 @@ struct _rank: _rank<N - 1>
 };
 
 template<>
-struct _rank<0>
+struct rank_p<0>
 {
     enum valueType
     {

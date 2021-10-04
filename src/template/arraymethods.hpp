@@ -55,21 +55,21 @@ inline char* _readstr(size_t &len)
 }
 
 template<typename T>
-inline void _read(T *start, T *end, const char *scf = _typeSeq<T>::specifier)
+inline void _read(T *start, T *end, const char *scf = type_info<T>::specifier)
 {
     for(T *i = start; i < end; i++)
         scanf(scf, i);
 }
 
 template<typename T>
-inline void _read(T *start, size_t len, const char *scf = _typeSeq<T>::specifier)
+inline void _read(T *start, size_t len, const char *scf = type_info<T>::specifier)
 {
     for(size_t i = 0; i < len; i++)
         scanf(scf, start++);
 }
 
 template<typename T>
-inline T* _read(size_t len, const char *scf = _typeSeq<T>::specifier)
+inline T* _read(size_t len, const char *scf = type_info<T>::specifier)
 {
     T *r = new T[len];
     for(unsigned i = 0; i < len; i++)
@@ -451,8 +451,8 @@ inline void shl_range(T *start, size_t length, ShiftType shift)
         return;
     }
     ASSERT(length > 0);
-    unsigned char shift_in_cell = shift & (_typeSeq<T>::bit_length - 1);
-    shift >>= _typeSeq<T>::pwr2_length;
+    unsigned char shift_in_cell = shift & (type_info<T>::bit_length - 1);
+    shift >>= type_info<T>::pwr2_length;
     if(shift >= length)
     {
         _fill(start, length);
@@ -467,7 +467,7 @@ inline void shl_range(T *start, size_t length, ShiftType shift)
     }
     if(shift_in_cell)
     {
-        unsigned char shift_right = _typeSeq<T>::bit_length - shift_in_cell;
+        unsigned char shift_right = type_info<T>::bit_length - shift_in_cell;
         for(size_t i = 0;i < length - 1;i++)
             start[i] = (start[i] << shift_in_cell) | (start[i + 1] >> shift_right);
         start[length - 1] <<= shift_in_cell;
@@ -487,8 +487,8 @@ inline void shr_range(T *start, size_t length, ShiftType shift)
         return;
     }
     ASSERT(length > 0);
-    unsigned char shift_in_cell = shift & (_typeSeq<T>::bit_length - 1);
-    shift >>= _typeSeq<T>::pwr2_length;
+    unsigned char shift_in_cell = shift & (type_info<T>::bit_length - 1);
+    shift >>= type_info<T>::pwr2_length;
     if(shift >= length)
     {
         _fill(start, length);
@@ -504,7 +504,7 @@ inline void shr_range(T *start, size_t length, ShiftType shift)
     }
     if(shift_in_cell)
     {
-        unsigned char shift_left = _typeSeq<T>::bit_length - shift_in_cell;
+        unsigned char shift_left = type_info<T>::bit_length - shift_in_cell;
         for(size_t i = length;i > 0;i--)
             start[i] = (start[i - 1] << shift_left) | (start[i] >> shift_in_cell);
         start[0] >>= shift_in_cell;
@@ -535,15 +535,15 @@ void rol_range(T *start, size_t length, ShiftType shift)
         return;
     }
     ASSERT(length > 0);
-    if(unsigned char shift_in_cell = shift & (_typeSeq<T>::bit_length - 1))
+    if(unsigned char shift_in_cell = shift & (type_info<T>::bit_length - 1))
     {
         T saved = start[0];
-        unsigned char shift_right = _typeSeq<T>::bit_length - shift_in_cell;
+        unsigned char shift_right = type_info<T>::bit_length - shift_in_cell;
         for(size_t i = 0;i < length - 1;i++)
             start[i] = (start[i] << shift_in_cell) | (start[i + 1] >> shift_right);
         start[length - 1] = (start[length - 1] << shift_in_cell) | (saved >> shift_right);
     }
-    shift >>= _typeSeq<T>::pwr2_length;
+    shift >>= type_info<T>::pwr2_length;
     if(shift >= length)
         shift %= length;
     if(shift)
@@ -582,15 +582,15 @@ void ror_range(T *start, size_t length, ShiftType shift)
         return;
     }
     ASSERT(length > 0);
-    if(unsigned char shift_in_cell = shift & (_typeSeq<T>::bit_length - 1))
+    if(unsigned char shift_in_cell = shift & (type_info<T>::bit_length - 1))
     {
         T saved = start[length - 1];
-        unsigned char shift_left = _typeSeq<T>::bit_length - shift_in_cell;
+        unsigned char shift_left = type_info<T>::bit_length - shift_in_cell;
         for(size_t i = length;i > 0;i--)
             start[i] = (start[i - 1] << shift_left) | (start[i] >> shift_in_cell);
         start[0] = (saved << shift_left) | (start[0] >> shift_in_cell);
     }
-    shift >>= _typeSeq<T>::pwr2_length;
+    shift >>= type_info<T>::pwr2_length;
     if(shift >= length)
         shift %= length;
     if(shift)

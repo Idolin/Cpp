@@ -9,7 +9,7 @@
 
 static size_t get_bit_array_size(size_t size)
 {
-    return (size + _typeSeq<unsigned>::bit_length - 1) >> _typeSeq<unsigned>::pwr2_length;
+    return (size + type_info<unsigned>::bit_length - 1) >> type_info<unsigned>::pwr2_length;
 }
 
 bit_array::bit_array(size_t size):
@@ -28,8 +28,8 @@ bool bit_array::get(size_t i) const
 {
     ASSERT(i < b_size);
     return static_cast<bool>(
-            (b_array[i >> _typeSeq<unsigned>::pwr2_length] >>
-                                                           (i & static_cast<size_t>(_typeSeq<unsigned>::bit_length - 1))) & 1u);
+            (b_array[i >> type_info<unsigned>::pwr2_length] >>
+                                                           (i & static_cast<size_t>(type_info<unsigned>::bit_length - 1))) & 1u);
 }
 
 bool bit_array::operator[](size_t i) const
@@ -40,15 +40,15 @@ bool bit_array::operator[](size_t i) const
 void bit_array::clear(size_t i)
 {
     ASSERT(i < b_size);
-    b_array[i >> _typeSeq<unsigned>::pwr2_length] &=
-            ~(1u << (i & static_cast<size_t>(_typeSeq<unsigned>::bit_length - 1)));
+    b_array[i >> type_info<unsigned>::pwr2_length] &=
+            ~(1u << (i & static_cast<size_t>(type_info<unsigned>::bit_length - 1)));
 }
 
 void bit_array::set(size_t i)
 {
     ASSERT(i < b_size);
-    b_array[i >> _typeSeq<unsigned>::pwr2_length] |=
-            (1u << (i & static_cast<size_t>(_typeSeq<unsigned>::bit_length - 1)));
+    b_array[i >> type_info<unsigned>::pwr2_length] |=
+            (1u << (i & static_cast<size_t>(type_info<unsigned>::bit_length - 1)));
 }
 
 void bit_array::set(size_t i, bool f)
