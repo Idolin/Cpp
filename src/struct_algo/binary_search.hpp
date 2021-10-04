@@ -27,18 +27,18 @@ namespace
     }
 
     template<typename T, typename Enable = void>
-    struct __binary_search_base;
+    struct _binary_search_base;
 
     template<typename T>
-    struct __binary_search_base<T, typename std::enable_if<std::is_pointer<T>::value>::type>
+    struct _binary_search_base<T, typename std::enable_if<std::is_pointer<T>::value>::type>
     {
         T left_border, right_border, cur;
 
-        __binary_search_base(T left, T right, T current): left_border(left),
+        _binary_search_base(T left, T right, T current): left_border(left),
                                                 right_border(right), cur(current)
         {}
 
-        __binary_search_base(T left, T right): left_border(left), right_border(right),
+        _binary_search_base(T left, T right): left_border(left), right_border(right),
                                                cur(middle())
         {}
 
@@ -60,16 +60,16 @@ namespace
     };
 
     template<typename T>
-    struct __binary_search_base<T, typename std::enable_if<std::is_integral<T>::value &&
+    struct _binary_search_base<T, typename std::enable_if<std::is_integral<T>::value &&
                                                            std::is_unsigned<T>::value>::type>
     {
         T left_border, right_border, cur;
 
-        __binary_search_base(T left, T right, T current): left_border(left),
+        _binary_search_base(T left, T right, T current): left_border(left),
                                                 right_border(right), cur(current)
         {}
 
-        __binary_search_base(T left, T right): left_border(left), right_border(right),
+        _binary_search_base(T left, T right): left_border(left), right_border(right),
                                                 cur(middle())
         {}
 
@@ -91,16 +91,16 @@ namespace
     };
 
     template<typename T>
-    struct __binary_search_base<T, typename std::enable_if<std::is_integral<T>::value &&
+    struct _binary_search_base<T, typename std::enable_if<std::is_integral<T>::value &&
                                                            std::is_signed<T>::value>::type>
     {
         T left_border, right_border, cur;
 
-        __binary_search_base(T left, T right, T current): left_border(left),
+        _binary_search_base(T left, T right, T current): left_border(left),
                                                 right_border(right), cur(current)
         {}
 
-        __binary_search_base(T left, T right): left_border (left), right_border(right),
+        _binary_search_base(T left, T right): left_border (left), right_border(right),
                                                cur(middle())
         {}
 
@@ -123,16 +123,16 @@ namespace
     };
 
     template<typename T>
-    struct __binary_search_base<T, typename std::enable_if<
+    struct _binary_search_base<T, typename std::enable_if<
             std::is_floating_point<T>::value>::type>
     {
         T left_border, right_border, cur;
 
-        __binary_search_base(T left, T right, T current): left_border(left),
+        _binary_search_base(T left, T right, T current): left_border(left),
                                                 right_border(right), cur(current)
         {}
 
-        __binary_search_base(T left, T right): left_border (left), right_border(right),
+        _binary_search_base(T left, T right): left_border (left), right_border(right),
                                                cur(middle())
         {}
 
@@ -156,18 +156,18 @@ namespace
 }
 
 template<typename T>
-struct binary_search: protected __binary_search_base<T>
+struct binary_search: protected _binary_search_base<T>
 {
     // include_last - if true than search in range [left, right], false - [left, right)
     binary_search(T left, T right, bool include_last=false):
-        __binary_search_base<T>(left, include_last ? right : right - __binary_search_base<T>::epsilon())
+        _binary_search_base<T>(left, include_last ? right : right - _binary_search_base<T>::epsilon())
     {
         if(!include_last && left >= right)
             this->end_search();
     }
 
     binary_search(const binary_search<T> &otr):
-        __binary_search_base<T>(otr.left_border, otr.right_border, otr.cur)
+        _binary_search_base<T>(otr.left_border, otr.right_border, otr.cur)
     {}
 
     binary_search<T>& operator=(const binary_search<T> &otr)

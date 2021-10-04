@@ -102,8 +102,8 @@ struct _getMMaxType;
 
 template<typename T, typename T2>
 struct _getMMaxType<T, T2, typename std::enable_if<
-        std::is_signed<T>::value && std::is_signed<T2>::value ||
-        std::is_unsigned<T>::value && std::is_unsigned<T2>::value>::type>
+        (std::is_signed<T>::value && std::is_signed<T2>::value) ||
+        (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
 {
     typedef typename get_bigger_type<T, T2>::type type;
 };

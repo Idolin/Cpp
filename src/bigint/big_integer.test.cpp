@@ -73,7 +73,14 @@ TEST_PACK(big_integer)
     TEST(self_assignment)
     {
         big_integer a = 5;
+#ifdef __clang__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign"
+#endif
         a = a;
+#ifdef __clang__
+    #pragma GCC diagnostic pop
+#endif
 
         EXPECT_TRUE(a == 5);
     }

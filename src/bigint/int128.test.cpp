@@ -193,7 +193,14 @@ TEST_PACK(int128)
         uint128_t z(0);
         z -= 0;
         EXPECT_EQ(z, 0);
+#ifdef __clang__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded" // see https://bugs.llvm.org/show_bug.cgi?id=43124
+#endif
         z -= z;
+#ifdef __clang__
+    #pragma GCC diagnostic pop
+#endif
         EXPECT_EQ(z, 0);
         z = z - 1;
         EXPECT_EQ(z, uint128_t(max64, max64));
