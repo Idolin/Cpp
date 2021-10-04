@@ -11,7 +11,7 @@
 
 using std::pair;
 
-//template<bool weighted>
+// template<bool weighted>
 struct graph
 {
     template<bool, typename dummy = void>
@@ -27,16 +27,18 @@ struct graph
     template<bool gX>
     using g = gt<gX>;
 
-    //g<X> a;
+    // g<X> a;
     struct gTransition
     {
-        unsigned node, reversed;
+        unsigned node, reversed = 0;
         int weight;
-        bool isBridge, isOnCover;
+        bool isBridge, isOnCover = false;
 
         gTransition(unsigned node = 0, int weight = 1);
 
-        gTransition(gTransition const &t);
+        gTransition(const gTransition &t);
+
+        gTransition& operator=(const gTransition &t) = default;
     };
 
     vect<gTransition> *waysFrom, *waysTo, *waysGo;

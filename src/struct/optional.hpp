@@ -65,10 +65,10 @@ struct optional<none>
     optional(): is_set(false)
     {}
 
-    optional(const none& value): is_set(true)
+    optional(const none&): is_set(true)
     {}
 
-    optional(none&& value): is_set(true)
+    optional(none&&): is_set(true)
     {}
 
     operator bool()
@@ -121,21 +121,21 @@ public:
     ConditionalStored()
     {}
 
-    ConditionalStored(typename def_get_by<T>::type x)
+    ConditionalStored(typename def_get_by<T>::type)
     {}
 
-    typename def_get_by<T>::type operator=(const ConditionalStored<T, true> &otr)
+    typename def_get_by<T>::type operator=(const ConditionalStored<T, true>&)
     {}
 
-    typename def_get_by<T>::type operator=(ConditionalStored<T, true> &&otr)
+    typename def_get_by<T>::type operator=(ConditionalStored<T, true>&&)
     {}
 
-    typename def_get_by<T>::type get_value() const //useful only for templates, not expected to be called in runtime
+    typename def_get_by<T>::type get_value() const // useful only for templates, not expected to be called in runtime
     {
         ASSERT(false);
         return (T)(0);
     }
 
-    void set_value(typename def_get_by<T>::type x)
+    void set_value(typename def_get_by<T>::type)
     {}
 };

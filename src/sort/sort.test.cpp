@@ -53,7 +53,7 @@ TEST_PACK(sort)
                 WITH_VALUES(unsigned, length, 0, 1, 10, 100, 1000, 10000)
                 {
                     for(unsigned i = 0, k = 0; i < length; i++, k += ((i & 0x40) == 0x40) * 30)
-                        u[i] = i + 20 + randomU() & 0xff - randomU() & 0xf - k;
+                        u[i] = i + 20 + (randomU() & 0xff) - (randomU() & 0xf) - k;
                     sort(u, u + length);
                     EXPECT_TRUE(_checksorted(u, u + length));
                 };
@@ -164,7 +164,7 @@ TEST_PACK(sort)
                 WITH_VALUES(unsigned, length, 0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000)
                 {
                     for(unsigned i = 0, k = 0; i < length; i++, k += ((i & 0x40) == 0x40) * 30)
-                        u[i] = i + 20 + randomU() & 0xff - randomU() & 0xf - k;
+                        u[i] = i + 20 + (randomU() & 0xff) - (randomU() & 0xf) - k;
                     sort(u, u + length);
                     EXPECT_TRUE(_checksorted(u, u + length));
                 };

@@ -12,7 +12,7 @@ TEST_PACK(vector)
         {
             if(randomUC() < 20)
             {
-                unsigned index = randomA<unsigned>(i);
+                int index = randomA<unsigned>(i);
                 EXPECT_EQ(v.at(index), index);
             }
             v.push(i);

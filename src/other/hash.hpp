@@ -14,7 +14,7 @@ struct AnyHashable
 
 struct NoHashable: AnyHashable
 {
-    bool hash_equals(const AnyHashable &b) const
+    bool hash_equals(const AnyHashable&) const
     {
         return false;
     }
@@ -58,7 +58,7 @@ struct NoHashableStored: protected AnyHashable
     }
 
  protected:
-     void set_hash(uint64_t value) const
+     void set_hash(uint64_t) const
      {}
 
      uint64_t get_hash_value() const
@@ -162,13 +162,13 @@ constexpr typename std::enable_if_t<is_cstr<T>::value, uint64_t> get_hash(T s)
 }
 
 template<typename T>
-typename std::enable_if<std::is_base_of<Hashable, T>::value, uint64_t>::type get_hash(const T &x)
+typename std::enable_if<std::is_base_of<Hashable, T>::value, uint64_t>::type get_hash(const T& x)
 {
     return x.hash();
 }
 
 template<typename T>//useful only for templates, not expected to be called from runtime
-typename std::enable_if<!is_hashable<T>::value, uint64_t>::type get_hash(const T &x)
+typename std::enable_if<!is_hashable<T>::value, uint64_t>::type get_hash(const T&)
 {
     ASSERT(false);
     return 0;

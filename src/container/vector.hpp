@@ -296,7 +296,7 @@ public:
         return m[max_used - 1];
     }
 
-    void push(T x)
+    void push(const T& x)
     {
         _lock.lock();
         if(max_used == v_size)

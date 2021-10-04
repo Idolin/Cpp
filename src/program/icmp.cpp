@@ -229,14 +229,14 @@ int main(int argc, char **argv)
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
-    unsigned i, range_i = 0;
-    unsigned char threads_amount = 4;
+    int i, range_i = 0;
+    // unsigned char threads_amount = 4;
     double sensibility = 25.0;
     vect<std::pair<cstr, bool>> dirs_and_files;
     bool unique = false, file_arguments = false, clear_cache = false, all_ok = true, show_in_background = false;
     bool symmetry_h = false, symmetry_v = false, symmetry;
     bool show_on = true, readable_format = false;
-    for(const cstr &application_try : {"eog", "gwenview", "feh"})
+    for(const char* application_try : {"eog", "gwenview", "feh"})
         if(is_program(application_try))
         {
             application = application_try;
@@ -493,7 +493,7 @@ int main(int argc, char **argv)
     if(show_on)
         pthread_create(&show, &attr, pictures_show, nullptr);
 
-    unsigned range_j = 0;
+    int range_j = 0;
     unsigned long long compared = 0;
 
     double fns = 100000, fne = 0, ffs = 100000, ffe = 0, fnmax = 0, famax = 0;
@@ -505,7 +505,7 @@ int main(int argc, char **argv)
 
     double max_cutoff = 320;
     double cutoff = max_cutoff * (100 - sensibility) / 100;
-    for(i = 0;i < files.size() - 1;i++)
+    for(unsigned i = 0;i < files.size() - 1;i++)
     {
         if(unique && i == unique_ranges[range_j])
             if(++range_j == range_i)

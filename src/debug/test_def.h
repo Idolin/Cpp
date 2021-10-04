@@ -20,7 +20,7 @@
  * Regular expression for test chooser
 */
 
-static vect<test_namespace::_test_class_abstract *> *test_classes_main_sequence;
+extern vect<test_namespace::_test_class_abstract*> *test_classes_main_sequence;
 
 namespace test_namespace
 {
@@ -87,6 +87,7 @@ namespace test_namespace
         { \
                 g_static::global_static_var<vect<test_namespace::_test_pack_class*>, "Test"_gsh, "All test packs"_gsh>().push(this); \
                 auto _this_test_ptr = this; \
+                MAYBE_UNUSED(_this_test_ptr); \
                 __VA_ARGS__; \
                 test_classes_main_sequence = &(this -> test_classes); \
         } \
@@ -109,7 +110,7 @@ namespace test_namespace
     } \
     \
     template<> \
-    test_namespace::_test_class_abstract* _get_next_test_ ## test_name<void>(test_namespace::_test_class_abstract* outer) \
+    test_namespace::_test_class_abstract* _get_next_test_ ## test_name<void>(test_namespace::_test_class_abstract*) \
     { \
         return nullptr; \
     } \

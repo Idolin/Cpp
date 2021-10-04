@@ -31,7 +31,7 @@ namespace internal
     template<bool fast_range_update>
     struct element_range
     {
-        element_range(unsigned i = 0)
+        element_range(unsigned = 0)
         {}
     };
 

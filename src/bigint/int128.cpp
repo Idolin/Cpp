@@ -374,22 +374,22 @@ uint128_t uint128_t::operator~() const
 
 bool uint128_t::operator<(uint128_t otr) const
 {
-    return (p_high < otr.p_high) || (p_high == otr.p_high) && (p_low < otr.p_low);
+    return (p_high < otr.p_high) || ((p_high == otr.p_high) && (p_low < otr.p_low));
 }
         
 bool uint128_t::operator<=(uint128_t otr) const
 {
-    return (p_high < otr.p_high) || (p_high == otr.p_high) && (p_low <= otr.p_low);
+    return (p_high < otr.p_high) || ((p_high == otr.p_high) && (p_low <= otr.p_low));
 }
 
 bool uint128_t::operator>(uint128_t otr) const
 {
-    return (p_high > otr.p_high) || (p_high == otr.p_high) && (p_low > otr.p_low);
+    return (p_high > otr.p_high) || ((p_high == otr.p_high) && (p_low > otr.p_low));
 }
 
 bool uint128_t::operator>=(uint128_t otr) const
 {
-    return (p_high > otr.p_high) || (p_high == otr.p_high) && (p_low >= otr.p_low);
+    return (p_high > otr.p_high) || ((p_high == otr.p_high) && (p_low >= otr.p_low));
 }
 
 bool uint128_t::operator==(uint128_t otr) const

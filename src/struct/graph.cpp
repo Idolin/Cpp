@@ -1,9 +1,9 @@
 #include "graph.h"
 
-graph::gTransition::gTransition(unsigned node, int weight) : node(node), weight(weight), isBridge(false)
+graph::gTransition::gTransition(unsigned node, int weight): node(node), weight(weight), isBridge(false)
 {}
 
-graph::gTransition::gTransition(gTransition const &t) : node(t.node), weight(t.weight), isBridge(t.isBridge)
+graph::gTransition::gTransition(gTransition const &t): node(t.node), weight(t.weight), isBridge(t.isBridge)
 {}
 
 graph::graph(unsigned nodes, bool oriented) : waysFrom(new vect<gTransition>[nodes]), waysTo(0),

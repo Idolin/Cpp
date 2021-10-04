@@ -1,5 +1,7 @@
 #include "test_def.h"
 
+vect<test_namespace::_test_class_abstract*> *test_classes_main_sequence;
+
 namespace test_namespace
 {
     comma_split_iterator::comma_split_iterator(const char *s): s(s), next(0)

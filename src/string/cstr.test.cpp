@@ -19,7 +19,7 @@ TEST_PACK(cstr)
         std::string a = "string";
         cstr b = a;
         char *c = b;
-        UNUSED(c);
+        MAYBE_UNUSED(c);
         const cstr d = b;
         const char *e = d;
         const char *f = d.c_str();

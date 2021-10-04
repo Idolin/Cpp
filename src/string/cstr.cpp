@@ -59,7 +59,7 @@ namespace
             var++;
         }
 
-        void push(unsigned long i)
+        void push(unsigned long)
         {}
 
         unsigned long result()
@@ -67,7 +67,7 @@ namespace
             return var;
         }
 
-        unsigned long result(unsigned long i)
+        unsigned long result(unsigned long)
         {
             return 0;
         }
@@ -103,7 +103,7 @@ namespace
         void inc()
         {}
 
-        void push(unsigned long i)
+        void push(unsigned long)
         {}
 
         unsigned long result()
@@ -135,7 +135,7 @@ namespace
             return std::move(var);
         }
 
-        vect<unsigned long>&& result(unsigned long i)
+        vect<unsigned long>&& result(unsigned long)
         {
             return std::move(var);
         }
@@ -232,12 +232,12 @@ cstr::const_iterator& cstr::const_iterator::operator-=(unsigned long p)
     return *this;
 }
 
-const char cstr::const_iterator::operator[](unsigned long index) const
+char cstr::const_iterator::operator[](unsigned long index) const
 {
     return s[index];
 }
 
-const char cstr::const_iterator::operator*() const
+char cstr::const_iterator::operator*() const
 {
     return s[i];
 }
@@ -706,7 +706,7 @@ char cstr::at(unsigned long i) const
 {
     ASSERT(i <= info->len);
     if(s)
-        return (i == info->len) ? static_cast<const char>('\0') : s[i];
+        return (i == info->len) ? '\0' : s[i];
     return (*static_cast<str_info_cnct*>(info))[i]; // NOLINT (we are sure about info type)
 }
 
@@ -1048,7 +1048,7 @@ RType cstr::count_r_find_char(char ch, unsigned long from) const
     CFVT<count_r_find_all> v;
     compact();
     for(unsigned long i = (count_r_find_all == 1 ? std::min(from, info->len) : from);
-        count_r_find_all == 1 && i > 0 || count_r_find_all != 1 && i < info->len;
+        (count_r_find_all == 1 && i > 0) || (count_r_find_all != 1 && i < info->len);
         i += (count_r_find_all != 1 ? 1 : 0))
         {
             i -= (count_r_find_all == 1 ? 1 : 0);
@@ -1142,7 +1142,8 @@ cstr read_cstr()
     return cstr(s.toArray(), i);
 }
 
-std::ostream &operator<<(std::ostream &o, const cstr &s)
+std::ostream& operator<<(std::ostream& o, const cstr& s)
 {
-    return o << s.c_str();
+    o << s.c_str();
+    return o;
 }

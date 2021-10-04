@@ -287,7 +287,7 @@ TEST_PACK(binary_search)
         EXPECT_TRUE(b);
         b = t;
 
-        EXPECT_EQ(b.lower_bound_pos(0, true), -1);
+        EXPECT_EQ(b.lower_bound_pos(0, true), b.not_found);
         EXPECT_FALSE(b);
         b = t;
 

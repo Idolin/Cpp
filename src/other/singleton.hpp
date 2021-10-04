@@ -28,7 +28,7 @@ private:
     {}
 };
 
-constexpr uint64_t operator "" _gsh(const char *s, size_t size)
+constexpr uint64_t operator "" _gsh(const char *s, size_t)
 {
     return get_hash(s);
 }

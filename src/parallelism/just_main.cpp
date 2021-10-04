@@ -32,7 +32,7 @@ tid just_main::run_now_id(std::function<void()> task)
     return 0;
 }
 
-void just_main::wait(tid id)
+void just_main::wait(tid)
 {}
 
 unsigned just_main::free_threads()

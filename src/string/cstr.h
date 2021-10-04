@@ -7,6 +7,7 @@
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
 
+#include <ostream>
 #include <string>
 #include <type_traits>
 
@@ -144,9 +145,9 @@ protected:
 
         const_iterator& operator-=(unsigned long p);
 
-        const char operator[](unsigned long index) const;
+        char operator[](unsigned long index) const;
 
-        const char operator*() const;
+        char operator*() const;
 
         const cstr& operator->() const;
     };
@@ -353,16 +354,16 @@ struct cstr::str_iterable
     str_iterator end() const;
 };
 
-cstr operator+(cstr a, const cstr &b);
+cstr operator+(cstr a, const cstr& b);
 cstr operator*(cstr a, unsigned times);
 
 bool check_eof();
 
 cstr read_cstr();
 
-std::ostream &operator<<(std::ostream &o, const cstr &a);
+std::ostream& operator<<(std::ostream& o, const cstr& a);
 
-inline bool operator==(const cstr &a, const char* b)
+inline bool operator==(const cstr& a, const char* b)
 {
     a.compact();
     for(unsigned i = 0; i < a.length(); i++)
@@ -371,37 +372,37 @@ inline bool operator==(const cstr &a, const char* b)
     return (b[a.length()] == '\0');
 }
 
-inline bool operator==(const char *a, const cstr& b)
+inline bool operator==(const char* a, const cstr& b)
 {
     return (b == a);
 }
 
-inline bool operator==(const cstr &a, char *b)
+inline bool operator==(const cstr& a, char* b)
 {
     return (a == const_cast<const char*>(b));
 }
 
-inline bool operator==(char *a, const cstr& b)
+inline bool operator==(char* a, const cstr& b)
 {
     return (b == a);
 }
 
-inline bool operator!=(const cstr& a, const char *b)
+inline bool operator!=(const cstr& a, const char* b)
 {
     return !(a == b);
 }
 
-inline bool operator!=(const char *a, const cstr& b)
+inline bool operator!=(const char* a, const cstr& b)
 {
     return !(b == a);
 }
 
-inline bool operator!=(const cstr& a, char *b)
+inline bool operator!=(const cstr& a, char* b)
 {
     return !(a != const_cast<const char*>(b));
 }
 
-inline bool operator!=(char *a, const cstr& b)
+inline bool operator!=(char* a, const cstr& b)
 {
     return (b != a);
 }

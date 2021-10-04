@@ -2,7 +2,11 @@
 
 #include "def_int.h"
 
-#define UNUSED(x) (void)x  // to avoid removing variable by compiler
+#if __cplusplus >= 201703L
+    #define MAYBE_UNUSED(x) [[maybe_unused]] x  // to avoid compiler warnings
+#else
+    #define MAYBE_UNUSED(x) (void)x  // to avoid compiler warnings
+#endif
 
 // returns amount of arguments in argument list
 #define GET_ARGS_COUNT(...) D_INTR_TAKE53(53, 52, ## __VA_ARGS__, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, \

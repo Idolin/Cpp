@@ -138,7 +138,7 @@ template<typename T>
 struct _valueMethods<T, typename std::enable_if<(sizeof(T) == 1)>::type>:
         _valueOtherMethods<T>
 {
-    constexpr static bool bytesEqual(T x)
+    constexpr static bool bytesEqual(T)
     {
         return true;
     }

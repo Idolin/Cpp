@@ -82,12 +82,12 @@ struct search_tree_node_crtp: search_tree_node<TData, TKey>
             }
     }
 
-    virtual void remove(S *root)
+    virtual void remove(S*)
     {
         delete this;
     }
 
-    virtual void changeData(TData newData, S *root)
+    virtual void changeData(TData newData, S*)
     {
         this->data = newData;
     }
