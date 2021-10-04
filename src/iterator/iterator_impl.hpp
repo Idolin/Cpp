@@ -587,9 +587,9 @@ namespace iterator_impl_def
                 copy_cv_refernce_t<Impl, It>,
                 std::conditional_t<std::is_same<decltype(*std::declval<post_decrement_t>()), reference_t>::value,
                     post_decrement_t,
-                    ReferenceWrapper<
+                    copy_cv_refernce_t<Impl, ReferenceWrapper<
                         has_dereference_operator_v<add_const_ignore_reference_t<post_decrement_t>>,
-                        post_decrement_t>>> post_decrement_ret;
+                        std::remove_cv_t<std::remove_reference_t<post_decrement_t>>>>>> post_decrement_ret;
 
     public:
         post_decrement_ret operator--(int)
