@@ -13,7 +13,7 @@
 namespace
 {
     template<typename T, typename Enable = typename std::enable_if_t<is_dereferencable<T>::value>>
-    inline auto _get(T p) -> typename def_get_by<typename std::remove_reference<decltype(*p)>::type>::type
+    inline auto _get(T p) -> typename def_get_by<std::remove_reference_t<decltype(*p)>>::type
     {
         return *p;
     }
