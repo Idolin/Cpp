@@ -185,6 +185,82 @@ template<typename T>
 constexpr bool is_const_ignore_reference_v = is_const_ignore_reference<T>::value;
 
 
+template<typename T>
+struct add_const_ignore_pointer
+{
+    typedef std::add_const_t<T> type;
+};
+
+template<typename T>
+struct add_const_ignore_pointer<T*>
+{
+    typedef std::add_pointer_t<std::add_const_t<std::remove_pointer_t<T>>> type;
+};
+
+template<typename T>
+using add_const_ignore_pointer_t = typename add_const_ignore_pointer<T>::type;
+
+
+template<typename T>
+struct is_const_ignore_pointer
+{
+    static constexpr bool value = std::is_const<std::remove_pointer_t<T>>::value;
+};
+
+template<typename T>
+constexpr bool is_const_ignore_pointer_v = is_const_ignore_reference<T>::value;
+
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer
+{
+    typedef std::add_const_t<T> type;
+};
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer<T&>
+{
+    typedef std::add_lvalue_reference_t<std::add_const_t<std::remove_reference_t<T>>> type;
+};
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer<T&&>
+{
+    typedef std::add_rvalue_reference_t<std::add_const_t<std::remove_reference_t<T>>> type;
+};
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer<T*>
+{
+    typedef std::add_pointer_t<std::add_const_t<std::remove_pointer_t<T>>> type;
+};
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer<T*&>
+{
+    typedef std::add_pointer_t<std::add_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>> type;
+};
+
+template<typename T>
+struct add_const_ignore_reference_and_pointer<T*&&>
+{
+    typedef std::add_pointer_t<std::add_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>> type;
+};
+
+template<typename T>
+using add_const_ignore_reference_and_pointer_t = typename add_const_ignore_reference_and_pointer<T>::type;
+
+
+template<typename T>
+struct is_const_ignore_reference_and_pointer
+{
+    static constexpr bool value = std::is_const<std::remove_pointer_t<std::remove_reference_t<T>>>::value;
+};
+
+template<typename T>
+constexpr bool is_const_ignore_reference_and_pointer_v = is_const_ignore_reference_and_pointer<T>::value;
+
+
 #define IMPL_TYPE_TAGS_CHECK_TWO_T(name, ...) \
     template<typename T, typename U> \
     struct name<T, U, __VA_ARGS__> \
@@ -312,8 +388,8 @@ using set_cv_reference_t = typename set_cv_reference<T, const_q, volatile_q, lva
 template<typename F, typename T>
 struct copy_cv_refernce
 {
-    typedef set_cv_reference_t<T, std::is_const<F>::value,
-        std::is_volatile<F>::value, std::is_lvalue_reference<F>::value, std::is_lvalue_reference<F>::value> type;
+    typedef set_cv_reference_t<T, std::is_const<std::remove_reference_t<F>>::value,
+        std::is_volatile<std::remove_reference_t<F>>::value, std::is_lvalue_reference<F>::value, std::is_lvalue_reference<F>::value> type;
 };
 
 template<typename F, typename T>
