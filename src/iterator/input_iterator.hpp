@@ -52,24 +52,35 @@ namespace iterator_impl_def {
             "Iterator difference_type must be signed to represent negative offset between iterators");
         static_assert(std::is_convertible<reference, value_type>::value,
             "Input iterator reference type needs to be convertible to value_type");
-        static_assert(std::is_same<decltype(std::declval<Impl>().operator*()), reference>::value,
-            "Input operator dereference return type must be exactly reference type");
 
         // forward constructor
         template<typename... Types>
         _input_iterator_adapter(Types&&... values): Impl(std::forward<Types>(values)...)
         {}
 
-        // Use using-declaration for intoducing operator++() and operator++(int) in this class to avoid abmigious name lookup for this operators
+        // Use using-declaration for intoducing operator++(), operator++(int) and operator->() in this class to avoid abmigious name lookup for this operators
+        using _arrowDefault<Impl, iterator_t, pointer_t>::operator->;
         using _preIncrementDefault<Impl, iterator_t>::operator++;
         using _postIncrementDefault<Impl, iterator_t, value_type>::operator++;
+
+        /*
+         * Input iterator operator*() must return reference type, but Impl allowed to return type convertible to reference, so
+         *  we overriding Impl::operator*() to match this requirement
+         */
+        reference operator*() const
+        {
+            static_assert(std::is_convertible<decltype(*std::declval<Impl>()), reference>::value,
+                "Input iterator adapter: make dereference return type convertible to reference type (Input operator dereference return type must be exactly reference type)");
+
+            return *(*static_cast<const Impl*>(this));
+        }
     };
 
 }
 
 template<class Impl, typename value_type_t = typename iterator_impl_def::get_def_value_t<Impl>,
-         typename reference_t = typename iterator_impl_def::get_def_reference_t<Impl>,
-         typename pointer_t = typename iterator_impl_def::get_def_pointer_t<Impl>,
+         typename reference_t = typename iterator_impl_def::get_def_const_reference_t<Impl>,
+         typename pointer_t = typename iterator_impl_def::get_def_const_pointer_t<Impl>,
          typename differnce_t = std::ptrdiff_t>
 struct input_iterator: iterator_impl_def::_input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, differnce_t,
         input_iterator<Impl, value_type_t, reference_t, pointer_t>>

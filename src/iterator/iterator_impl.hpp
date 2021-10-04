@@ -17,21 +17,7 @@ namespace iterator_impl_def
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
-            typedef std::remove_reference_t<decltype(*std::declval<It>())> type;
-        };
-
-        template<typename It>
-        struct get_def_const_value // used only for input_iterator
-        {
-        private:
-            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
-
-            typedef decltype(*std::declval<It>()) reference_t; // reference_t - return type of dereference operator*()
-
-        public:
-            typedef std::conditional_t<std::is_rvalue_reference<reference_t>::value, // if reference_t is rvalue_reference (&&)
-                std::remove_reference_t<reference_t>, // than value_type = reference_t without reference
-                std::add_const_t<std::remove_reference_t<reference_t>>> type; // else value_type = const reference_t without reference
+            typedef std::remove_const_t<std::remove_reference_t<decltype(*std::declval<It>())>> type;
         };
 
 
@@ -211,9 +197,6 @@ namespace iterator_impl_def
 
     template<typename It>
     using get_def_value_t = typename get_def_value<It>::type;
-
-    template<typename It>
-    using get_def_const_value_t = typename get_def_const_value<It>::type;
 
     template<typename It>
     using get_def_reference_t = typename get_def_reference<It>::type;
