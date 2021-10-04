@@ -2,6 +2,7 @@
 
 #include "../template/type_tags.hpp"
 #include "../template/typemethods.hpp"
+#include "../other/common.hpp"
 
 #include <cstddef>
 #include <type_traits>

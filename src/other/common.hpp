@@ -17,3 +17,9 @@ inline void set_max(T &a, typename def_get_by<T>::type b)
     if(a < b)
         a = b;
 }
+
+template<typename T>
+constexpr std::add_const_t<T>& as_const(T& x)
+{
+    return x;
+}
