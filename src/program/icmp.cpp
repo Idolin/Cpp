@@ -120,7 +120,7 @@ void* pictures_show(void*)
             i2.scale(g);
             i1.write(tmp_dir + "1.bmp");
             i2.write(tmp_dir + "2.bmp");
-            double fuzz = (100 - _min(static_cast<double>(std::get<2>(e)), static_cast<double>(100))) / 1000;
+            double fuzz = (100 - min(static_cast<double>(std::get<2>(e)), static_cast<double>(100))) / 1000;
             i1.colorFuzz(fuzz * QuantumRange);
             diff = i1.compare(i2, FuzzErrorMetric, &fuzz);
             diff.write(tmp_dir + "1d2.bmp");
@@ -129,7 +129,7 @@ void* pictures_show(void*)
         if(notification == 0)
         {
             cstr diff_msg = std::get<2>(e) == 101 ? cstr("=") : cstr("~");
-            auto diff_value = _min(std::get<2>(e), 100);
+            auto diff_value = min(std::get<2>(e), 100);
             cstr message = std::get<0>(e);
             message += " ";
             message += diff_msg + "=(";

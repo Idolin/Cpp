@@ -232,7 +232,7 @@ struct binary_search: protected _binary_search_base<T>
     // if get_last_not -> get last element where condition not true(or previous to first)
     // first iterator: *it > val or next to last, done() returns false if position found and true otherwise
     template<typename R = decltype(_get<T>(std::declval<T>())),
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     T upper_bound(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         if(done())
@@ -273,7 +273,7 @@ struct binary_search: protected _binary_search_base<T>
 
     // lower_bound, but also returns not done() with value as std::pair
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<T, bool> upper_bound_check(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         upper_bound<R, compare, get>(val, get_last_not);
@@ -281,7 +281,7 @@ struct binary_search: protected _binary_search_base<T>
     }
 
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     size_t upper_bound_pos(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         const T left = this->left_border;
@@ -289,7 +289,7 @@ struct binary_search: protected _binary_search_base<T>
     }
 
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<size_t, bool> upper_bound_pos_check(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         size_t pos = upper_bound_pos<R, compare, get>(val, get_last_not);
@@ -298,15 +298,15 @@ struct binary_search: protected _binary_search_base<T>
 
     // first iterator: *it >= val or next to last, done() returns false if position found and true otherwise
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     T lower_bound(typename def_get_by<R>::type val, bool get_last_not = false)
     {
-        return upper_bound<R, _not_comp<R, _swap_comp<R, compare>>, get>(val, get_last_not);
+        return upper_bound<R, def_not_comp<R, def_swap_comp<R, compare>>, get>(val, get_last_not);
     }
 
     // upper_bound, but also returns not done() with value as std::pair
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<T, bool> lower_bound_check(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         lower_bound<R, compare, get>(val, get_last_not);
@@ -314,7 +314,7 @@ struct binary_search: protected _binary_search_base<T>
     }
 
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     size_t lower_bound_pos(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         const T left = this->left_border;
@@ -322,7 +322,7 @@ struct binary_search: protected _binary_search_base<T>
     }
 
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<size_t, bool> lower_bound_pos_check(typename def_get_by<R>::type val, bool get_last_not = false)
     {
         size_t pos = lower_bound_pos<R, compare, get>(val, get_last_not);
@@ -332,7 +332,7 @@ struct binary_search: protected _binary_search_base<T>
     // returns first and last iterator values of which equal to val or [l, r] such thar l > r if not found,
     // if found done() = false, otherwise done() is true
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<T, T> bounds(typename def_get_by<R>::type val)
     {
         if(done())
@@ -353,7 +353,7 @@ struct binary_search: protected _binary_search_base<T>
 
     // bounds pos or [l, r] such that l > r if no val found
     template<typename R = typename std::remove_pointer<T>::type,
-        typename compare_func<R>::type compare = _less<R>, R(*get)(T) = _get<T>>
+        typename compare_func<R>::type compare = def_less<R>, R(*get)(T) = _get<T>>
     std::pair<size_t, size_t> bounds_pos(typename def_get_by<R>::type val)
     {
         const T left = this->left_border;

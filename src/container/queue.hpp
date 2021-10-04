@@ -233,7 +233,7 @@ private:
 
 public:
     explicit queue_cycled(unsigned blocksize = 256):
-            len(0), block_new(_max(to2(blocksize), 2)), block_old(), prev_hash(0)
+            len(0), block_new(max(to2(blocksize), 2)), block_old(), prev_hash(0)
     {}
 
     ~queue_cycled() = default;

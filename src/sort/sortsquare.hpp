@@ -3,7 +3,7 @@
 #include "../template/commonmethods.hpp"
 #include "../template/typemethods.hpp"
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 void bubblesort(T *start, T *end)
 {
     bool f;
@@ -22,7 +22,7 @@ void bubblesort(T *start, T *end)
     }
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 void shakersort(T *start, T *end)
 {
     for(int i = 0;;i++)
@@ -45,7 +45,7 @@ void shakersort(T *start, T *end)
     }
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 void minmaxsort(T *start, T *end)
 {
     T *emin, *emax;
@@ -66,7 +66,7 @@ void minmaxsort(T *start, T *end)
     }
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 void insertionsort(T *start, T *end)
 {
     for(T *t = start + 1; t < end; t++)

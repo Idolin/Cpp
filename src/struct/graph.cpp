@@ -195,7 +195,7 @@ long *graph::shortestWay(unsigned node)
         distance[node] = 0;
         for(unsigned i = _utmp; i < gLen; i++)
             for(unsigned k = 0; k < waysGo[_uatmp[i]].size(); k++)
-                distance[waysGo[_uatmp[i]][k].node] = _min(distance[waysGo[_uatmp[i]][k].node],
+                distance[waysGo[_uatmp[i]][k].node] = min(distance[waysGo[_uatmp[i]][k].node],
                                                            distance[_uatmp[i]] + waysGo[_uatmp[i]][k].weight);
         delete[] _uatmp;
         return distance;
@@ -273,12 +273,12 @@ void graph::_cutDfs(unsigned node, unsigned p)
         if(waysFrom[node][i].node != p)
         {
             if(_tmp[waysFrom[node][i].node])
-                _uatmp[node + gLen] = _min(_uatmp[node + gLen], _uatmp[waysFrom[node][i].node]);
+                _uatmp[node + gLen] = min(_uatmp[node + gLen], _uatmp[waysFrom[node][i].node]);
             else
             {
                 _cutDfs(waysFrom[node][i].node, node);
                 c++;
-                _uatmp[node + gLen] = _min(_uatmp[node + gLen], _uatmp[waysFrom[node][i].node + gLen]);
+                _uatmp[node + gLen] = min(_uatmp[node + gLen], _uatmp[waysFrom[node][i].node + gLen]);
                 if(_uatmp[waysFrom[node][i].node + gLen] >= _uatmp[node])
                 {
                     if(_uatmp[waysFrom[node][i].node + gLen] > _uatmp[node])

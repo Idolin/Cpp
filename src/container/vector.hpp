@@ -390,7 +390,7 @@ public:
         return r;
     }
 
-    template<bool (*compare)(const T&, const T&) = _less<T>>
+    template<bool (*compare)(const T&, const T&) = def_less<T>>
     bool checksorted()
     {
         _lock.lock();
@@ -399,7 +399,7 @@ public:
         return sorted;
     }
 
-    template<bool (*compare)(const T&, const T&) = _less<T>>
+    template<bool (*compare)(const T&, const T&) = def_less<T>>
     bool checksorted(unsigned long from = 0, unsigned long to =
         vect::last)
     {

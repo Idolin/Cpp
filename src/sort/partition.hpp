@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <functional>
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 T *partition(T *start, T *end, T df)
 {
     for(;start < end;start++)

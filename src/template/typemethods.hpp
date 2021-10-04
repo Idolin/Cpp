@@ -218,50 +218,30 @@ struct clear_type
 };
 
 template<typename T, typename Enable = void>
-struct def_get_by_value
-{};
-
-template<typename T>
-struct def_get_by_value<T, typename std::enable_if<
-        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
-{
-    typedef T type;
-};
-
-template<typename T, typename Enable = void>
-struct def_get_by_reference
-{};
-
-template<typename T>
-struct def_get_by_reference<T, typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_floating_point<T>::value && !std::is_pointer<T>::value>::type>
-{
-    typedef T type;
-};
-
-template<typename T, typename Enable = void>
 struct def_get_by
-{};
-
-template<typename T>
-struct def_get_by<T, typename std::enable_if<
-        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
-{
-    typedef T type;
-};
-
-template<typename T>
-struct def_get_by<T, typename std::enable_if<
-        !std::is_integral<T>::value && !std::is_floating_point<T>::value && !std::is_pointer<T>::value>::type>
 {
     typedef const T& type;
 };
 
 template<typename T>
+struct def_get_by<T, typename std::enable_if<
+        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
+{
+    typedef T type;
+};
+
+template<typename T>
+using def_get_by_t = typename def_get_by<T>::type;
+
+template<typename T>
 struct compare_func
 {
-    typedef bool (*type)(typename def_get_by<T>::type, typename def_get_by<T>::type);
+    typedef bool (*type)(def_get_by_t<T>, def_get_by_t<T>);
 };
+
+template<typename T>
+using compare_func_t = typename compare_func<T>::type;
+
 
 template<typename T, typename R>
 constexpr inline unsigned short getter_parts()
@@ -274,7 +254,7 @@ template<typename T, typename R = uint8_t,
     typename = typename std::enable_if<std::is_unsigned<R>::value>::type>
 struct getter_func
 {
-    typedef R (*type)(typename def_get_by<T>::type, unsigned short);
+    typedef R (*type)(def_get_by_t<T>, unsigned short);
 
     typedef R RType;
 

@@ -41,7 +41,7 @@ void merge_in_place(T *start, unsigned part_len1, unsigned part_len2)
     // ???
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>, bool count_inversions = false>
+template<typename T, typename compare_func<T>::type compare = def_less<T>, bool count_inversions = false>
 typename std::conditional<count_inversions, unsigned long long, void>::type
 mergesort(T *start, T *end)
 {
@@ -99,7 +99,7 @@ namespace
     }
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>,
+template<typename T, typename compare_func<T>::type compare = def_less<T>,
     typename def_get_by<T>::type (*get_delim)(const T*, const T*) = _get_random<T>>
 void quicksort(T *start, T *end)
 {

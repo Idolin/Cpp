@@ -366,6 +366,17 @@ struct is_same_omit_cv
 template<typename T, typename U>
 constexpr bool is_same_omit_cv_v = is_same_omit_cv<T, U>::value;
 
+
+template<typename T, typename U>
+struct is_same_omit_cv_reference
+{
+    static constexpr bool value = std::is_same<std::remove_cv_t<std::remove_reference_t<T>>, std::remove_cv_t<std::remove_reference_t<U>>>::value;
+};
+
+template<typename T, typename U>
+constexpr bool is_same_omit_cv_reference_v = is_same_omit_cv_reference<T, U>::value;
+
+
 template<typename T, bool const_q, bool volatile_q, bool lvalue_reference, bool rvalue_refernce>
 struct set_cv_reference
 {

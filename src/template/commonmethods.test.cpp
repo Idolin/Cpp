@@ -3,58 +3,58 @@
 
 TEST_PACK(commonmethods)
 {
-    TEST(_less)
+    TEST(def_less)
     {
-        EXPECT_TRUE(_less(3, 5));
-        EXPECT_TRUE(_less(-5, -3));
-        EXPECT_FALSE(_less(0, -3));
-        EXPECT_FALSE(_less(4, 4));
+        EXPECT_TRUE(def_less(3, 5));
+        EXPECT_TRUE(def_less(-5, -3));
+        EXPECT_FALSE(def_less(0, -3));
+        EXPECT_FALSE(def_less(4, 4));
     }
 
-    TEST(_more)
+    TEST(def_more)
     {
-        EXPECT_FALSE(_more(3, 5));
-        EXPECT_FALSE(_more(-5, -3));
-        EXPECT_TRUE(_more(0, -3));
-        EXPECT_FALSE(_more(4, 4));
+        EXPECT_FALSE(def_more(3, 5));
+        EXPECT_FALSE(def_more(-5, -3));
+        EXPECT_TRUE(def_more(0, -3));
+        EXPECT_FALSE(def_more(4, 4));
     }
 
-    TEST(_min)
+    TEST(min)
     {
         int a = -90;
         unsigned char b = 0;
         signed char c = -100;
         long x = 93;
-        EXPECT_EQ(_min(a, b), -90);
-        EXPECT_EQ(_min(b, a), -90);
-        EXPECT_EQ(_min(a, c), -100);
-        EXPECT_EQ(_min(b, c), -100);
-        EXPECT_EQ(_min(c, a), -100);
-        EXPECT_EQ(_min(c, b), -100);
-        EXPECT_EQ(_min(b, x), 0);
-        EXPECT_EQ(_min(x, a), -90);
-        EXPECT_EQ(_min(x, x), 93);
-        EXPECT_EQ(_min(x, b), 0);
-        EXPECT_EQ(_min(c, x), -100);
+        EXPECT_EQ(min(a, b), -90);
+        EXPECT_EQ(min(b, a), -90);
+        EXPECT_EQ(min(a, c), -100);
+        EXPECT_EQ(min(b, c), -100);
+        EXPECT_EQ(min(c, a), -100);
+        EXPECT_EQ(min(c, b), -100);
+        EXPECT_EQ(min(b, x), 0);
+        EXPECT_EQ(min(x, a), -90);
+        EXPECT_EQ(min(x, x), 93);
+        EXPECT_EQ(min(x, b), 0);
+        EXPECT_EQ(min(c, x), -100);
     }
 
-    TEST(_max)
+    TEST(max)
     {
         int a = -90;
         unsigned char b = 0;
         signed char c = -100;
         long x = 93;
-        EXPECT_EQ(_max(a, b), 0);
-        EXPECT_EQ(_max(b, a), 0);
-        EXPECT_EQ(_max(a, c), -90);
-        EXPECT_EQ(_max(b, c), 0);
-        EXPECT_EQ(_max(c, a), -90);
-        EXPECT_EQ(_max(c, b), 0);
-        EXPECT_EQ(_max(b, x), 93);
-        EXPECT_EQ(_max(x, a), 93);
-        EXPECT_EQ(_max(x, x), 93);
-        EXPECT_EQ(_max(x, b), 93);
-        EXPECT_EQ(_max(c, x), 93);
+        EXPECT_EQ(max(a, b), 0);
+        EXPECT_EQ(max(b, a), 0);
+        EXPECT_EQ(max(a, c), -90);
+        EXPECT_EQ(max(b, c), 0);
+        EXPECT_EQ(max(c, a), -90);
+        EXPECT_EQ(max(c, b), 0);
+        EXPECT_EQ(max(b, x), 93);
+        EXPECT_EQ(max(x, a), 93);
+        EXPECT_EQ(max(x, x), 93);
+        EXPECT_EQ(max(x, b), 93);
+        EXPECT_EQ(max(c, x), 93);
     }
 
     bool compare_last_3_bits(int a, int b)
@@ -67,12 +67,12 @@ TEST_PACK(commonmethods)
         int a = -3; //*101
         int b = 9; //*001
         int c = -10000; //*000
-        EXPECT_EQ((_min<int, compare_last_3_bits>(a, b)), 9);
-        EXPECT_EQ((_min<int, compare_last_3_bits>(b, a)), 9);
-        EXPECT_EQ((_min<int, compare_last_3_bits>(a, c)), -10000);
-        EXPECT_EQ((_min<int, compare_last_3_bits>(c, a)), -10000);
-        EXPECT_EQ((_min<int, compare_last_3_bits>(b, c)), -10000);
-        EXPECT_EQ((_min<int, compare_last_3_bits>(c, b)), -10000);
+        EXPECT_EQ((min<int, compare_last_3_bits>(a, b)), 9);
+        EXPECT_EQ((min<int, compare_last_3_bits>(b, a)), 9);
+        EXPECT_EQ((min<int, compare_last_3_bits>(a, c)), -10000);
+        EXPECT_EQ((min<int, compare_last_3_bits>(c, a)), -10000);
+        EXPECT_EQ((min<int, compare_last_3_bits>(b, c)), -10000);
+        EXPECT_EQ((min<int, compare_last_3_bits>(c, b)), -10000);
     }
 
     TEST(_max_with_custom_comparator)
@@ -80,12 +80,12 @@ TEST_PACK(commonmethods)
         int a = -3; //*101
         int b = 9; //*001
         int c = -10000; //*000
-        EXPECT_EQ((_max<int, compare_last_3_bits>(a, b)), -3);
-        EXPECT_EQ((_max<int, compare_last_3_bits>(b, a)), -3);
-        EXPECT_EQ((_max<int, compare_last_3_bits>(a, c)), -3);
-        EXPECT_EQ((_max<int, compare_last_3_bits>(c, a)), -3);
-        EXPECT_EQ((_max<int, compare_last_3_bits>(b, c)), 9);
-        EXPECT_EQ((_max<int, compare_last_3_bits>(c, b)), 9);
+        EXPECT_EQ((max<int, compare_last_3_bits>(a, b)), -3);
+        EXPECT_EQ((max<int, compare_last_3_bits>(b, a)), -3);
+        EXPECT_EQ((max<int, compare_last_3_bits>(a, c)), -3);
+        EXPECT_EQ((max<int, compare_last_3_bits>(c, a)), -3);
+        EXPECT_EQ((max<int, compare_last_3_bits>(b, c)), 9);
+        EXPECT_EQ((max<int, compare_last_3_bits>(c, b)), 9);
     }
 
     TEST(to2)

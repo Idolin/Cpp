@@ -141,7 +141,7 @@ static void bucketsort_impl(T *start, T *end, T *copy, unsigned short from = 0)
 template<typename T, typename R = typename getter_func<T>::RType,
         typename getter_func<T, R>::type getter = def_getter<T>,
         unsigned short parts = getter_func<T, R>::parts,
-        typename compare_func<T>::type compare = _less<T>>
+        typename compare_func<T>::type compare = def_less<T>>
 void bucketsort(T *start, T *end)
 {
     T *copy = new T[end - start];

@@ -132,7 +132,7 @@ inline T* _new_copy(const T *source, size_t len, size_t new_length)
     DEBUGLVLIFMSG(3, new_length < len, "new size lesser than old, some elements won't be copied!");
     T *new_array = new T[new_length];
     if(new_length <= len)
-        _copy(source, _min(len, new_length), new_array);
+        _copy(source, min(len, new_length), new_array);
     else
     {
         _copy(source, len, new_array);
@@ -178,7 +178,7 @@ inline typename std::enable_if<is_bit_copyable<T>::value>::type
 
 template<typename T>
 inline typename std::enable_if<!is_bit_copyable<T>::value>::type
-    _copy_a(const T *source, size_t len, T *destination)
+    _copy_a(const T* source, size_t len, T* destination)
 {
     if(destination < source)
         while(len--)
@@ -194,14 +194,14 @@ inline typename std::enable_if<!is_bit_copyable<T>::value>::type
 
 template<typename T>
 inline typename std::enable_if<is_bit_movable<T>::value>::type
-    _move(T *__restrict__ source, T *end, T *__restrict__ destination)
+    _move(T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline typename std::enable_if<!is_bit_movable<T>::value>::type
-    _move(T *__restrict__ source, T *end, T *__restrict__ destination)
+    _move(T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     while(source < end)
         *destination++ = std::move(*source++);
@@ -226,15 +226,15 @@ template<typename T>
 inline T* _resize(T *source, size_t now_length, size_t new_length)
 {
     ASSERT(new_length > 0);
-    DEBUGLVLIFMSG(3, new_length < now_length, "new size lesser than old, some elements will be deleted!");
+    DEBUGLVLIFMSG(3, new_length < now_length, "New size lesser than old, some elements will be deleted!");
     T *new_array = new T[new_length];
-    _move(source, _min(now_length, new_length), new_array);
+    _move(source, min(now_length, new_length), new_array);
     delete [] source;
     return new_array;
 }
 
 template<typename T>
-inline T* _resize(T *source, T *end, size_t new_length)
+inline T* _resize(T* source, T* end, size_t new_length)
 {
     ASSERT(end >= source);
     return _resize(source, end - source, new_length);
@@ -264,11 +264,11 @@ inline void _mult_array(T *const start, size_t len, unsigned times)
 }
 
 template<typename T>
-inline T& _min(T *start, T *end)
+inline T& _min(T* start, T* end)
 {
     T *emin = start;
     while(++start < end)
-        if(_more(*emin, *start))
+        if(def_more(*emin, *start))
             emin = start;
     return *emin;
 }
@@ -278,7 +278,7 @@ inline T& _min(T *start, size_t len)
 {
     T *emin = start;
     while(len-- > 1)
-        if(_more(*emin, *++start))
+        if(def_more(*emin, *++start))
             emin = start;
     return *emin;
 }
@@ -288,7 +288,7 @@ inline T& _max(T *start, T *end)
 {
     T *emax = start;
     while(++start < end)
-        if(_more(*start, *emax))
+        if(def_more(*start, *emax))
             emax = start;
     return *emax;
 }
@@ -298,7 +298,7 @@ inline T& _max(T *start, size_t len)
 {
     T *emax = start;
     while(len-- > 1)
-        if(_more(*++start, *emax))
+        if(def_more(*++start, *emax))
             emax = start;
     return *emax;
 }
@@ -309,7 +309,7 @@ inline size_t _minInd(T *start, T *end)
     T vmin = *start;
     size_t ind = 0, len = end - start;
     while(len > 0)
-        if(_more(vmin, start[--len]))
+        if(def_more(vmin, start[--len]))
             vmin = start[ind = len];
     return ind;
 }
@@ -320,7 +320,7 @@ inline size_t _minInd(T *start, size_t len)
     T vmin = *start;
     size_t ind = 0;
     while(len > 0)
-        if(_more(vmin, start[--len]))
+        if(def_more(vmin, start[--len]))
             vmin = start[ind = len];
     return ind;
 }
@@ -331,7 +331,7 @@ inline size_t _maxInd(T *start, T *end)
     T vmax = *start;
     size_t ind = 0, len = end - start;
     while(len > 0)
-        if(_more(start[--len], vmax))
+        if(def_more(start[--len], vmax))
             vmax = start[ind = len];
     return ind;
 }
@@ -342,7 +342,7 @@ inline size_t _maxInd(T *start, size_t len)
     T vmax = *start;
     size_t ind = 0;
     while(len > 0)
-        if(_more(start[--len], vmax))
+        if(def_more(start[--len], vmax))
             vmax = start[ind = len];
     return ind;
 }
@@ -366,7 +366,7 @@ inline R _sum(const T *start, const T *end)
     return sum;
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 inline bool _checksorted(T *start, T *end)
 {
     while(++start < end)
@@ -375,7 +375,7 @@ inline bool _checksorted(T *start, T *end)
     return true;
 }
 
-template<typename T, typename compare_func<T>::type compare = _less<T>>
+template<typename T, typename compare_func<T>::type compare = def_less<T>>
 inline bool _checksorted(T *start, size_t len)
 {
     while(len-- > 0)
@@ -633,7 +633,7 @@ inline void ror_range(T *start, T *end, ShiftType shift)
 }
 
 //merge(source[0..part_len1], source[part_len1..part_len1 + part_len2]) -> destination
-template<typename T, bool (*compare)(T, T) = _less<T>>
+template<typename T, bool (*compare)(T, T) = def_less<T>>
 void merge_seq_two(const T* __restrict__ source, size_t part_len1,
                    size_t part_len2, T* __restrict__ destination)
 {
@@ -660,7 +660,7 @@ void merge_seq_two(const T* __restrict__ source, size_t part_len1,
 
 //merge(source1[0..part_len1], source2[0..part_len2]) -> destination
 //sort_in_place = true => destination[part_len2..] = source2[0..]
-template<typename T, typename compare_func<T>::type compare = _less<T>,
+template<typename T, typename compare_func<T>::type compare = def_less<T>,
                 bool sort_in_place = false, bool count_inversions = false>
 typename std::conditional<count_inversions, unsigned long long, void>::type
     merge_two_arrays(T *source1, size_t part_len1, T *source2, size_t part_len2, T *destination)
