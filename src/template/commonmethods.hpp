@@ -8,25 +8,29 @@
 #include <limits>
 #include <type_traits>
 
-template<typename T, typename = std::enable_if_t<std::is_scalar<T>::value>>
+template<typename T,
+         typename = std::enable_if_t<std::is_scalar<T>::value>>
 inline bool def_less(T x1, T x2)
 {
     return x1 < x2;
 }
 
-template<typename T, typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
+template<typename T,
+         typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
 inline bool def_less(const T& x1, const T& x2)
 {
     return x1 < x2;
 }
 
-template<typename T, typename = std::enable_if_t<std::is_scalar<T>::value>>
+template<typename T,
+         typename = std::enable_if_t<std::is_scalar<T>::value>>
 inline bool def_more(T x1, T x2)
 {
     return def_less(x2, x1);
 }
 
-template<typename T, typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
+template<typename T,
+         typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
 inline bool def_more(const T& x1, const T& x2)
 {
     return def_less(x2, x1);
@@ -51,23 +55,23 @@ namespace
     struct _GetMinReturnType;
 
     template<typename T, typename T2>
-    struct _GetMinReturnType<T, T2, typename std::enable_if<
-            (std::is_signed<T>::value && std::is_signed<T2>::value) ||
-            (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
+    struct _GetMinReturnType<T, T2,
+            std::enable_if_t<(std::is_signed<T>::value && std::is_signed<T2>::value) ||
+            (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>>
     {
         typedef typename get_smaller_type<T, T2>::type type;
     };
 
     template<typename T, typename T2>
-    struct _GetMinReturnType<T, T2, typename std::enable_if<
-            std::is_signed<T>::value && std::is_unsigned<T2>::value>::type>
+    struct _GetMinReturnType<T, T2,
+            std::enable_if_t<std::is_signed<T>::value && std::is_unsigned<T2>::value>>
     {
         typedef T type;
     };
 
     template<typename T, typename T2>
-    struct _GetMinReturnType<T, T2, typename std::enable_if<
-            std::is_unsigned<T>::value && std::is_signed<T2>::value>::type>
+    struct _GetMinReturnType<T, T2,
+            std::enable_if_t<std::is_unsigned<T>::value && std::is_signed<T2>::value>>
     {
         typedef T2 type;
     };
@@ -76,45 +80,46 @@ namespace
     struct _GetMaxReturnType;
 
     template<typename T, typename T2>
-    struct _GetMaxReturnType<T, T2, typename std::enable_if<
-            (std::is_signed<T>::value && std::is_signed<T2>::value) ||
-            (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>::type>
+    struct _GetMaxReturnType<T, T2,
+            std::enable_if_t<(std::is_signed<T>::value && std::is_signed<T2>::value) ||
+                (std::is_unsigned<T>::value && std::is_unsigned<T2>::value)>>
     {
         typedef typename get_bigger_type<T, T2>::type type;
     };
 
     template<typename T, typename T2>
-    struct _GetMaxReturnType<T, T2, typename std::enable_if<
-            std::is_signed<T>::value && std::is_unsigned<T2>::value>::type>
+    struct _GetMaxReturnType<T, T2,
+            std::enable_if_t<std::is_signed<T>::value && std::is_unsigned<T2>::value>>
     {
         typedef typename std::make_unsigned<
                 typename get_bigger_type<T, T2>::type>::type type;
     };
 
     template<typename T, typename T2>
-    struct _GetMaxReturnType<T, T2, typename std::enable_if<
-            std::is_unsigned<T>::value && std::is_signed<T2>::value>::type>
+    struct _GetMaxReturnType<T, T2,
+            std::enable_if_t<std::is_unsigned<T>::value && std::is_signed<T2>::value>>
     {
         typedef typename _GetMaxReturnType<T2, T>::type type;
     };
 
 }
 
-template<typename T, compare_func_t<T> compare = def_less<T>, typename T2 = T, typename = std::enable_if_t<std::is_same<T, T2>::value && std::is_scalar<T>::value>>
+template<typename T, compare_func_t<T> compare = def_less<T>, typename T2 = T,
+         typename = std::enable_if_t<std::is_same<T, T2>::value && std::is_scalar<T>::value>>
 constexpr T min(T a, T2 b)
 {
     return compare(a, b) ? a : b;
 }
 
-template<typename T, compare_func_t<T> compare = def_less<T>, typename T2 = T, typename = std::enable_if_t<std::is_same<T, T2>::value && !std::is_scalar<T>::value>>
+template<typename T, compare_func_t<T> compare = def_less<T>, typename T2 = T,
+         typename = std::enable_if_t<std::is_same<T, T2>::value && !std::is_scalar<T>::value>>
 constexpr T& min(const T& a, const T2& b)
 {
     return compare(a, b) ? a : b;
 }
 
-
-template<typename T, typename T2, typename =
-    typename std::enable_if<!std::is_same<T, T2>::value>::type>
+template<typename T, typename T2,
+         typename = std::enable_if_t<!std::is_same<T, T2>::value>>
 constexpr typename _GetMinReturnType<T, T2>::type min(T a, T2 b)
 {
     using maxType = typename _GetMaxReturnType<T, T2>::type;
@@ -144,8 +149,8 @@ constexpr T& max(const T& a, const T2& b)
     return compare(a, b) ? b : a;
 }
 
-template<typename T, typename T2, typename =
-    typename std::enable_if<!std::is_same<T, T2>::value>::type>
+template<typename T, typename T2,
+         typename = std::enable_if_t<!std::is_same<T, T2>::value>>
 constexpr typename _GetMaxReturnType<T, T2>::type max(T a, T2 b)
 {
     using maxType = typename _GetMaxReturnType<T, T2>::type;
@@ -163,9 +168,9 @@ constexpr typename _GetMaxReturnType<T, T2>::type max(T a, T2 b)
            static_cast<maxType>(b) : static_cast<maxType>(a);
 }
 
-template<typename T, typename = std::enable_if_t<std::is_integral<T>::value ||
-                        std::is_pointer<T>::value>>
-T to2(T k)
+template<typename T,
+         typename = std::enable_if_t<std::is_integral<T>::value ||  std::is_pointer<T>::value>>
+T to2(T k) // result = 2 ^ k
 {
     if(k < 0)
         return 0;
@@ -175,9 +180,9 @@ T to2(T k)
     return a;
 }
 
-template<typename T, typename = std::enable_if_t<std::is_integral<T>::value ||
-                        std::is_pointer<T>::value>> // mask = min(2^x - 1) >= k
-constexpr T to_bit_mask(T k)
+template<typename T,
+         typename = std::enable_if_t<std::is_integral<T>::value || std::is_pointer<T>::value>>
+constexpr T to_bit_mask(T k) // mask = min(2 ^ x - 1) >= k
 {
     if(k < 0)
         return std::numeric_limits<T>::min();
@@ -236,7 +241,8 @@ constexpr T pow(T value, PT power)
     return result;
 }
 
-template<typename T, typename = std::enable_if_t<std::is_unsigned<T>::value>>
+template<typename T,
+         typename = std::enable_if_t<std::is_unsigned<T>::value>>
 constexpr bool is_power_of_2(const T value)
 {
     if(value & (value - 1))
