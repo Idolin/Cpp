@@ -894,11 +894,13 @@ public:
     struct _check_forward_iterator<true, T, throw_error>
     {
     private:
-         static constexpr bool check_forward = _is_forward_iterator<T, throw_error>::value;
+        static constexpr bool check_forward = _is_forward_iterator<T, throw_error>::value;
+        static constexpr bool to_check_output = std::is_lvalue_reference<typename T::reference>::value &&
+                !std::is_const<std::remove_reference_t<typename T::reference>>::value;
 
-     public:
+    public:
         static constexpr bool value = _check_input_iterator<check_forward, T, throw_error>::value &&
-            _check_output_iterator<check_forward && std::is_same<typename T::reference, typename std::add_lvalue_reference<T>::type>::value, T, throw_error>::value;
+            (!to_check_output || _check_output_iterator<check_forward, T, throw_error>::value);
     };
 
     template<typename T, bool throw_error>
