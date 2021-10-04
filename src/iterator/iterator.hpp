@@ -14,7 +14,7 @@
  *  It can't have operator-=(integral_type) and decrement(integral_type) method at the same time.
  *  For output iterator:
  *      Requires:
- *          - It must provide operator*()
+ *          - It must provide operator*() const
  *          - It must provide either operator++() or increment() method or
  *              getIndex() & setIndex(integral_type) methods
  *      Optionally:
@@ -22,13 +22,13 @@
  *
  *  For input iterator:
  *      Requires:
- *          - It must provide either operator==(const It&) or non-member function operator==(const It&, const It&) or getIndex() method
- *          - It must provide operator*()
+ *          - It must provide either operator==(const It&) const or non-member function operator==(const It&, const It&) or getIndex() method
+ *          - It must provide operator*() const -> convertible to reference
  *          - It must provide either operator++() or increment() method or
- *              getIndex() & setIndex(integral_type) methods
+ *              getIndex() const & setIndex(integral_type) methods
  *      Optionally:
- *          - It can provide operator!=(const It&) or non-member function operator!=(const It&, const It&)
- *          - It can provide operator->()
+ *          - It can provide operator!=(const It&) const or non-member function operator!=(const It&, const It&)
+ *          - It can provide operator->() const -> convertible to pointer
  *          - It can provide operator++(int)
  *
  *  For forward iterator:
@@ -38,7 +38,7 @@
  *      Forward iterator requirements, and
  *      Requires:
  *          - It must provide either operator--() or decrement() method or
- *              getIndex() & setIndex(integral_type) methods
+ *              getIndex() const & setIndex(integral_type) methods
  *      Optionally:
  *          - It can provide operator--(int)
  *
@@ -46,20 +46,20 @@
  *      Bidirectional iterator requirements, and
  *      Requires:
  *          - It must provide either operator+=(integral_type) or increment(integral_type) or
- *              getIndex() & setIndex(integral_type) methods
+ *              getIndex() const & setIndex(integral_type) methods
  *          - It must provide either operator-=(integral_type) or decrement(integral_type) or
- *              getIndex() & setIndex(integral_type) methods
+ *              getIndex() const & setIndex(integral_type) methods
  *          - It must provide either operator-(const It&) or
- *              getIndex() & setIndex(integral_type) methods
- *          - It must provide either member operator<(const It&) or non-member function operator<(const It&, const It&) or getIndex() method
+ *              getIndex() const & setIndex(integral_type) methods
+ *          - It must provide either member operator<(const It&) const or non-member function operator<(const It&, const It&) const or getIndex() const method
  *      Optionally:
- *          - It can provide non-member function operator+(const It&, integral_type) or member operator+(integral_type)
+ *          - It can provide non-member function operator+(const It&, integral_type) or member operator+(integral_type) const
  *          - It can provide non-member function operator+(integral_type, const It&)
- *          - It can provide non-member function operator-(const It&, integral_type) or member operator-(integral_type)
- *          - It can provide operator[integral_type]
- *          - It can provide operator>()
- *          - It can provide operator>=()
- *          - It can provide operator<=()
+ *          - It can provide non-member function operator-(const It&, integral_type) or member operator-(integral_type) const
+ *          - It can provide operator[integral_type] const
+ *          - It can provide operator>(const It&) const
+ *          - It can provide operator>=(const It&) const
+ *          - It can provide operator<=(const It&) const
  *
  * If struct Impl meets above requirements, iterator struct can be made like this:
  *  For output iterator:
