@@ -119,7 +119,7 @@ namespace
         constexpr static const char *specifier = "%c";
     };
 
-    constexpr static unsigned char get_pwr2(unsigned char type_size)
+    static constexpr unsigned char get_pwr2(unsigned char type_size)
     {
         unsigned char b = 0;
         while(type_size)
@@ -132,10 +132,10 @@ template<typename T>
 struct type_info
 {
     typedef T type;
-    constexpr static const char *name = _typeSeqBase<T>::name;
-    constexpr static const char *specifier = _typeSeqBase<T>::specifier;
-    constexpr static unsigned char bit_length = sizeof(T) << 3;
-    constexpr static unsigned char pwr2_length = get_pwr2(sizeof(T));
+    static constexpr const char *name = _typeSeqBase<T>::name;
+    static constexpr const char *specifier = _typeSeqBase<T>::specifier;
+    static constexpr unsigned char bit_length = sizeof(T) << 3;
+    static constexpr unsigned char pwr2_length = get_pwr2(sizeof(T));
 };
 
 template<typename T, typename T2>
@@ -249,7 +249,7 @@ constexpr inline unsigned short getter_parts()
     return (sizeof(T) + sizeof(R) - 1) / sizeof(R);
 };
 
-//T - any type, R - unsigned, returns from lowest(least matters) parts to highest(most matters) parts
+// T - any type, R - unsigned, returns from lowest (least matters) parts to highest (most matters) parts
 template<typename T, typename R = uint8_t,
     typename = typename std::enable_if<std::is_unsigned<R>::value>::type>
 struct getter_func

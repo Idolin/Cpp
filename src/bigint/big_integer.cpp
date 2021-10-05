@@ -7,42 +7,49 @@ using std::swap;
 using std::min;
 using std::max;
 
-static inline uint64_t _abs(int64_t k)
+namespace
 {
-    if(k == std::numeric_limits<int64_t>::min())
-        return static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1;
-    return static_cast<uint64_t>((k < 0) ? -k : k);
+
+    inline uint64_t _abs(int64_t k)
+    {
+        if(k == std::numeric_limits<int64_t>::min())
+            return static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1;
+        return static_cast<uint64_t>((k < 0) ? -k : k);
+    }
+
+    inline uint32_t _abs(int k)
+    {
+        if(k == std::numeric_limits<int>::min())
+            return static_cast<uint32_t>(std::numeric_limits<int>::max()) + 1;
+        return static_cast<uint32_t>((k < 0) ? -k : k);
+    }
+
 }
 
-static inline uint32_t _abs(int k)
-{
-    if(k == INT_MIN)
-        return static_cast<uint32_t>(INT_MAX) + 1;
-    return static_cast<uint32_t>((k < 0) ? -k : k);
-}
 
-big_integer_exception::big_integer_exception(const std::string &s)
+
+big_integer_exception::big_integer_exception(const std::string& s)
 {
     DEBUGMSG("Exception: %s", s.c_str());
     message = s;
 }
 
-const char* big_integer_exception::what() const throw()
+const char* big_integer_exception::what() const noexcept
 {
     return message.c_str();
 }
 
-big_integer::big_integer_container::big_integer_container(unsigned size) : sign(0), size(size), max_set(0)
+big_integer::big_integer_container::big_integer_container(unsigned size): sign(0), size(size), max_set(0)
 {
     number = new uint32_t[size];
 }
 
-big_integer::big_integer_container::big_integer_container(unsigned size, bool) : big_integer_container(size)
+big_integer::big_integer_container::big_integer_container(unsigned size, bool): big_integer_container(size)
 {
     clear();
 }
 
-big_integer::big_integer_container::big_integer_container(const big_integer::big_integer_container &c) :
+big_integer::big_integer_container::big_integer_container(const big_integer::big_integer_container& c):
         sign(c.sign), size(c.size), max_set(c.max_set)
 {
     number = new_array_copy(c.number, c.size);
@@ -108,7 +115,7 @@ void big_integer::big_integer_container::fill(unsigned from, unsigned length, un
 }
 
 void big_integer::big_integer_container::copy(unsigned from_index, unsigned length,
-                                              const big_integer::big_integer_container &c, unsigned int c_index_from)
+                                              const big_integer::big_integer_container& c, unsigned int c_index_from)
 {
     copy_array(c.number + c_index_from, length, number + from_index);
 }
@@ -137,7 +144,7 @@ void big_integer::big_integer_container::ensure_capacity(unsigned capacity)
         resize(capacity);
 }
 
-void big_integer::big_integer_container::swap(big_integer::big_integer_container &c)
+void big_integer::big_integer_container::swap(big_integer::big_integer_container& c)
 {
     std::swap(number, c.number);
     std::swap(sign, c.sign);
@@ -145,13 +152,13 @@ void big_integer::big_integer_container::swap(big_integer::big_integer_container
     std::swap(size, c.size);
 }
 
-big_integer::big_integer(unsigned size, bool clear) : _number(big_integer_container(size, clear))
+big_integer::big_integer(unsigned size, bool clear): _number(big_integer_container(size, clear))
 {}
 
-big_integer::big_integer() : _number(big_integer_container())
+big_integer::big_integer(): _number(big_integer_container())
 {}
 
-big_integer::big_integer(int number) : _number(big_integer_container())
+big_integer::big_integer(int number): _number(big_integer_container())
 {
     if(number >= 0)
     {
@@ -165,13 +172,13 @@ big_integer::big_integer(int number) : _number(big_integer_container())
     }
 }
 
-big_integer::big_integer(unsigned number) : _number(big_integer_container())
+big_integer::big_integer(unsigned number): _number(big_integer_container())
 {
     _number.set_sign((number > 0));
     _number[0] = (uint32_t) number;
 }
 
-big_integer::big_integer(long long number) : _number(big_integer_container(2))
+big_integer::big_integer(long long number): _number(big_integer_container(2))
 {
     uint64_t value;
     if(number >= 0)
@@ -189,7 +196,7 @@ big_integer::big_integer(long long number) : _number(big_integer_container(2))
     _number.getms();
 }
 
-big_integer::big_integer(unsigned long long number) : _number(big_integer_container(2))
+big_integer::big_integer(unsigned long long number): _number(big_integer_container(2))
 {
     _number.set_sign((number > 0));
     _number[0] = (uint32_t) (number & 0xffffffff);
@@ -197,7 +204,7 @@ big_integer::big_integer(unsigned long long number) : _number(big_integer_contai
     _number.getms();
 }
 
-big_integer::big_integer(const big_integer& b) : _number(b._number)
+big_integer::big_integer(const big_integer& b): _number(b._number)
 {}
 
 big_integer& big_integer::operator=(const big_integer& b)
@@ -210,7 +217,7 @@ big_integer& big_integer::operator=(const big_integer& b)
     return *this;
 }
 
-big_integer::big_integer(string const &s) : _number(big_integer_container(static_cast<unsigned>(s.length() / 9 + 1)))
+big_integer::big_integer(const string& s): _number(big_integer_container(static_cast<unsigned>(s.length() / 9 + 1)))
 {
     if(s.length() == 0)
         throw big_integer_exception("Empty string");
@@ -294,32 +301,32 @@ uint32_t big_integer::operator[](int index) const
     return _number[index];
 }
 
-bool big_integer::operator==(const big_integer &b) const
+bool big_integer::operator==(const big_integer& b) const
 {
     return (_comp(b) == 0);
 }
 
-bool big_integer::operator!=(const big_integer &b) const
+bool big_integer::operator!=(const big_integer& b) const
 {
     return (_comp(b) != 0);
 }
 
-bool big_integer::operator<(const big_integer &b) const
+bool big_integer::operator<(const big_integer& b) const
 {
     return (_comp(b) < 0);
 }
 
-bool big_integer::operator>(const big_integer &b) const
+bool big_integer::operator>(const big_integer& b) const
 {
     return (_comp(b) > 0);
 }
 
-bool big_integer::operator<=(const big_integer &b) const
+bool big_integer::operator<=(const big_integer& b) const
 {
     return (_comp(b) <= 0);
 }
 
-bool big_integer::operator>=(const big_integer &b) const
+bool big_integer::operator>=(const big_integer& b) const
 {
     return (_comp(b) >= 0);
 }
@@ -380,7 +387,7 @@ big_integer& big_integer::operator<<=(int k)
     return *this;
 }
 
-big_integer& big_integer::operator&=(const big_integer &b)
+big_integer& big_integer::operator&=(const big_integer& b)
 {
     if(this->_number.get_sign() == 0)
         return *this;
@@ -451,7 +458,7 @@ big_integer& big_integer::operator&=(const big_integer &b)
     return *this;
 }
 
-big_integer& big_integer::operator|=(const big_integer &b)
+big_integer& big_integer::operator|=(const big_integer& b)
 {
     if(this->_number.get_sign() == 0)
         return (*this = b);
@@ -510,7 +517,7 @@ big_integer& big_integer::operator|=(const big_integer &b)
     return *this;
 }
 
-big_integer& big_integer::operator^=(const big_integer &b)
+big_integer& big_integer::operator^=(const big_integer& b)
 {
     
     if(b._number.get_sign() == 0)
@@ -658,7 +665,7 @@ big_integer& big_integer::operator-=(uint32_t k)
     return *this;
 }
 
-big_integer& big_integer::operator+=(const big_integer &b)
+big_integer& big_integer::operator+=(const big_integer& b)
 {
     if(b._number.get_max_set() + 2 > this->_number.get_size())
         this->_resize(b._number.get_max_set() + 2);
@@ -671,7 +678,7 @@ big_integer& big_integer::operator+=(const big_integer &b)
     return *this;
 }
 
-big_integer& big_integer::operator-=(const big_integer &b)
+big_integer& big_integer::operator-=(const big_integer& b)
 {
     if(b._number.get_sign() == 0)
         return *this;
@@ -720,7 +727,7 @@ big_integer& big_integer::operator*=(uint32_t k)
     return *this;
 }
 
-big_integer big_integer::operator*(const big_integer &b) const
+big_integer big_integer::operator*(const big_integer& b) const
 {
     unsigned max_set_sum = this->_number.get_max_set() + b._number.get_max_set();
     big_integer r(max_set_sum + 2, true);
@@ -742,7 +749,7 @@ big_integer big_integer::operator*(const big_integer &b) const
     return r;
 }
 
-big_integer& big_integer::operator*=(const big_integer &b)
+big_integer& big_integer::operator*=(const big_integer& b)
 {
     return (*this = *this * b);
 }
@@ -756,7 +763,7 @@ big_integer& big_integer::operator/=(int k)
     return *this;
 }
 
-big_integer& big_integer::operator/=(const big_integer &b)
+big_integer& big_integer::operator/=(const big_integer& b)
 {
     big_integer l;
     return div_big(b, l);
@@ -784,7 +791,7 @@ int big_integer::operator%=(int k)
     return a;
 }
 
-big_integer& big_integer::operator%=(const big_integer &b)
+big_integer& big_integer::operator%=(const big_integer& b)
 {
     big_integer l;
     div_big(b, l);
@@ -812,7 +819,7 @@ int64_t big_integer::div_uint(uint32_t k)
     return remainder;
 }
 
-big_integer& big_integer::div_big(const big_integer &divisor, big_integer &remainder)
+big_integer& big_integer::div_big(const big_integer& divisor, big_integer& remainder)
 {
     if(divisor._number.get_sign() == 0) // <number> / 0 - error
         throw big_integer_exception("Division by zero");
@@ -883,12 +890,12 @@ big_integer& big_integer::div_big(const big_integer &divisor, big_integer &remai
     return *this;
 }
 
-void big_integer::swap(big_integer &c)
+void big_integer::swap(big_integer& c)
 {
     _number.swap(c._number);
 }
 
-signed char big_integer::_comp(const big_integer &b) const
+signed char big_integer::_comp(const big_integer& b) const
 {
     if(this->_number.get_sign() != b._number.get_sign())
         return static_cast<signed char>((this->_number.get_sign() < b._number.get_sign()) ? -1 : 1);
@@ -899,7 +906,7 @@ signed char big_integer::_comp(const big_integer &b) const
     return _comp_abs_size_eq(b);
 }
 
-signed char big_integer::_comp_abs_size_eq(const big_integer &b) const
+signed char big_integer::_comp_abs_size_eq(const big_integer& b) const
 {
     for(int i = this->_number.get_max_set(); i >= 0; i--)
         if((*this)[i] != b[i])
@@ -956,7 +963,7 @@ void big_integer::_sub(unsigned k)
     }
 }
 
-void big_integer::_add(const big_integer_container &c)
+void big_integer::_add(const big_integer_container& c)
 {
     bool carry = false;
     unsigned i = 0;
@@ -974,7 +981,7 @@ void big_integer::_add(const big_integer_container &c)
     _number.set_max_set(max(_number.get_max_set(), i - 1));
 }
 
-void big_integer::_sub(const big_integer_container &c)
+void big_integer::_sub(const big_integer_container& c)
 {
     bool carry = false;
     unsigned i = 0;
@@ -1024,12 +1031,12 @@ void big_integer::_resize(unsigned new_size)
     _number.resize(new_size);
 }
 
-big_integer operator-(big_integer a, big_integer const &b)
+big_integer operator-(big_integer a, const big_integer& b)
 {
     return a -= b;
 }
 
-big_integer operator+(big_integer a, big_integer const &b)
+big_integer operator+(big_integer a, const big_integer& b)
 {
     return a += b;
 }
@@ -1049,12 +1056,12 @@ big_integer operator/(big_integer a, int k)
     return a /= k;
 }
 
-big_integer operator/(big_integer a, big_integer const &b)
+big_integer operator/(big_integer a, const big_integer& b)
 {
     return a /= b;
 }
 
-big_integer operator%(big_integer a, big_integer const &b)
+big_integer operator%(big_integer a, const big_integer& b)
 {
     return a %= b;
 }
@@ -1069,27 +1076,27 @@ big_integer operator<<(big_integer a, int k)
     return a <<= k;
 }
 
-big_integer operator&(big_integer a, big_integer const &b)
+big_integer operator&(big_integer a, const big_integer& b)
 {
     return a &= b;
 }
 
-big_integer operator|(big_integer a, big_integer const &b)
+big_integer operator|(big_integer a, const big_integer& b)
 {
     return a |= b;
 }
 
-big_integer operator^(big_integer a, big_integer const &b)
+big_integer operator^(big_integer a, const big_integer& b)
 {
     return a ^= b;
 }
 
-string to_string(big_integer const &a)
+string to_string(const big_integer& a)
 {
     return a.to_string();
 }
 
-std::ostream& operator<<(std::ostream &s, big_integer const &a)
+std::ostream& operator<<(std::ostream& s, const big_integer& a)
 {
     return s << to_string(a);
 }
