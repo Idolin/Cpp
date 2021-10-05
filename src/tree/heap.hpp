@@ -88,7 +88,7 @@ struct heap
     void _resize()
     {
         heap_element *n = new heap_element[_array_size * 2 + 1];
-        _copy(heap_array, _array_size, n);
+        copy_array(heap_array, _array_size, n);
         delete[] heap_array;
         heap_array = n;
         _array_size = _array_size * 2 + 1;

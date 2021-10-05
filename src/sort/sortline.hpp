@@ -93,7 +93,7 @@ static void bucketsort_impl(T *start, T *end, T *copy, unsigned short from = 0)
 
     E length = end - start;
     E *items_in_bucket = new E[std::numeric_limits<GR>::max() + 1];
-    _fill(items_in_bucket, std::numeric_limits<GR>::max() + 1);
+    fill(items_in_bucket, std::numeric_limits<GR>::max() + 1);
     E index_to = static_cast<E>((sizeof(E) == sizeof(GR)) ? 0u :
                        static_cast<E>(std::numeric_limits<GR>::max()) + 1u); // can overflow, it's ok
 
@@ -101,7 +101,7 @@ static void bucketsort_impl(T *start, T *end, T *copy, unsigned short from = 0)
         items_in_bucket[get_f(start[i], from)]++;
     for(E i = 1;i != index_to;i++)
         items_in_bucket[i] += items_in_bucket[i - 1];
-    _move(start, length, copy);
+    move_array(start, length, copy);
     for(E i = 0;i < length;i++)
         start[--items_in_bucket[get_f(copy[i], from)]] = std::move(copy[i]);
     if(from < parts_new - 1)

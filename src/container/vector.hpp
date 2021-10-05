@@ -143,13 +143,13 @@ public:
 
     vect(unsigned size, T def_value): m(new T[size]), v_size(size), max_used(size)
     {
-        _fill(m, size, def_value);
+        fill(m, size, def_value);
     }
 
     vect(vect const &f): m(new T[f.v_size]), v_size(f.v_size), max_used(f.max_used)
     {
         f.lock();
-        _copy(f.m, v_size, m);
+        copy_array(f.m, v_size, m);
         f.unlock();
     }
 
@@ -168,7 +168,7 @@ public:
             delete[] m;
             max_used = f.max_used;
             v_size = f.v_size;
-            m = _new_copy(f.m, v_size);
+            m = new_array_copy(f.m, v_size);
             f.unlock();
         }
         return *this;
@@ -197,7 +197,7 @@ public:
     operator T*()
     {
         _lock.lock();
-        T *copy = _new_copy(m, max_used);
+        T *copy = new_array_copy(m, max_used);
         _lock.unlock();
         return copy;
     }
@@ -207,7 +207,7 @@ public:
         _lock.lock();
         if(to == vect::last)
             to = max_used;
-        T *copy = _new_copy(m + from, m + to);
+        T *copy = new_array_copy(m + from, m + to);
         _lock.unlock();
         return copy;
     }
@@ -257,7 +257,7 @@ public:
         DEBUGLVLIFMSG(3, k < max_used, "new size smaller than index of last element, "
                                    "some elements will be deleted!");
         _lock.lock();
-        m = _resize(m, max_used, k);
+        m = resize_array(m, max_used, k);
         v_size = k;
         set_min(max_used, v_size);
         _lock.unlock();
@@ -267,7 +267,7 @@ public:
     {
         _lock.lock();
         v_size = (v_size + (v_size == 0)) * (1 << k);
-        m = _resize(m, max_used, v_size);
+        m = resize_array(m, max_used, v_size);
         _lock.unlock();
     }
 
@@ -362,7 +362,7 @@ public:
     {
         _lock.lock();
         ASSERT(max_used > 0);
-        unsigned ind = _minInd(m, max_used);
+        unsigned ind = index_of_min(m, max_used);
         _lock.unlock();
         return ind;
     }
@@ -371,7 +371,7 @@ public:
     {
         _lock.lock();
         ASSERT(max_used > 0);
-        unsigned ind = _maxInd(m, max_used);
+        unsigned ind = index_of_max(m, max_used);
         _lock.unlock();
         return ind;
     }
@@ -385,7 +385,7 @@ public:
         ASSERT(from <= to);
         ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
                                "to get sum up to %lu", max_used, to);
-        R r = _sum<R, T>(m + from, m + to);
+        R r = array_sum<T, R>(m + from, m + to);
         _lock.unlock();
         return r;
     }
@@ -394,7 +394,7 @@ public:
     bool checksorted()
     {
         _lock.lock();
-        bool sorted = _checksorted<T, compare>(m, m + max_used);
+        bool sorted = array_checksorted<T, compare>(m, m + max_used);
         _lock.unlock();
         return sorted;
     }
@@ -409,7 +409,7 @@ public:
         _lock.lock();
         ASSERT(to <= max_used, "Vector: value after index %lu not set, but trying "
                            "to check if is sorted up to %lu", max_used, to);
-        bool sorted = _checksorted<T, compare>(m + from, m + to);
+        bool sorted = array_checksorted<T, compare>(m + from, m + to);
         _lock.unlock();
         return sorted;
     }

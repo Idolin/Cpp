@@ -25,7 +25,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = length - i;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(sorted_order)
@@ -35,7 +35,7 @@ TEST_PACK(sort)
                      for(unsigned i = 0; i < length; i++)
                         u[i] = i;
                      sort(u, u + length);
-                     EXPECT_TRUE(_checksorted(u, u + length));
+                     EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(few_numbers)
@@ -45,7 +45,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = randomU() & 0x0fu;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(partially_sorted)
@@ -55,7 +55,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0, k = 0; i < length; i++, k += ((i & 0x40) == 0x40) * 30)
                         u[i] = i + 20 + (randomU() & 0xff) - (randomU() & 0xf) - k;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(fully_random)
@@ -65,7 +65,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = randomU();
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
         };
@@ -99,7 +99,7 @@ TEST_PACK(sort)
 	                for(unsigned i = 0; i < length; i++)
 	                    s[i] = randomS();
 	                sort(s, s + length);
-	                EXPECT_TRUE((_checksorted<short, compare_short_reversed>(s, s + length)));
+	                EXPECT_TRUE((array_checksorted<short, compare_short_reversed>(s, s + length)));
 	            };
 	        };
         };
@@ -116,7 +116,7 @@ TEST_PACK(sort)
 	                for(unsigned i = 0; i < length; i++)
 	                    ull[i] = randomULL();
 	                sort(ull, ull + length);
-	                EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(ull, ull + length)));
+	                EXPECT_TRUE((array_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(ull, ull + length)));
 	            };
 	        };
         };
@@ -136,7 +136,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = length - i;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(sorted_order)
@@ -146,7 +146,7 @@ TEST_PACK(sort)
                      for(unsigned i = 0; i < length; i++)
                         u[i] = i;
                      sort(u, u + length);
-                     EXPECT_TRUE(_checksorted(u, u + length));
+                     EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(few_numbers)
@@ -156,7 +156,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = randomU() & 0x0fu;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(partially_sorted)
@@ -166,7 +166,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0, k = 0; i < length; i++, k += ((i & 0x40) == 0x40) * 30)
                         u[i] = i + 20 + (randomU() & 0xff) - (randomU() & 0xf) - k;
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
             SUBTEST(fully_random)
@@ -176,7 +176,7 @@ TEST_PACK(sort)
                     for(unsigned i = 0; i < length; i++)
                         u[i] = randomU();
                     sort(u, u + length);
-                    EXPECT_TRUE(_checksorted(u, u + length));
+                    EXPECT_TRUE(array_checksorted(u, u + length));
                 };
             };
         };
@@ -198,7 +198,7 @@ TEST_PACK(sort)
                         for(unsigned i = 0; i < length; i++)
                             s[i] = randomS();
                         sort(s, s + length);
-                        EXPECT_TRUE((_checksorted<short, compare_short_reversed>(s, s + length)));
+                        EXPECT_TRUE((array_checksorted<short, compare_short_reversed>(s, s + length)));
                 };
             };
         };
@@ -213,7 +213,7 @@ TEST_PACK(sort)
 	                    for(unsigned i = 0; i < length; i++)
 	                        ull[i] = randomULL();
 	                    sort(ull, ull + length);
-	                    EXPECT_TRUE((_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(ull, ull + length)));
+	                    EXPECT_TRUE((array_checksorted<unsigned long long, compare_unsigned_long_long_odd_first>(ull, ull + length)));
 	            };
 	        };
 	    };
@@ -231,7 +231,7 @@ TEST_PACK(sort)
                 for(unsigned i = 0; i < length; i++)
                     u[i] = length;
                 bucketsort(u, u + length);
-                EXPECT_TRUE(_checksorted(u, u + length));
+                EXPECT_TRUE(array_checksorted(u, u + length));
             };
         };
         SUBTEST(few_numbers)
@@ -241,7 +241,7 @@ TEST_PACK(sort)
                 for(unsigned i = 0; i < length; i++)
                     u[i] = randomU() & 0x0fu;
                 bucketsort(u, u + length);
-                EXPECT_TRUE(_checksorted(u, u + length));
+                EXPECT_TRUE(array_checksorted(u, u + length));
             };
         };
         SUBTEST(many_numbers)
@@ -251,7 +251,7 @@ TEST_PACK(sort)
                 for(unsigned i = 0; i < length; i++)
                     u[i] = randomU() & 0xffff;
                 bucketsort(u, u + length);
-                EXPECT_TRUE(_checksorted(u, u + length));
+                EXPECT_TRUE(array_checksorted(u, u + length));
             };
         };
         SUBTEST(all_numbers_different)
@@ -261,7 +261,7 @@ TEST_PACK(sort)
                 for(unsigned i = 0; i < length; i++)
                     u[i] = i;
                 bucketsort(u, u + length);
-                EXPECT_TRUE(_checksorted(u, u + length));
+                EXPECT_TRUE(array_checksorted(u, u + length));
             };
         };
         delete[] u;

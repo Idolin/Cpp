@@ -16,7 +16,7 @@ bit_array::bit_array(size_t size):
         b_array(new unsigned[get_bit_array_size(size)]),
         b_size(size)
 {
-    _fill(b_array, get_bit_array_size(b_size));
+    fill(b_array, get_bit_array_size(b_size));
 }
 
 bit_array::~bit_array()
@@ -62,7 +62,7 @@ void bit_array::set(size_t i, bool f)
 
 void bit_array::clear()
 {
-    _fill(b_array, get_bit_array_size(b_size));
+    fill(b_array, get_bit_array_size(b_size));
 }
 
 size_t bit_array::size() const

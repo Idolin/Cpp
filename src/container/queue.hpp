@@ -200,13 +200,13 @@ private:
 			if(tail < head)
 			{
 				len = head - tail;
-				_move(array + tail, len, array_to);
+				move_array(array + tail, len, array_to);
 			}
 			else
 			{
 				len = blockmask + 1 - tail;
-				_move(array + tail, len, array_to);
-				_move(array, head, array_to + len);
+				move_array(array + tail, len, array_to);
+				move_array(array, head, array_to + len);
 				len += head;
 			}
 			delete[] array;

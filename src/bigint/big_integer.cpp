@@ -45,7 +45,7 @@ big_integer::big_integer_container::big_integer_container(unsigned size, bool) :
 big_integer::big_integer_container::big_integer_container(const big_integer::big_integer_container &c) :
         sign(c.sign), size(c.size), max_set(c.max_set)
 {
-    number = _new_copy(c.number, c.size);
+    number = new_array_copy(c.number, c.size);
 }
 
 big_integer::big_integer_container::~big_integer_container()
@@ -104,19 +104,19 @@ void big_integer::big_integer_container::getms()
 
 void big_integer::big_integer_container::fill(unsigned from, unsigned length, unsigned value)
 {
-    _fill(number + from, length, value);
+    ::fill(number + from, length, value);
 }
 
 void big_integer::big_integer_container::copy(unsigned from_index, unsigned length,
                                               const big_integer::big_integer_container &c, unsigned int c_index_from)
 {
-    _copy(c.number + c_index_from, length, number + from_index);
+    copy_array(c.number + c_index_from, length, number + from_index);
 }
 
 
 void big_integer::big_integer_container::clear()
 {
-    _fill(number, size);
+    ::fill(number, size);
 }
 
 void big_integer::big_integer_container::resize(unsigned new_size)
@@ -125,9 +125,9 @@ void big_integer::big_integer_container::resize(unsigned new_size)
         return;
     if((new_size > size) && (new_size < size * 2))
         new_size = size * 2;
-    number = ::_resize(number, max_set + 1, new_size);
+    number = ::resize_array(number, max_set + 1, new_size);
     if(new_size > max_set + 1)
-        _fill(number + max_set + 1, new_size - max_set - 1);
+        ::fill(number + max_set + 1, new_size - max_set - 1);
     size = new_size;
 }
 

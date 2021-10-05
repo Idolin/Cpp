@@ -44,7 +44,7 @@ public:
         serialized s = ::serialize(value);
         unsigned char *buffer = new unsigned char[s.size() + 1];
         buffer[0] = 1;
-        _copy(s.data(), s.size(), buffer + 1);
+        copy_array(s.data(), s.size(), buffer + 1);
         return serialized(buffer, s.size() + 1);
     }
 

@@ -63,7 +63,7 @@ mergesort(T *start, T *end)
         for(i = block_size;i < dif - block_size;i += block_size * 2)
             if(compare(start[i], start[i - 1]))
             {
-                _copy(start + i - block_size, block_size, swap_array);
+                copy_array(start + i - block_size, block_size, swap_array);
                 if(count_inversions)
                     inversions += merge_two_arrays<T, compare, true, true>(swap_array,
                                                         block_size, start + i, block_size, start + i - block_size);
@@ -73,7 +73,7 @@ mergesort(T *start, T *end)
             }
         if(i < dif)
         {
-            _copy(start + i - block_size, block_size, swap_array);
+            copy_array(start + i - block_size, block_size, swap_array);
             if(count_inversions)
                 inversions += merge_two_arrays<T, compare, true, true>(swap_array,
                                                         block_size, start + i, dif - i, start + i - block_size);

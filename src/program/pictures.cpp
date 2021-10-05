@@ -19,7 +19,7 @@ void make_img(cstr name, unsigned width, unsigned height, const std::function<co
 {
 	PAMImageWriter im(name, width, height, PAMImageWriter::colors::RGB, 65535, false);
 	unsigned short *img = new unsigned short[width * height * 3];
-	_fill(img, width * height * 3);
+	fill(img, width * height * 3);
 	for(unsigned iter = 1;iter <= iterations;iter++)
 	{
 		printf("%u/%u\n", iter, iterations);

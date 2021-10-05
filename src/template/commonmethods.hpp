@@ -130,7 +130,7 @@ constexpr typename _GetMinReturnType<T, T2>::type min(T a, T2 b)
             return static_cast<minType>(b);
         if(b >= 0)
             return static_cast<minType>(a);
-        return static_cast<minType>(a) < static_cast<minType>(b) ?
+        return (static_cast<minType>(a) < static_cast<minType>(b)) ?
                static_cast<minType>(a) : static_cast<minType>(b);
     }
     return static_cast<maxType>(a) < static_cast<maxType>(b) ?
@@ -161,7 +161,7 @@ constexpr typename _GetMaxReturnType<T, T2>::type max(T a, T2 b)
             return static_cast<maxType>(a);
         if(b >= 0)
             return static_cast<maxType>(b);
-        return static_cast<minType>(a) < static_cast<minType>(b) ?
+        return (static_cast<minType>(a) < static_cast<minType>(b)) ?
                static_cast<maxType>(b) : static_cast<maxType>(a);
     }
     return static_cast<maxType>(a) < static_cast<maxType>(b) ?

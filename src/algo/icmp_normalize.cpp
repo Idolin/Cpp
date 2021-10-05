@@ -2,6 +2,7 @@
 // Created by cynder on 20.02.19.
 //
 
+
 #include "icmp_normalize.h"
 
 struct static_array
@@ -49,8 +50,8 @@ double image_convert_diff(unsigned char *pixels, unsigned char *&pixels_res)
         }
         for(size_t i = image_geometry.width(); i < image_geometry.width() * image_geometry.height(); i += image_geometry.width())
             pixels_res[i] = pixels_res[i + 1];
-        _copy(pixels_res + image_geometry.width(), image_geometry.width(), pixels_res);
-        unsigned sm = _sum<unsigned>(pixels_res, image_geometry.width() * image_geometry.height());
+        copy_array(pixels_res + image_geometry.width(), image_geometry.width(), pixels_res);
+        unsigned sm = array_sum<unsigned>(pixels_res, image_geometry.width() * image_geometry.height());
         unsigned char med = static_cast<unsigned char>((sm / (256 * image_geometry.width() * image_geometry.height())) + 1);
         for(unsigned si = 0;si < image_geometry.width() * image_geometry.height();si++)
             if(pixels_res[si] >= med && pixels_res[si] < 255)

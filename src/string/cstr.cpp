@@ -327,7 +327,7 @@ cstr::str_info::str_info(cstr::str_info *copy_from): HashableStored<true>(*copy_
     block(new char[copy_from->len + 1]), len(copy_from->len), links(1),
     cell_changed(copy_from->cell_changed)
 {
-    _copy(copy_from->block, len + 1, block);
+    copy_array(copy_from->block, len + 1, block);
 }
 
 cstr::str_info::str_info(unsigned long new_len, str_info *copy_from):
@@ -335,7 +335,7 @@ cstr::str_info::str_info(unsigned long new_len, str_info *copy_from):
     len(copy_from->len), links(1), cell_changed(copy_from->cell_changed)
 {
     copy_from->copy_to_array(block);
-    _fill(block + len, new_len - len);
+    fill(block + len, new_len - len);
 }
 
 cstr::str_info::~str_info()
@@ -351,14 +351,14 @@ char cstr::str_info::operator[](unsigned long i) const
 
 void cstr::str_info::copy_to_array(char *dst) const
 {
-    _copy(block, len, dst); //caller needs to care about null char in the end
+    copy_array(block, len, dst); //caller needs to care about null char in the end
 }
 
 void cstr::str_info::copy_to_array(char *dst, unsigned long from, unsigned long to) const
 {
     ASSERT(from < to);
     ASSERT(to <= len);
-    _copy(block + from, to - from, dst);
+    copy_array(block + from, to - from, dst);
 }
 
 unsigned char cstr::str_info::cannot_change() const
@@ -427,8 +427,8 @@ void cstr::str_info_cnct_char::operator+=(char c)
     block[len++] = c;
     if(len == size)
     {
-        block = _resize(block, size, size * 2);
-        _fill(block + size, size);
+        block = resize_array(block, size, size * 2);
+        fill(block + size, size);
         size *= 2;
     }
     if(!is_changed() || cell_changed != std::numeric_limits<unsigned long>::max())
@@ -572,7 +572,7 @@ cstr::cstr(I x)
             s[l++] = '0' + x % 10;
             x /= 10;
         }
-        _reverse(s + ((s[0] == '-')), s + l);
+        reverse_array(s + ((s[0] == '-')), s + l);
         s[l + 1] = '\0';
         info = new str_info(s, l);
     }
@@ -609,13 +609,13 @@ cstr::cstr(const char *s)
 {
     unsigned len = 0;
     while(s[len++] != '\0');
-    this->s = _new_copy(s, len);
+    this->s = new_array_copy(s, len);
     info = new str_info(this->s, --len);
 }
 
 cstr::cstr(const char *s, unsigned long len)
 {
-    this->s = _new_copy(s, len, len + 1);
+    this->s = new_array_copy(s, len, len + 1);
     info = new str_info(this->s, len);
 }
 
@@ -773,7 +773,7 @@ cstr& cstr::operator*=(unsigned times)
     auto *new_block = new char[new_len + 1];
     info->copy_to_array(new_block);
     new_block[new_len] = '\0';
-    _mult_array(new_block, info->len, times);
+    copy_array_n_times(new_block, info->len, times);
     unlink();
     info = new str_info(new_block, new_len);
     s = new_block;

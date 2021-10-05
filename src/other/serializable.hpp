@@ -154,7 +154,7 @@ std::enable_if_t<std::is_same<typename std::remove_cv<T>::type, const char*>::va
     deserialize(unsigned char *buffer, size_t buffer_length)
 {
     char *s = new char[buffer_length + 1];
-    _copy(reinterpret_cast<char*>(buffer), buffer_length, s);
+    copy_array(reinterpret_cast<char*>(buffer), buffer_length, s);
     s[buffer_length] = '\0';
     return s;
 };
