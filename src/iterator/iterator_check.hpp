@@ -61,18 +61,6 @@ namespace
 
 
     template<typename T, typename Enable = void>
-    struct _exists_iterator_category_typedef
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename T>
-    struct _exists_iterator_category_typedef<T, std::void_t<typename T::iterator_category>>
-    {
-        static constexpr bool value = true;
-    };
-
-    template<typename T, typename Enable = void>
     struct _valid_iterator_category_typedef
     {
         static constexpr bool value = false;
@@ -82,54 +70,6 @@ namespace
     struct _valid_iterator_category_typedef<T, std::enable_if_t<is_one_of_listed_v<typename T::iterator_category,
             std::output_iterator_tag, std::input_iterator_tag, std::forward_iterator_tag,
             std::bidirectional_iterator_tag, std::random_access_iterator_tag>>>
-    {
-        static constexpr bool value = true;
-    };
-
-    template<typename T, typename Enable = void>
-    struct _exists_value_type_typedef
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename T>
-    struct _exists_value_type_typedef<T, std::void_t<typename T::value_type>>
-    {
-        static constexpr bool value = true;
-    };
-
-    template<typename T, typename Enable = void>
-    struct _exists_pointer_typedef
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename T>
-    struct _exists_pointer_typedef<T, std::void_t<typename T::pointer>>
-    {
-        static constexpr bool value = true;
-    };
-
-    template<typename T, typename Enable = void>
-    struct _exists_reference_typedef
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename T>
-    struct _exists_reference_typedef<T, std::void_t<typename T::reference>>
-    {
-        static constexpr bool value = true;
-    };
-
-    template<typename T, typename Enable = void>
-    struct _exists_difference_type_typedef
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename T>
-    struct _exists_difference_type_typedef<T, std::void_t<typename T::difference_type>>
     {
         static constexpr bool value = true;
     };
@@ -174,19 +114,19 @@ namespace
         {
             bool result = true;
 
-            ASSERT_ENABLE_STATIC(_exists_iterator_category_typedef<T>::value,
+            ASSERT_ENABLE_STATIC(has_iterator_category_typedef<T>::value,
                                  "Iterator must have member typedef iterator_category");
             ASSERT_ENABLE_STATIC(_valid_iterator_category_typedef<T>::value,
                                  "Iterator iterator_category type must be one of the following: std::output_iterator_tag, "
                                  "std::input_iterator_tag, std::forward_iterator_tag, std::bidirectional_iterator_tag, std::random_access_iterator_tag");
-            ASSERT_ENABLE_STATIC(_exists_value_type_typedef<T>::value,
+            ASSERT_ENABLE_STATIC(has_value_type_typedef<T>::value,
                                  "Iterator must have member typedef value_type");
-            ASSERT_ENABLE_STATIC(_exists_difference_type_typedef<T>::value,
-                                 "Iterator must have member typedef difference_type");
-            ASSERT_ENABLE_STATIC(_exists_reference_typedef<T>::value,
+            ASSERT_ENABLE_STATIC(has_reference_typedef<T>::value,
                                  "Iterator must have member typedef reference");
-            ASSERT_ENABLE_STATIC(_exists_pointer_typedef<T>::value,
+            ASSERT_ENABLE_STATIC(has_pointer_typedef<T>::value,
                                  "Iterator must have member typedef pointer");
+            ASSERT_ENABLE_STATIC(has_difference_type_typedef<T>::value,
+                                 "Iterator must have member typedef difference_type");
 
             ASSERT_ENABLE_STATIC(std::is_copy_constructible<T>::value,
                                  "Iterator must be copy-constructible");

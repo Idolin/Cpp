@@ -127,6 +127,14 @@ IMPL_TYPE_TAGS_STRUCT_HAS(pre_decrement_operator, decltype(--std::declval<T>()))
 IMPL_TYPE_TAGS_STRUCT_HAS(post_decrement_operator, void(decltype(std::declval<T>()--)))
 
 
+IMPL_TYPE_TAGS_STRUCT_HAS(iterator_category_typedef, typename T::iterator_category)
+IMPL_TYPE_TAGS_STRUCT_HAS(value_type_typedef, typename T::value_type)
+IMPL_TYPE_TAGS_STRUCT_HAS(reference_typedef, typename T::reference)
+IMPL_TYPE_TAGS_STRUCT_HAS(pointer_typedef, typename T::pointer)
+IMPL_TYPE_TAGS_STRUCT_HAS(difference_type_typedef, typename T::difference_type)
+
+
+
 IMPL_TYPE_TAGS_STRUCT_IS(hashable, std::is_integral<T>::value || std::is_pointer<T>::value || is_cstr<T>::value)
 
 IMPL_TYPE_TAGS_STRUCT_T_IS(hashable, std::is_same<
