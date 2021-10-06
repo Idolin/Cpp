@@ -13,7 +13,7 @@ namespace iterator_impl_def
     namespace
     {
 
-        template<typename It>
+        template<typename It, typename Enable = void>
         struct get_def_value
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
@@ -21,8 +21,14 @@ namespace iterator_impl_def
             typedef std::remove_const_t<std::remove_reference_t<decltype(*std::declval<It>())>> type;
         };
 
-
         template<typename It>
+        struct get_def_value<It, std::enable_if_t<has_value_type_typedef_v<It>>>
+        {
+            typedef typename It::value_type type;
+        };
+
+
+        template<typename It, typename Enable = void>
         struct get_def_reference
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
@@ -31,12 +37,16 @@ namespace iterator_impl_def
         };
 
         template<typename It>
+        struct get_def_reference<It, std::enable_if_t<has_reference_typedef_v<It>>>
+        {
+            typedef typename It::reference type;
+        };
+
+        template<typename It>
         struct get_def_const_reference // used only for input_iterator
         {
         private:
-            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
-
-            typedef decltype(*std::declval<It>()) reference_t; // reference_t - return type of dereference operator*()
+            typedef typename get_def_reference<It>::type reference_t; // reference_t - return type of dereference operator*()
 
         public:
             // adds const to referred type if it's not an rvalue_reference(&&)
@@ -55,11 +65,15 @@ namespace iterator_impl_def
         };
 
         template<typename It>
-        struct get_def_pointer<It, typename std::enable_if_t<has_arrow_operator_v<It>>>
+        struct get_def_pointer<It, std::enable_if_t<!has_pointer_typedef_v<It> && has_arrow_operator_v<It>>>
         {
-            static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
-
             typedef decltype(std::declval<It>().operator->()) type;
+        };
+
+        template<typename It>
+        struct get_def_pointer<It, std::enable_if_t<has_pointer_typedef_v<It>>>
+        {
+            typedef typename It::pointer type;
         };
 
         template<typename It>
@@ -77,7 +91,8 @@ namespace iterator_impl_def
         };
 
         template<typename It, bool is_random_access_iterator>
-        struct get_def_difference<It, is_random_access_iterator, typename std::enable_if_t<has_subtraction_operator_v<It>>>
+        struct get_def_difference<It, is_random_access_iterator,
+                std::enable_if_t<!has_difference_type_typedef_v<It> && has_subtraction_operator_v<It>>>
         {
         private:
             static constexpr bool f = !is_random_access_iterator || is_subtractable_v<const It>;
@@ -93,6 +108,13 @@ namespace iterator_impl_def
         public:
             typedef decltype(std::declval<It>() - std::declval<It>()) type;
         };
+
+        template<typename It, bool is_random_access_iterator>
+        struct get_def_difference<It, is_random_access_iterator, std::enable_if_t<has_difference_type_typedef_v<It>>>
+        {
+            typedef typename It::difference_type type;
+        };
+
 
         template<typename It, typename Enable = void>
         struct has_get_index_method
