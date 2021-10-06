@@ -10,6 +10,7 @@
 
 namespace iterator_impl_def
 {
+
     namespace
     {
 
@@ -42,19 +43,6 @@ namespace iterator_impl_def
             typedef typename It::reference type;
         };
 
-        template<typename It>
-        struct get_def_const_reference // used only for input_iterator
-        {
-        private:
-            typedef typename get_def_reference<It>::type reference_t; // reference_t - return type of dereference operator*()
-
-        public:
-            // adds const to referred type if it's not an rvalue_reference(&&)
-            typedef std::conditional_t<std::is_rvalue_reference<reference_t>::value,
-                reference_t,
-                add_const_ignore_reference_t<reference_t>> type;
-        };
-
 
         template<typename It, typename Enable = void>
         struct get_def_pointer
@@ -74,13 +62,6 @@ namespace iterator_impl_def
         struct get_def_pointer<It, std::enable_if_t<has_pointer_typedef_v<It>>>
         {
             typedef typename It::pointer type;
-        };
-
-        template<typename It>
-        struct get_def_const_pointer // used only for input_iterator
-        {
-            // adds const to referred type
-            typedef add_const_ignore_reference_and_pointer_t<typename get_def_pointer<It>::type> type;
         };
 
 
@@ -225,13 +206,7 @@ namespace iterator_impl_def
     using get_def_reference_t = typename get_def_reference<It>::type;
 
     template<typename It>
-    using get_def_const_reference_t = typename get_def_const_reference<It>::type;
-
-    template<typename It>
     using get_def_pointer_t = typename get_def_pointer<It>::type;
-
-    template<typename It>
-    using get_def_const_pointer_t = typename get_def_const_pointer<It>::type;
 
     template<typename It, bool is_random_access_iterator = false>
     using get_def_difference_t = typename get_def_difference<It, is_random_access_iterator>::type;
