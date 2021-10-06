@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <memory>
 
 TEST_PACK(iterator)
 {
@@ -89,17 +90,12 @@ TEST_PACK(iterator)
 
         struct GetSetIndexIteratorImpl
         {
-            int *a = new int[]{3, 5, 7, 9, 11, 13, 15};
+            std::shared_ptr<int> a {new int[]{3, 5, 7, 9, 11, 13, 15}, std::default_delete<int[]>()};
             int index = 0;
-
-            ~GetSetIndexIteratorImpl()
-            {
-                delete[] a;
-            }
 
             int& operator*() const
             {
-                return a[index];
+                return a.get()[index];
             }
 
             int getIndex() const
@@ -115,17 +111,12 @@ TEST_PACK(iterator)
 
         struct GetIndexIncrementDecrementMethodIteratorImpl
         {
-            int *collatz = new int[]{7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1};
+            std::shared_ptr<int> collatz {new int[]{7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1}, std::default_delete<int[]>()};
             int index = 0;
-
-            ~GetIndexIncrementDecrementMethodIteratorImpl()
-            {
-                delete[] collatz;
-            }
 
             int& operator*() const
             {
-                return collatz[index];
+                return collatz.get()[index];
             }
 
             int getIndex() const
@@ -159,17 +150,13 @@ TEST_PACK(iterator)
                 }
             };
 
-            int *not_random = new int[]{0, 1, 2, 0, 0, 4, 2, 1, 2, 4, 2, 5, 8, 0, 1, 4, 5, 5, 4, 4, 1, 4, 4, 4, 0, 8, 0, 8, 2, 5, 0, 2, 2, 1, 4, 2, 2, 5, 1, 5, 8, 4, 5, 5};
+            std::shared_ptr<int> not_random {new int[]{0, 1, 2, 0, 0, 4, 2, 1, 2, 4, 2, 5, 8, 0, 1, 4, 5, 5, 4, 4, 1, 4, 4, 4, 0, 8, 0, 8,
+                                        2, 5, 0, 2, 2, 1, 4, 2, 2, 5, 1, 5, 8, 4, 5, 5}, std::default_delete<int[]>()};
             int index = 0;
-
-            ~MixedIteratorImpl()
-            {
-                delete[] not_random;
-            }
 
             int& operator*() const
             {
-                return not_random[index];
+                return not_random.get()[index];
             }
 
             MixedIteratorImpl& operator++()
@@ -452,5 +439,61 @@ TEST_PACK(iterator)
         ForwardIterator it_gs = ForwardIterator();
 
         EXPECT_EQ(*it_gs, 3);
+        EXPECT_EQ(*it_gs++, 3);
+        EXPECT_EQ(*it_gs, 5);
+        EXPECT_EQ(*++it_gs, 7);
+
+        ForwardIterator it_gs_copy = it_gs;
+        EXPECT_EQ(*it_gs_copy, 7);
+        it_gs++;
+        EXPECT_EQ(*it_gs, 9);
+        EXPECT_EQ(*it_gs_copy, 7);
+        EXPECT_EQ(*++it_gs, 11);
+        EXPECT_EQ(*it_gs_copy++, 7);
+        EXPECT_EQ(*it_gs_copy, 9);
+        EXPECT_EQ(*it_gs, 11);
+        EXPECT_NE(it_gs, it_gs_copy);
+        EXPECT_EQ(it_gs, ++it_gs_copy);
+
+
+        ForwardIterator2 it_idm = ForwardIterator2();
+
+        EXPECT_EQ(*it_idm, 7);
+        EXPECT_EQ(*it_idm++, 7);
+        EXPECT_EQ(*it_idm, 22);
+        EXPECT_EQ(*++it_idm, 11);
+
+        ForwardIterator2 it_idm_copy = it_idm;
+        EXPECT_EQ(*it_idm_copy, 11);
+        it_idm++;
+        EXPECT_EQ(*it_idm, 34);
+        EXPECT_EQ(*it_idm_copy, 11);
+        EXPECT_EQ(*++it_idm, 17);
+        EXPECT_EQ(*it_idm_copy++, 11);
+        EXPECT_EQ(*it_idm_copy, 34);
+        EXPECT_EQ(*it_idm, 17);
+        EXPECT_NE(it_idm, it_idm_copy);
+        EXPECT_EQ(it_idm, ++it_idm_copy);
+
+
+        ForwardIterator3 it_m = ForwardIterator3();
+
+        EXPECT_EQ(*it_m, 0);
+        EXPECT_EQ(*it_m++, 0);
+        EXPECT_EQ(*it_m, 1);
+        EXPECT_EQ(*++it_m, 2);
+
+        ForwardIterator3 it_m_copy = it_m;
+        EXPECT_EQ(*it_m_copy, 2);
+        it_m++;
+        EXPECT_EQ(*it_m, 0);
+        EXPECT_EQ(*it_m_copy, 2);
+        EXPECT_EQ(*++it_m, 0);
+        EXPECT_EQ(*++it_m, 4);
+        EXPECT_EQ(*it_m_copy++, 2);
+        EXPECT_EQ(*it_m_copy, 0);
+        EXPECT_EQ(*it_m, 4);
+        EXPECT_NE(it_m, it_m_copy);
+        EXPECT_EQ(it_m, ++(++it_m_copy));
     }
 }
