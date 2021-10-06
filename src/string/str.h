@@ -6,7 +6,7 @@
 
 #include "../container/vector.hpp"
 #include "../other/hash.hpp"
-#include "../other/endianness.h"
+#include "../other/platform_specific.hpp"
 
 #include <cstddef>
 #include <iostream>
@@ -18,22 +18,6 @@ using std::size_t;
 
 struct str: Hashable
 {
-    enum class byte_order
-    {
-        LE = 0,
-        little_endian = 0,
-        BE = 1,
-        big_endian = 1,
-        native_endianness =
-#ifdef LITTLE_ENDIAN
-        little_endian,
-#elif BIG_ENDIAN
-        big_endian,
-#else
-    #error "No endianness specicfied"
-#endif
-    };
-
     enum unicode_normalization_form
     {
         NFD = 0,
@@ -166,9 +150,9 @@ public:
      *  and text will be encoded according to presenetd BOM
      */
 
-    str(const char16_t*, byte_order = byte_order::native_endianness); // assumes UTF-16
+    str(const char16_t*, ByteOrder = byte_order::native_endianness); // assumes UTF-16
 
-    str(const char32_t*, byte_order = byte_order::native_endianness); // asuumes UTF-32
+    str(const char32_t*, ByteOrder = byte_order::native_endianness); // asuumes UTF-32
 
     /*
      * if sizeof(wchar_t) == 1: assumes UTF-8
