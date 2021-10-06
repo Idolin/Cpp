@@ -6,6 +6,15 @@
 
 #include "../other/defdef.h"
 #include "../template/type_tags.hpp"
+#include "../other/platform_specific.hpp"
+
+namespace iterator
+{
+
+        struct AnyType
+        {};
+
+}
 
 /*
  * Do all possible compile-time checks to ensure that IT is sutisfies iterator requirements for it's iterator_type
@@ -27,10 +36,14 @@ template<typename IT, bool throw_error = false>
 struct is_valid_stl_forward_iterator;
 
 template<typename IT, bool throw_error = false>
-struct is_valid_stl_bidirectonal_iterator;
+struct is_valid_stl_bidirectional_iterator;
 
 template<typename IT, bool throw_error = false>
 struct is_valid_stl_random_access_iterator;
+
+template<typename IT, typename DesiredValueType = iterator::AnyType, typename DesiredReferenceType = iterator::AnyType,
+         typename DesiredPointerType = iterator::AnyType, typename DesiredDifferenceType = iterator::AnyType, bool throw_error = false>
+struct has_desired_iterator_typedefs;
 
 template<typename IT, bool throw_error = false>
 constexpr bool is_valid_stl_iterator_v = is_valid_stl_iterator<IT, throw_error>::value;
@@ -45,10 +58,15 @@ template<typename IT, bool throw_error = false>
 constexpr bool is_valid_stl_forward_iterator_v = is_valid_stl_forward_iterator<IT, throw_error>::value;
 
 template<typename IT, bool throw_error = false>
-constexpr bool is_valid_stl_bidirectonal_iterator_v = is_valid_stl_bidirectonal_iterator<IT, throw_error>::value;
+constexpr bool is_valid_stl_bidirectional_iterator_v = is_valid_stl_bidirectional_iterator<IT, throw_error>::value;
 
 template<typename IT, bool throw_error = false>
 constexpr bool is_valid_stl_random_access_iterator_v = is_valid_stl_random_access_iterator<IT, throw_error>::value;
+
+template<typename IT, typename DesiredValueType = iterator::AnyType, typename DesiredReferenceType = iterator::AnyType,
+         typename DesiredPointerType = iterator::AnyType, typename DesiredDifferenceType = iterator::AnyType, bool throw_error = false>
+constexpr bool has_desired_iterator_typedefs_v =
+        has_desired_iterator_typedefs<IT, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType, throw_error>::value;
 
 namespace
 {
@@ -72,6 +90,36 @@ namespace
             std::bidirectional_iterator_tag, std::random_access_iterator_tag>>>
     {
         static constexpr bool value = true;
+    };
+
+
+    template<typename T, bool throw_error>
+    struct _iterator_has_typedefs
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(has_iterator_category_typedef<T>::value,
+                                 "Iterator must have member typedef iterator_category");
+            ASSERT_ENABLE_STATIC(_valid_iterator_category_typedef<T>::value,
+                                 "Iterator iterator_category type must be one of the following: std::output_iterator_tag, "
+                                 "std::input_iterator_tag, std::forward_iterator_tag, std::bidirectional_iterator_tag, std::random_access_iterator_tag");
+            ASSERT_ENABLE_STATIC(has_value_type_typedef<T>::value,
+                                 "Iterator must have member typedef value_type");
+            ASSERT_ENABLE_STATIC(has_reference_typedef<T>::value,
+                                 "Iterator must have member typedef reference");
+            ASSERT_ENABLE_STATIC(has_pointer_typedef<T>::value,
+                                 "Iterator must have member typedef pointer");
+            ASSERT_ENABLE_STATIC(has_difference_type_typedef<T>::value,
+                                 "Iterator must have member typedef difference_type");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
     };
 
 
@@ -112,21 +160,7 @@ namespace
 
         static constexpr bool _value()
         {
-            bool result = true;
-
-            ASSERT_ENABLE_STATIC(has_iterator_category_typedef<T>::value,
-                                 "Iterator must have member typedef iterator_category");
-            ASSERT_ENABLE_STATIC(_valid_iterator_category_typedef<T>::value,
-                                 "Iterator iterator_category type must be one of the following: std::output_iterator_tag, "
-                                 "std::input_iterator_tag, std::forward_iterator_tag, std::bidirectional_iterator_tag, std::random_access_iterator_tag");
-            ASSERT_ENABLE_STATIC(has_value_type_typedef<T>::value,
-                                 "Iterator must have member typedef value_type");
-            ASSERT_ENABLE_STATIC(has_reference_typedef<T>::value,
-                                 "Iterator must have member typedef reference");
-            ASSERT_ENABLE_STATIC(has_pointer_typedef<T>::value,
-                                 "Iterator must have member typedef pointer");
-            ASSERT_ENABLE_STATIC(has_difference_type_typedef<T>::value,
-                                 "Iterator must have member typedef difference_type");
+            bool result = _iterator_has_typedefs<T, throw_error>::value;
 
             ASSERT_ENABLE_STATIC(std::is_copy_constructible<T>::value,
                                  "Iterator must be copy-constructible");
@@ -1039,6 +1073,91 @@ public:
         static constexpr bool value = false;
     };
 
+
+    template<bool throw_error, typename VD, typename VA, typename RD, typename RA, typename PD, typename PA, typename DD, typename DA>
+    struct _check_typedefs_is_desired
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(is_one_of_listed_v<VD, iterator::AnyType, VA>,
+                                 "Iterator value_type didn't match requested type");
+            ASSERT_ENABLE_STATIC(is_one_of_listed_v<RD, iterator::AnyType, RA>,
+                                 "Iterator reference type didn't match requested type");
+            ASSERT_ENABLE_STATIC(is_one_of_listed_v<PD, iterator::AnyType, PA>,
+                                 "Iterator pointer type didn't match requested type");
+            ASSERT_ENABLE_STATIC(is_one_of_listed_v<DD, iterator::AnyType, DA>,
+                                 "Iterator difference_type didn't match requested type");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
+    };
+
+
+    template<bool enable, typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_pointer_has_desired_typedefs;
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_pointer_has_desired_typedefs<true, T, throw_error, V, R, P, D>
+    {
+    private:
+        typedef std::remove_pointer_t<T> PointerValueType;
+
+    public:
+        static constexpr bool value = _check_typedefs_is_desired<throw_error,
+            V, std::conditional_t<cpp_std_version >= 20, std::remove_cv_t<PointerValueType>, PointerValueType>,
+            R, std::add_lvalue_reference_t<PointerValueType>,
+            P, T,
+            D, std::ptrdiff_t>::value;
+    };
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_pointer_has_desired_typedefs<false, T, throw_error, V, R, P, D>
+    {
+        static constexpr bool value = false;
+    };
+
+
+    template<bool enable, typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_typedefs_are_desired;
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_typedefs_are_desired<true, T, throw_error, V, R, P, D>
+    {
+        static constexpr bool value = _check_typedefs_is_desired<throw_error,
+            V, typename T::value_type,
+            R, typename T::reference,
+            P, typename T::pointer,
+            D, typename T::difference_type>::value;
+    };
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_typedefs_are_desired<false, T, throw_error, V, R, P, D>
+    {
+        static constexpr bool value = false;
+    };
+
+    template<bool enable, typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_has_desired_typedefs;
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_has_desired_typedefs<true, T, throw_error, V, R, P, D>
+    {
+        static constexpr bool value =
+                _check_iterator_typedefs_are_desired<_iterator_has_typedefs<T, throw_error>::value, T, throw_error, V, R, P, D>::value;
+    };
+
+    template<typename T, bool throw_error, typename V, typename R, typename P, typename D>
+    struct _check_iterator_has_desired_typedefs<false, T, throw_error, V, R, P, D>
+    {
+        static constexpr bool value = false;
+    };
+
 }
 
 template<typename IT, bool throw_error>
@@ -1070,7 +1189,7 @@ struct is_valid_stl_forward_iterator
 };
 
 template<typename IT, bool throw_error>
-struct is_valid_stl_bidirectonal_iterator
+struct is_valid_stl_bidirectional_iterator
 {
     static constexpr bool value = _check_is_pointer_iterator<std::is_pointer<IT>::value, IT, throw_error>::value ||
         _check_is_bidirectional_iterator<!std::is_pointer<IT>::value, IT, throw_error>::value;
@@ -1081,4 +1200,14 @@ struct is_valid_stl_random_access_iterator
 {
     static constexpr bool value = _check_is_pointer_iterator<std::is_pointer<IT>::value, IT, throw_error>::value ||
         _check_is_random_access_iterator<!std::is_pointer<IT>::value, IT, throw_error>::value;
+};
+
+template<typename IT, typename DesiredValueType, typename DesiredReferenceType,
+         typename DesiredPointerType, typename DesiredDifferenceType, bool throw_error>
+struct has_desired_iterator_typedefs
+{
+    static constexpr bool value = _check_pointer_has_desired_typedefs<
+            std::is_pointer<IT>::value, IT, throw_error, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType>::value ||
+        _check_iterator_has_desired_typedefs<
+            std::is_pointer<IT>::value, IT, throw_error, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType>::value;
 };
