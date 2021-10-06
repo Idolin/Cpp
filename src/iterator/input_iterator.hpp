@@ -1,13 +1,62 @@
 #pragma once
 
 #include "./iterator_impl.hpp"
+#include "./iterator_check.hpp"
+#include "../template/type_tags.hpp"
 
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 #include <utility>
 
-namespace iterator_impl_def {
+
+namespace iterator_impl_def
+{
+
+    namespace
+    {
+
+        template<bool enable, typename T>
+        struct _GetWrappedTypeIf
+        {
+            typedef T type;
+
+            // adds const to T type if it's not an rvalue_reference(&&) (T& -> const T&, T -> const T, T&& -> T&&)
+            typedef std::conditional_t<std::is_rvalue_reference<T>::value,
+                T,
+                add_const_ignore_reference_t<T>> const_ref_type;
+
+            // adds const to T* type (T* -> const T*)
+            typedef add_const_ignore_reference_and_pointer_t<T> const_ptr_type;
+        };
+
+        template<typename T>
+        struct _GetWrappedTypeIf<true, T>
+        {
+            typedef typename T::type type;
+            typedef typename T::type const_ref_type;
+            typedef typename T::type const_ptr_type;
+        };
+
+        struct _TypeWrapperDefaultTag
+        {};
+
+        template<typename T>
+        struct _TypeWrapperDefault: _TypeWrapperDefaultTag
+        {
+            typedef T type;
+        };
+
+        template<typename T>
+        using _wrapped_type_t = typename _GetWrappedTypeIf<std::is_base_of<_TypeWrapperDefaultTag, T>::value, T>::type;
+
+        template<typename T>
+        using _wrapped_const_ref_type_t = typename _GetWrappedTypeIf<std::is_base_of<_TypeWrapperDefaultTag, T>::value, T>::const_ref_type;
+
+        template<typename T>
+        using _wrapped_const_ptr_type_t = typename _GetWrappedTypeIf<std::is_base_of<_TypeWrapperDefaultTag, T>::value, T>::const_ref_type;
+
+    }
 
     template<class Impl, typename value_type_t,
              typename reference_t,
@@ -46,6 +95,8 @@ namespace iterator_impl_def {
         typedef pointer_t pointer;
         typedef difference_t difference_type;
 
+        static_assert(has_dereference_operator_v<Impl>,
+            "Iterator must be dereferencable");
         static_assert(std::is_integral<difference_type>::value,
             "Iterator difference_type better to be integral in order to provide type for algortihms like std::distance");
         static_assert(std::is_signed<difference_type>::value,
@@ -76,20 +127,35 @@ namespace iterator_impl_def {
         }
     };
 
+    template<class Impl, typename value_type_t,
+             typename reference_t,
+             typename pointer_t,
+             typename difference_t>
+    struct _input_iterator_: _input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
+            _input_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>
+    {
+        // forward constructor
+        template<typename... Types>
+        _input_iterator_(Types&&... values):
+            _input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
+                _input_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>(std::forward<Types>(values)...)
+        {}
+    };
+
 }
 
-template<class Impl, typename value_type_t = typename iterator_impl_def::get_def_value_t<Impl>,
-         typename reference_t = typename iterator_impl_def::get_def_const_reference_t<Impl>,
-         typename pointer_t = typename iterator_impl_def::get_def_const_pointer_t<Impl>,
-         typename differnce_t = std::ptrdiff_t>
-struct input_iterator: iterator_impl_def::_input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, differnce_t,
-        input_iterator<Impl, value_type_t, reference_t, pointer_t>>
-{
-    // forward constructor
-    template<typename... Types>
-    input_iterator(Types&&... values):
-        iterator_impl_def::_input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, differnce_t,
-            input_iterator<Impl, value_type_t, reference_t, pointer_t>>(std::forward<Types>(values)...)
-    {}
-};
+template<class Impl, typename value_type_t = iterator_impl_def::get_def_value_t<Impl>,
+         // _TypeWrapperDefault used mainly to check whether type was explicitly stated or not
+         typename reference_t = iterator_impl_def::_TypeWrapperDefault<iterator_impl_def::get_def_reference_t<Impl>>,
+         typename pointer_t = iterator_impl_def::_TypeWrapperDefault<iterator_impl_def::get_def_pointer_t<Impl>>,
+         typename difference_t = iterator_impl_def::get_def_difference_t<Impl>>
+using input_iterator = std::conditional_t<is_valid_stl_input_iterator_v<Impl> && // if Impl is already input pointer
+    // with typedefs matching given typenames,
+    has_desired_iterator_typedefs_v<Impl, value_type_t, iterator_impl_def::_wrapped_type_t<reference_t>,
+        iterator_impl_def::_wrapped_type_t<pointer_t>, difference_t>,
+    // then no need to wrap it, just return Impl itself,
+    Impl,
+    // otherwise return input iterator adapter class (reference and pointer referred types will be const by default (const T& and const T*))
+    iterator_impl_def::_input_iterator_<Impl, value_type_t, iterator_impl_def::_wrapped_const_ref_type_t<reference_t>,
+        iterator_impl_def::_wrapped_const_ptr_type_t<pointer_t>, difference_t>>;
 

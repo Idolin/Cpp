@@ -8,9 +8,11 @@
 #include <type_traits>
 #include <utility>
 
-namespace iterator_impl_def {
+namespace iterator_impl_def
+{
 
-    template<class Impl, typename value_type_t,
+    template<class Impl,
+             typename value_type_t,
              typename reference_t,
              typename pointer_t,
              typename difference_t,
@@ -143,19 +145,33 @@ namespace iterator_impl_def {
         return it + value; // return It + different_type
     }
 
+
+    template<class Impl,
+             typename value_type_t,
+             typename reference_t,
+             typename pointer_t,
+             typename difference_t>
+    struct _random_access_iterator_: _random_access_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
+            _random_access_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>
+    {
+        // forward constructor
+        template<typename... Types>
+        _random_access_iterator_(Types&&... values):
+            _random_access_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
+                _random_access_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>(std::forward<Types>(values)...)
+        {}
+    };
+
 }
 
-template<class Impl, typename value_type_t = typename iterator_impl_def::get_def_value_t<Impl>,
-         typename reference_t = typename iterator_impl_def::get_def_reference_t<Impl>,
-         typename pointer_t = typename iterator_impl_def::get_def_pointer_t<Impl>,
-         typename difference_t = typename iterator_impl_def::get_def_difference_t<Impl, true>>
-struct random_access_iterator: iterator_impl_def::_random_access_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
-        random_access_iterator<Impl, value_type_t, reference_t, pointer_t, difference_t>>
-{
-    // forward constructor
-    template<typename... Types>
-    random_access_iterator(Types&&... values):
-        iterator_impl_def::_random_access_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
-            random_access_iterator<Impl, value_type_t, reference_t, pointer_t, difference_t>>(std::forward<Types>(values)...)
-    {}
-};
+template<class Impl, typename value_type_t = iterator_impl_def::get_def_value_t<Impl>,
+         typename reference_t = iterator_impl_def::get_def_reference_t<Impl>,
+         typename pointer_t = iterator_impl_def::get_def_pointer_t<Impl>,
+         typename difference_t = iterator_impl_def::get_def_difference_t<Impl, true>>
+using random_access_iterator = std::conditional_t<
+    // If Impl is already random access iterator with typedefs matching given typenames,
+    is_valid_stl_random_access_iterator_v<Impl> && has_desired_iterator_typedefs_v<Impl, value_type_t, reference_t, pointer_t, difference_t>,
+    // then no need to wrap it, just return Impl itself,
+    Impl,
+    // otherwise return random access iterator adapter class
+    iterator_impl_def::_random_access_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>;
