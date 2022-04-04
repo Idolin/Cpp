@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../template/t_useful.hpp"
 #include "../template/type_tags.hpp"
 #include "../template/typemethods.hpp"
 #include "../other/common.hpp"
@@ -15,85 +16,178 @@ namespace iterator_impl_def
     {
 
         template<typename It, typename Enable = void>
+        struct ValueTypeOrVoid
+        {
+            typedef void value_type;
+        };
+
+        template<typename It>
+        struct ValueTypeOrVoid<It, std::enable_if_t<has_value_type_typedef_v<It>>>
+        {
+            typedef typename It::value_type value_type;
+            typedef value_type type;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct ReferenceOrVoid
+        {
+            typedef void reference;
+        };
+
+        template<typename It>
+        struct ReferenceOrVoid<It, std::enable_if_t<has_reference_typedef_v<It>>>
+        {
+            typedef typename It::reference reference;
+            typedef reference type;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct PointerOrVoid
+        {
+            typedef void pointer;
+        };
+
+        template<typename It>
+        struct PointerOrVoid<It, std::enable_if_t<has_pointer_typedef_v<It>>>
+        {
+            typedef typename It::pointer pointer;
+            typedef pointer type;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct DifferenceTypeOrVoid
+        {
+            typedef void difference_type;
+        };
+
+        template<typename It>
+        struct DifferenceTypeOrVoid<It, std::enable_if_t<has_difference_type_typedef_v<It>>>
+        {
+            typedef typename It::difference_type difference_type;
+            typedef difference_type type;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct ArrowOperatorReturnTypeOrVoid
+        {
+            typedef void return_type;
+        };
+
+        template<typename It>
+        struct ArrowOperatorReturnTypeOrVoid<It, std::void_t<decltype(std::declval<It>().operator->())>>
+        {
+            typedef decltype(std::declval<It>().operator->()) return_type;
+            typedef return_type type;
+        };
+
+
+        template<typename It, typename Enable = void>
+        struct SubtractionReturnTypeOrVoid
+        {
+            typedef void return_type;
+        };
+
+        template<typename It>
+        struct SubtractionReturnTypeOrVoid<It, std::void_t<decltype(std::declval<It>() - std::declval<It>())>>
+        {
+            typedef decltype(std::declval<It>() - std::declval<It>()) return_type;
+            typedef return_type type;
+        };
+
+
+
+        template<typename It>
         struct get_def_value
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
-            typedef std::remove_const_t<std::remove_reference_t<decltype(*std::declval<It>())>> type;
-        };
-
-        template<typename It>
-        struct get_def_value<It, std::enable_if_t<has_value_type_typedef_v<It>>>
-        {
-            typedef typename It::value_type type;
+            typedef typename FirstType<ValueTypeOrVoid<It>,
+                ReturnType<std::remove_const_t<std::remove_reference_t<decltype(*std::declval<It>())>>>>::type type;
         };
 
 
-        template<typename It, typename Enable = void>
+        template<typename It, typename V, bool is_input_iterator = false>
         struct get_def_reference
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
-
-            typedef decltype(*std::declval<It>()) type;
+            
+            typedef typename FirstType<
+                FirstTypeIf<!is_wrapped_v<V>,
+                    FirstTypeIf<is_input_iterator,
+                        TypeIf<has_value_type_typedef_v<It> && has_reference_typedef_v<It> &&
+                            !std::is_same<std::remove_cv_t<typename ReferenceOrVoid<It>::reference>,
+                                std::add_lvalue_reference_t<typename ValueTypeOrVoid<It>::value_type>>::value,
+                            typename ReferenceOrVoid<It>::reference>,
+                        ReturnType<std::add_lvalue_reference_t<std::add_const_t<V>>>>,
+                    TypeIf<has_reference_typedef_v<It> && std::is_lvalue_reference<typename ReferenceOrVoid<It>::reference>::value &&
+                        is_const_ignore_reference_v<typename ReferenceOrVoid<It>::reference>, std::add_lvalue_reference_t<std::add_const_t<V>>>,
+                    TypeIf<is_const_ignore_reference_v<decltype(*std::declval<It>())>, std::add_lvalue_reference_t<std::add_const_t<V>>>,
+                    ReturnType<std::add_lvalue_reference_t<V>>>,
+                ReferenceOrVoid<It>,
+                TypeIf<is_input_iterator, add_const_ignore_reference_t<decltype(*std::declval<It>())>>,
+                ReturnType<decltype(*std::declval<It>())>>::type type;
         };
 
-        template<typename It>
-        struct get_def_reference<It, std::enable_if_t<has_reference_typedef_v<It>>>
-        {
-            typedef typename It::reference type;
-        };
 
-
-        template<typename It, typename Enable = void>
+        template<typename It, typename V, typename R, bool is_input_iterator = false>
         struct get_def_pointer
         {
             static_assert(has_dereference_operator_v<It>, "Iterator must be dereferencable");
 
-            typedef std::add_pointer_t<std::remove_reference_t<decltype(*std::declval<It>())>> type;
+            typedef typename FirstType<
+                FirstTypeIf<!is_wrapped_v<R>,
+                    TypeIf<!has_arrow_operator_v<It>, std::add_pointer_t<std::remove_reference_t<R>>>,
+                    TypeIf<is_same_omit_cv_v<std::remove_pointer_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>,
+                            std::remove_reference_t<decltype(*std::declval<It>())>>,
+                        ReturnType<std::add_pointer_t<std::remove_reference_t<decltype(*std::declval<It>())>>>>
+                    >,
+                FirstTypeIf<!is_wrapped_v<V>,
+                    FirstTypeIf<!has_arrow_operator_v<It>,
+                        TypeIf<is_input_iterator, ReturnType<std::add_pointer_t<std::add_const_t<V>>>>,
+                        ReturnType<std::add_pointer_t<V>>>,
+                    FirstTypeIf<has_value_type_typedef_v<It> &&
+                            std::is_same<std::remove_cv_t<std::remove_pointer_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>,
+                                typename ValueTypeOrVoid<It>::value_type>::value,
+                        FirstTypeIf<std::is_volatile<std::remove_pointer_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>::value,
+                            TypeIf<is_input_iterator, std::add_pointer_t<std::add_cv_t<typename ValueTypeOrVoid<It>::value_type>>>,
+                            TypeIf<std::is_const<std::remove_pointer_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>::value,
+                                std::add_pointer_t<std::add_cv_t<typename ValueTypeOrVoid<It>::value_type>>>,
+                            ReturnType<std::add_pointer_t<std::add_volatile_t<typename ValueTypeOrVoid<It>::value_type>>>>,
+                        TypeIf<std::is_const<std::remove_pointer_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>::value,
+                            std::add_pointer_t<std::add_const_t<typename ValueTypeOrVoid<It>::value_type>>>,
+                        ReturnType<std::add_pointer_t<typename ValueTypeOrVoid<It>::value_type>>>,
+                    ReturnType<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>,
+                PointerOrVoid<It>,
+                FirstTypeIf<has_arrow_operator_v<It>,
+                    TypeIf<is_input_iterator, add_const_ignore_reference_t<typename ArrowOperatorReturnTypeOrVoid<It>::return_type>>,
+                    ArrowOperatorReturnTypeOrVoid<It>>,
+                ReturnType<std::add_pointer_t<get_wrapped_t<R>>>>::type type;
         };
 
-        template<typename It>
-        struct get_def_pointer<It, std::enable_if_t<!has_pointer_typedef_v<It> && has_arrow_operator_v<It>>>
-        {
-            typedef decltype(std::declval<It>().operator->()) type;
-        };
-
-        template<typename It>
-        struct get_def_pointer<It, std::enable_if_t<has_pointer_typedef_v<It>>>
-        {
-            typedef typename It::pointer type;
-        };
-
-
-        template<typename It, bool is_random_access_iterator = false, typename Enable = void>
+        template<typename It, bool is_random_access_iterator = false>
         struct get_def_difference
         {
-            typedef std::ptrdiff_t type;
-        };
-
-        template<typename It, bool is_random_access_iterator>
-        struct get_def_difference<It, is_random_access_iterator,
-                std::enable_if_t<!has_difference_type_typedef_v<It> && has_subtraction_operator_v<It>>>
-        {
         private:
-            static constexpr bool f = !is_random_access_iterator || is_subtractable_v<const It>;
-            static_assert(f,
+            static constexpr bool f = is_subtractable_v<const It>;
+            static_assert(!is_random_access_iterator || f,
                 "Random access iterator It: this subtract expression must be valid: const It - const It");
-            static constexpr bool f2 = std::is_integral<decltype(std::declval<It>() - std::declval<It>())>::value;
-            static_assert(!f || f2,
+            static constexpr bool f2 = std::is_integral<typename SubtractionReturnTypeOrVoid<It>::return_type>::value;
+            static_assert(!is_random_access_iterator || !f || f2,
                 "Iterator subtraction must return integral type");
-            static_assert(!f || !f2 || std::is_same<decltype(std::declval<const It>() - std::declval<const It>()),
-                decltype(std::declval<It>() - std::declval<It>())>::value,
+            static_assert(!is_random_access_iterator || !f || !f2 || std::is_same<typename SubtractionReturnTypeOrVoid<const It>::return_type,
+                    typename SubtractionReturnTypeOrVoid<It>::return_type>::value,
                 "Iterator subtraction must return same type as const iterator subtraction");
 
         public:
-            typedef decltype(std::declval<It>() - std::declval<It>()) type;
-        };
-
-        template<typename It, bool is_random_access_iterator>
-        struct get_def_difference<It, is_random_access_iterator, std::enable_if_t<has_difference_type_typedef_v<It>>>
-        {
-            typedef typename It::difference_type type;
+            typedef typename FirstType<
+                DifferenceTypeOrVoid<It>,
+                TypeIf<has_subtraction_operator_v<const It&> && std::is_integral<typename SubtractionReturnTypeOrVoid<const It&>::return_type>::value,
+                    typename SubtractionReturnTypeOrVoid<It>::return_type>,
+                ReturnType<std::ptrdiff_t>>::type type;
         };
 
 
@@ -202,11 +296,11 @@ namespace iterator_impl_def
     template<typename It>
     using get_def_value_t = typename get_def_value<It>::type;
 
-    template<typename It>
-    using get_def_reference_t = typename get_def_reference<It>::type;
+    template<typename It, typename V, bool is_input_iterator = false>
+    using get_def_reference_t = typename get_def_reference<It, V, is_input_iterator>::type;
 
-    template<typename It>
-    using get_def_pointer_t = typename get_def_pointer<It>::type;
+    template<typename It, typename V, typename R, bool is_input_iterator = false>
+    using get_def_pointer_t = typename get_def_pointer<It, V, R, is_input_iterator>::type;
 
     template<typename It, bool is_random_access_iterator = false>
     using get_def_difference_t = typename get_def_difference<It, is_random_access_iterator>::type;

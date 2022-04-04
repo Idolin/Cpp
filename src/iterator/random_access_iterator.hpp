@@ -165,8 +165,8 @@ namespace iterator_impl_def
 }
 
 template<class Impl, typename value_type_t = iterator_impl_def::get_def_value_t<Impl>,
-         typename reference_t = iterator_impl_def::get_def_reference_t<Impl>,
-         typename pointer_t = iterator_impl_def::get_def_pointer_t<Impl>,
+         typename reference_t = iterator_impl_def::get_def_reference_t<Impl, value_type_t>,
+         typename pointer_t = iterator_impl_def::get_def_pointer_t<Impl, value_type_t, reference_t>,
          typename difference_t = iterator_impl_def::get_def_difference_t<Impl, true>>
 using random_access_iterator = std::conditional_t<
     // If Impl is already random access iterator with typedefs matching given typenames,

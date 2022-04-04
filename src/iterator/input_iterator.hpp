@@ -144,18 +144,16 @@ namespace iterator_impl_def
 
 }
 
-template<class Impl, typename value_type_t = iterator_impl_def::get_def_value_t<Impl>,
+template<class Impl, typename value_type_t = DefaultTypeWrapper<iterator_impl_def::get_def_value_t<Impl>>,
          // _TypeWrapperDefault used mainly to check whether type was explicitly stated or not
-         typename reference_t = iterator_impl_def::_TypeWrapperDefault<iterator_impl_def::get_def_reference_t<Impl>>,
-         typename pointer_t = iterator_impl_def::_TypeWrapperDefault<iterator_impl_def::get_def_pointer_t<Impl>>,
+         typename reference_t = DefaultTypeWrapper<iterator_impl_def::get_def_reference_t<Impl, value_type_t, true>>,
+         typename pointer_t = iterator_impl_def::get_def_pointer_t<Impl, value_type_t, reference_t, true>,
          typename difference_t = iterator_impl_def::get_def_difference_t<Impl>>
 using input_iterator = std::conditional_t<is_valid_stl_input_iterator_v<Impl> && // if Impl is already input pointer
     // with typedefs matching given typenames,
-    has_desired_iterator_typedefs_v<Impl, value_type_t, iterator_impl_def::_wrapped_type_t<reference_t>,
-        iterator_impl_def::_wrapped_type_t<pointer_t>, difference_t>,
+    has_desired_iterator_typedefs_v<Impl, get_wrapped_t<value_type_t>, get_wrapped_t<reference_t>, pointer_t, difference_t>,
     // then no need to wrap it, just return Impl itself,
     Impl,
-    // otherwise return input iterator adapter class (reference and pointer referred types will be const by default (const T& and const T*))
-    iterator_impl_def::_input_iterator_<Impl, value_type_t, iterator_impl_def::_wrapped_const_ref_type_t<reference_t>,
-        iterator_impl_def::_wrapped_const_ptr_type_t<pointer_t>, difference_t>>;
+    // otherwise return input iterator adapter class
+    iterator_impl_def::_input_iterator_<Impl, get_wrapped_t<value_type_t>, get_wrapped_t<reference_t>, pointer_t, difference_t>>;
 
