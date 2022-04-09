@@ -41,6 +41,12 @@ struct is_valid_stl_bidirectional_iterator;
 template<typename IT, bool throw_error = false>
 struct is_valid_stl_random_access_iterator;
 
+template<typename IT, bool throw_error = false>
+struct is_valid_stl_const_iterator;
+
+template<typename IT, bool throw_error = false>
+struct is_valid_stl_mutable_iterator;
+
 template<typename IT, typename DesiredValueType = iterator::AnyType, typename DesiredReferenceType = iterator::AnyType,
          typename DesiredPointerType = iterator::AnyType, typename DesiredDifferenceType = iterator::AnyType, bool throw_error = false>
 struct has_desired_iterator_typedefs;
@@ -62,6 +68,12 @@ constexpr bool is_valid_stl_bidirectional_iterator_v = is_valid_stl_bidirectiona
 
 template<typename IT, bool throw_error = false>
 constexpr bool is_valid_stl_random_access_iterator_v = is_valid_stl_random_access_iterator<IT, throw_error>::value;
+
+template<typename IT, bool throw_error = false>
+constexpr bool is_valid_stl_const_iterator_v = is_valid_stl_const_iterator<IT, throw_error>::value;
+
+template<typename IT, bool throw_error = false>
+constexpr bool is_valid_stl_mutable_iterator_v = is_valid_stl_mutable_iterator<IT, throw_error>::value;
 
 template<typename IT, typename DesiredValueType = iterator::AnyType, typename DesiredReferenceType = iterator::AnyType,
          typename DesiredPointerType = iterator::AnyType, typename DesiredDifferenceType = iterator::AnyType, bool throw_error = false>
@@ -782,7 +794,7 @@ public:
             bool result = true;
 
             ASSERT_ENABLE_STATIC(!std::is_const<typename std::remove_pointer<T>::type>::value,
-                                 "Pointer to const data is not a valid output iterator");
+                                 "Pointer to const type is not a valid output iterator");
 
             return result;
         }
@@ -813,6 +825,7 @@ public:
         static constexpr bool value = false;
     };
 
+
     template<bool enable, typename T, bool throw_error>
     struct _check_is_pointer_output_iterator;
 
@@ -824,6 +837,62 @@ public:
 
     template<typename T, bool throw_error>
     struct _check_is_pointer_output_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+
+    template<bool enable, typename T, bool throw_error>
+    struct _check_is_const_pointer_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_is_const_pointer_iterator<true, T, throw_error>
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(std::is_const<typename std::remove_pointer<T>::type>::value,
+                                 "Expected const iterator, but pointer to non-const type is a mutable iterator");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_is_const_pointer_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+
+    template<bool enable, typename T, bool throw_error>
+    struct _check_is_mutable_pointer_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_is_mutable_pointer_iterator<true, T, throw_error>
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(!std::is_const<typename std::remove_pointer<T>::type>::value,
+                                 "Expected mutable iterator, but pointer to const type is a const iterator");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_is_mutable_pointer_iterator<false, T, throw_error>
     {
         static constexpr bool value = false;
     };
@@ -1074,6 +1143,104 @@ public:
     };
 
 
+    template<bool enable, typename T, bool throw_error>
+    struct _check_const_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_const_iterator<true, T, throw_error>
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::output_iterator_tag>::value,
+                                 "Output iterator cannot be a const iterator");
+            ASSERT_ENABLE_STATIC(is_const_ignore_reference_v<typename T::reference>,
+                                 "Expected const iterator, so iterator reference type must be a reference to const");
+            ASSERT_ENABLE_STATIC(is_const_ignore_pointer_v<typename T::pointer>,
+                                 "Expected const iterator, so iterator pointer type should be a pointer to const");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_const_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+    template<bool enable, typename T, bool throw_error>
+    struct _check_is_const_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_is_const_iterator<true, T, throw_error>
+    {
+        static constexpr bool value = _check_const_iterator<
+                !std::is_same<typename T::iterator_category, std::input_iterator_tag>::value, T, throw_error>::value ||
+            std::is_same<typename T::iterator_category, std::input_iterator_tag>::value;
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_is_const_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+
+    template<bool enable, typename T, bool throw_error>
+    struct _check_mutable_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_mutable_iterator<true, T, throw_error>
+    {
+    private:
+        static constexpr bool _value()
+        {
+            bool result = true;
+
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::input_iterator_tag>::value,
+                                 "Input iterator cannot be a mutable iterator");
+            ASSERT_ENABLE_STATIC(!is_const_ignore_reference_v<typename T::reference>,
+                                 "Expected mutable iterator, so iterator reference type must be a reference to non-const");
+            ASSERT_ENABLE_STATIC(!is_const_ignore_pointer_v<typename T::pointer>,
+                                 "Expected mutable iterator, so iterator pointer type should be a pointer to non-const");
+
+            return result;
+        }
+
+    public:
+        static constexpr bool value = _value();
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_mutable_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+    template<bool enable, typename T, bool throw_error>
+    struct _check_is_mutable_iterator;
+
+    template<typename T, bool throw_error>
+    struct _check_is_mutable_iterator<true, T, throw_error>
+    {
+        static constexpr bool value = _check_const_iterator<
+                !std::is_same<typename T::iterator_category, std::output_iterator_tag>::value, T, throw_error>::value ||
+            std::is_same<typename T::iterator_category, std::output_iterator_tag>::value;
+    };
+
+    template<typename T, bool throw_error>
+    struct _check_is_mutable_iterator<false, T, throw_error>
+    {
+        static constexpr bool value = false;
+    };
+
+
     template<bool throw_error, typename VD, typename VA, typename RD, typename RA, typename PD, typename PA, typename DD, typename DA>
     struct _check_typedefs_is_desired
     {
@@ -1202,6 +1369,28 @@ struct is_valid_stl_random_access_iterator
         _check_is_random_access_iterator<!std::is_pointer<IT>::value, IT, throw_error>::value;
 };
 
+template<typename IT, bool throw_error>
+struct is_valid_stl_const_iterator
+{
+private:
+    static constexpr bool is_valid_iterator = is_valid_stl_iterator_v<IT, throw_error>;
+
+public:
+    static constexpr bool value = _check_is_const_pointer_iterator<is_valid_iterator && std::is_pointer<IT>::value, IT, throw_error>::value ||
+        _check_is_const_iterator<is_valid_iterator && !std::is_pointer<IT>::value, IT, throw_error>::value;
+};
+
+template<typename IT, bool throw_error>
+struct is_valid_stl_mutable_iterator
+{
+private:
+    static constexpr bool is_valid_iterator = is_valid_stl_iterator_v<IT, throw_error>;
+
+public:
+    static constexpr bool value = _check_is_mutable_pointer_iterator<is_valid_iterator && std::is_pointer<IT>::value, IT, throw_error>::value ||
+        _check_is_mutable_iterator<is_valid_iterator && !std::is_pointer<IT>::value, IT, throw_error>::value;
+};
+
 template<typename IT, typename DesiredValueType, typename DesiredReferenceType,
          typename DesiredPointerType, typename DesiredDifferenceType, bool throw_error>
 struct has_desired_iterator_typedefs
@@ -1209,5 +1398,5 @@ struct has_desired_iterator_typedefs
     static constexpr bool value = _check_pointer_has_desired_typedefs<
             std::is_pointer<IT>::value, IT, throw_error, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType>::value ||
         _check_iterator_has_desired_typedefs<
-            std::is_pointer<IT>::value, IT, throw_error, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType>::value;
+            !std::is_pointer<IT>::value, IT, throw_error, DesiredValueType, DesiredReferenceType, DesiredPointerType, DesiredDifferenceType>::value;
 };
