@@ -127,25 +127,48 @@ namespace iterator_impl_def
         }
     };
 
-    template<class Impl, typename value_type_t,
+    /*
+     * Using additional wrapper to avoid using _input_iterator_adapter<...> instead of iterator_t in
+     *  _input_iterator_adapter inheritance seq
+     */
+    template<typename Impl, typename value_type_t,
              typename reference_t,
              typename pointer_t,
              typename difference_t>
-    struct _input_iterator_: _input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
-            _input_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>
+    struct _input_iterator: _input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
+            _input_iterator<Impl, value_type_t, reference_t, pointer_t, difference_t>>
     {
         // forward constructor
         template<typename... Types>
-        _input_iterator_(Types&&... values):
+        _input_iterator(Types&&... values):
             _input_iterator_adapter<Impl, value_type_t, reference_t, pointer_t, difference_t,
-                _input_iterator_<Impl, value_type_t, reference_t, pointer_t, difference_t>>(std::forward<Types>(values)...)
+                _input_iterator<Impl, value_type_t, reference_t, pointer_t, difference_t>>(std::forward<Types>(values)...)
         {}
     };
+
+    namespace
+    {
+
+        template<typename Impl, typename value_type_t, typename reference_t,
+                 typename pointer_t, typename difference_t, bool enable>
+        struct InputIteratorAdapterType
+        {
+            typedef Impl type;
+        };
+
+        template<typename Impl, typename value_type_t, typename reference_t,
+                 typename pointer_t, typename difference_t>
+        struct InputIteratorAdapterType<Impl, value_type_t, reference_t, pointer_t, difference_t, false>
+        {
+            typedef _input_iterator<Impl, get_wrapped_t<value_type_t>, get_wrapped_t<reference_t>, pointer_t, difference_t> type;
+        };
+
+    }
 
 }
 
 template<class Impl, typename value_type_t = DefaultTypeWrapper<iterator_impl_def::get_def_value_t<Impl>>,
-         // _TypeWrapperDefault used mainly to check whether type was explicitly stated or not
+         // DefaultTypeWrapper used to check whether type was explicitly stated or not
          typename reference_t = DefaultTypeWrapper<iterator_impl_def::get_def_reference_t<Impl, value_type_t, true>>,
          typename pointer_t = iterator_impl_def::get_def_pointer_t<Impl, value_type_t, reference_t, true>,
          typename difference_t = iterator_impl_def::get_def_difference_t<Impl>>
@@ -155,5 +178,5 @@ using input_iterator = std::conditional_t<is_valid_stl_input_iterator_v<Impl> &&
     // then no need to wrap it, just return Impl itself,
     Impl,
     // otherwise return input iterator adapter class
-    iterator_impl_def::_input_iterator_<Impl, get_wrapped_t<value_type_t>, get_wrapped_t<reference_t>, pointer_t, difference_t>>;
+    iterator_impl_def::_input_iterator<Impl, get_wrapped_t<value_type_t>, get_wrapped_t<reference_t>, pointer_t, difference_t>>;
 
