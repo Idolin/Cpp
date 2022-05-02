@@ -202,6 +202,32 @@ TEST_PACK(iterator)
             }
         };
 
+        template<typename T>
+        struct TemplateIndexIteratorWithFunction
+        {
+            T index = 0;
+
+            const T& operator*() const
+            {
+                return index;
+            }
+
+            T getIndex() const
+            {
+                return index;
+            }
+
+            void setIndex(T new_index)
+            {
+                index = new_index;
+            }
+
+            int foo(int p) const
+            {
+                return (index + p) % 42;
+            }
+        };
+
     }
 
     TEST(iterator_checks_empty)
@@ -495,5 +521,43 @@ TEST_PACK(iterator)
         EXPECT_EQ(*it_m, 4);
         EXPECT_NE(it_m, it_m_copy);
         EXPECT_EQ(it_m, ++(++it_m_copy));
+    }
+
+    TEST(random_access_iterator)
+    {
+        using TemplateRandomAccessIterator = random_access_iterator<TemplateIndexIteratorWithFunction<short>>;
+
+        TemplateRandomAccessIterator it_a{};
+        EXPECT_EQ(*it_a, 0);
+        EXPECT_EQ(*it_a++, 0);
+        EXPECT_EQ(*++it_a, 2);
+        EXPECT_EQ(it_a[7], 9);
+        EXPECT_EQ(*(it_a -= -3), 5);
+        EXPECT_EQ(*(it_a += -1), 4);
+        it_a -= 2;
+
+        TemplateRandomAccessIterator it_b = it_a;
+        EXPECT_EQ(*it_b, 2);
+        EXPECT_EQ(*(it_a + 9), 11);
+        it_b += 4;
+        EXPECT_EQ(it_b - it_a, 4);
+        EXPECT_TRUE(it_b >= it_a);
+        EXPECT_FALSE(it_b == it_a);
+        EXPECT_TRUE(it_b > it_a);
+        EXPECT_FALSE(it_a >= it_b);
+        EXPECT_TRUE(it_a != it_b);
+        EXPECT_EQ(it_b + -4, it_a);
+
+        EXPECT_EQ(it_a.foo(41), 1);
+        EXPECT_EQ(it_b.foo(41), 5);
+
+        it_a = it_b;
+        EXPECT_EQ(it_a + 1, ++it_b);
+        EXPECT_TRUE(it_a < it_b);
+        EXPECT_TRUE(it_a <= it_b);
+        EXPECT_FALSE(it_a++ >= it_b);
+        EXPECT_FALSE(it_a < it_b);
+        EXPECT_TRUE(it_a <= it_b);
+        EXPECT_TRUE(it_a >= it_b);
     }
 }
