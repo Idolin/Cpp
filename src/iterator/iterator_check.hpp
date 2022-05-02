@@ -219,9 +219,9 @@ namespace
             return result;
         }
 
-public:
-    static constexpr bool value = _value();
-};
+    public:
+        static constexpr bool value = _value();
+    };
 
     template<bool enable, typename T, bool throw_error>
     struct _is_output_iterator_types_check;
@@ -271,6 +271,9 @@ public:
 
             ASSERT_ENABLE_STATIC(std::is_class<T>::value,
                                  "Output iterator must be pointer or class type"); // pointers checked separately
+
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::input_iterator_tag>::value,
+                                 "Output iterator can't have input_iterator_tag as it's iterator_category");
 
             ASSERT_ENABLE_STATIC(has_dereference_operator_v<T>,
                                  "Output iterator must be dereferencable (operator*())");
@@ -387,6 +390,8 @@ public:
         {
             bool result = true;
 
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::output_iterator_tag>::value,
+                                 "Input iterator can't have output_iterator_tag as it's iterator_category");
             ASSERT_ENABLE_STATIC(!std::is_same<typename T::value_type, void>::value,
                                  "Input iterator value_type can't be void");
             ASSERT_ENABLE_STATIC(!std::is_same<typename T::reference, void>::value,
@@ -492,6 +497,9 @@ public:
         {
             bool result = true;
 
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::input_iterator_tag>::value,
+                                 "Forward iterator can't have input_iterator_tag as it's iterator_category");
+
             ASSERT_ENABLE_STATIC(std::is_default_constructible<T>::value,
                                  "Forward iterator must be default constructible");
 
@@ -581,6 +589,9 @@ public:
         static constexpr bool _value()
         {
             bool result = true;
+
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::forward_iterator_tag>::value,
+                                 "Bidirectional iterator can't have forward_iterator_tag as it's iterator_category");
 
             ASSERT_ENABLE_STATIC(has_pre_decrement_operator_v<T>,
                                  "Bidirectional iterator must be pre-decrementable (operator--())");
@@ -704,6 +715,9 @@ public:
         static constexpr bool _value()
         {
             bool result = true;
+
+            ASSERT_ENABLE_STATIC(!std::is_same<typename T::iterator_category, std::bidirectional_iterator_tag>::value,
+                                 "Random access iterator can't have bidirectional_iterator_tag as it's iterator_category");
 
             ASSERT_ENABLE_STATIC(has_addition_assignment_operator_v<T, D>,
                                  "Random access iterator must have addition assignment operator (operator+=(It::difference_type))");
