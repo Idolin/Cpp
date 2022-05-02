@@ -172,13 +172,14 @@ namespace iterator_impl_def
         struct get_def_difference
         {
         private:
+            static constexpr bool check_subtract = is_random_access_iterator && is_subtractable_v<It>;
             static constexpr bool f = is_subtractable_v<const It>;
-            static_assert(!is_random_access_iterator || f,
+            static_assert(!check_subtract || f,
                 "Random access iterator It: this subtract expression must be valid: const It - const It");
             static constexpr bool f2 = std::is_integral<typename SubtractionReturnTypeOrVoid<It>::return_type>::value;
-            static_assert(!is_random_access_iterator || !f || f2,
+            static_assert(!check_subtract || !f || f2,
                 "Iterator subtraction must return integral type");
-            static_assert(!is_random_access_iterator || !f || !f2 || std::is_same<typename SubtractionReturnTypeOrVoid<const It>::return_type,
+            static_assert(!check_subtract || !f || !f2 || std::is_same<typename SubtractionReturnTypeOrVoid<const It>::return_type,
                     typename SubtractionReturnTypeOrVoid<It>::return_type>::value,
                 "Iterator subtraction must return same type as const iterator subtraction");
 
