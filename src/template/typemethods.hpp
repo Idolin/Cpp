@@ -224,8 +224,7 @@ struct def_get_by
 };
 
 template<typename T>
-struct def_get_by<T, typename std::enable_if<
-        std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_pointer<T>::value>::type>
+struct def_get_by<T, typename std::enable_if<std::is_scalar<T>::value>::type>
 {
     typedef T type;
 };
