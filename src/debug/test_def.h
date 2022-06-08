@@ -68,8 +68,8 @@ namespace test_namespace
 #define GET_TEST_TDEF(i, t_name, ...) \
     typedef typename TSeq::template type_n<i>::type t_name;
 #define SKIP2_1(a, b, ...) a, ## __VA_ARGS__
-#define SKIP_2_1_INC_1(i, a, ...) NEXT(i), a, ## __VA_ARGS__
-#define SKIP_3_1_INC_1(i, a, b, ...) NEXT(i), a, ## __VA_ARGS__
+#define SKIP_2_1_INC_1(i, ...) NEXT_NUM(i), __VA_ARGS__
+#define SKIP_3_1_INC_1(i, a, b, ...) NEXT_NUM(i), a, ## __VA_ARGS__
 
 #define TEST_INTR_CONCAT_(a, b) a ## b
 #define TEST_INTR_CONCAT(a, b) D_INTR_CONCAT_(a, b)
@@ -119,7 +119,7 @@ namespace test_namespace
     struct test_ ## test_name: test_namespace::_test_class_abstract \
     { \
         typedef typename TypeSeqAdapter::TypeSeq TSeq; \
-        MULT_ARG_R_N(CALL_I(GET_ARGS_COUNT, types), TEST_COMPOSE_TYPE_GET, GET_TEST_TDEF, SKIP_2_1_INC_1, 0, CALL_I(SKIP_1 , types)) \
+        EXCLUDE_LAST_L(MULT_ARG_R_N(CALL_I(GET_ARGS_COUNT_L, types), TEST_COMPOSE_TYPE_GET, GET_TEST_TDEF, SKIP_2_1_INC_1, 0, CALL_I(SKIP_1L, types))) \
         \
         test_namespace::_test_class_abstract* outer; \
         \
@@ -165,7 +165,7 @@ namespace test_namespace
         } \
     }; \
     \
-    testouter_ ## test_name<CALL(FREE, CALL_I(GET_FIRST, types))> test_ ## test_name_single_class_ ## test_name; \
+    testouter_ ## test_name<CALL(FREE_L, CALL_I(GET_FIRST, types))> test_ ## test_name_single_class_ ## test_name; \
     \
     template<typename TypeSeqAdapter> \
     void test_ ## test_name <TypeSeqAdapter>::test_body()
@@ -240,31 +240,31 @@ namespace test_namespace
             
 #endif // TESTS_ENABLED
 
-#define EXPECT_TRUE(a, ...) TEST_INTR_EXPECT_TRUE(a, GET_ARG_DEF2_II("%s", "Check(" #a ") failed", ## __VA_ARGS__))
-#define EXPECT_FALSE(a, ...) EXPECT_TRUE(!(a), GET_ARG_DEF2("%s", "Check(!(" #a ")) failed", ## __VA_ARGS__))
-#define EXPECT_LT(a, b, ...) EXPECT_TRUE((a) < (b), GET_ARG_DEF2("%s", "Check((" #a ") < (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_LE(a, b, ...) EXPECT_TRUE((a) <= (b), GET_ARG_DEF2("%s", "Check((" #a ") <= (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_EQ(a, b, ...) EXPECT_TRUE((a) == (b), GET_ARG_DEF2("%s", "Check((" #a ") == (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_GE(a, b, ...) EXPECT_TRUE((a) >= (b), GET_ARG_DEF2("%s", "Check((" #a ") >= (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_GT(a, b, ...) EXPECT_TRUE((a) > (b), GET_ARG_DEF2("%s", "Check((" #a ") > (" #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_NE(a, b, ...) EXPECT_TRUE((a) != (b), GET_ARG_DEF2("%s", "Check((" #a ") != (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_TRUE(a, ...) TEST_INTR_EXPECT_TRUE(a, GET_ARG_DEF2_M("%s", "Check(" #a ") failed", ## __VA_ARGS__))
+#define EXPECT_FALSE(a, ...) TEST_INTR_EXPECT_TRUE(!(a), GET_ARG_DEF2_M("%s", "Check(!(" #a ")) failed", ## __VA_ARGS__))
+#define EXPECT_LT(a, b, ...) TEST_INTR_EXPECT_TRUE((a) < (b), GET_ARG_DEF2_M("%s", "Check((" #a ") < (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_LE(a, b, ...) TEST_INTR_EXPECT_TRUE((a) <= (b), GET_ARG_DEF2_M("%s", "Check((" #a ") <= (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_EQ(a, b, ...) TEST_INTR_EXPECT_TRUE((a) == (b), GET_ARG_DEF2_M("%s", "Check((" #a ") == (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_GE(a, b, ...) TEST_INTR_EXPECT_TRUE((a) >= (b), GET_ARG_DEF2_M("%s", "Check((" #a ") >= (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_GT(a, b, ...) TEST_INTR_EXPECT_TRUE((a) > (b), GET_ARG_DEF2_M("%s", "Check((" #a ") > (" #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_NE(a, b, ...) TEST_INTR_EXPECT_TRUE((a) != (b), GET_ARG_DEF2_M("%s", "Check((" #a ") != (" #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_NEAR(a, b, d, ...) \
     { \
         const auto _debug_var_a = (a); \
         const auto _debug_var_b = (b); \
         const auto _debug_var_d = (d); \
-        EXPECT_TRUE(((_debug_var_a - _debug_var_b) < _debug_var_d) && ((_debug_var_b - _debug_var_a) < _debug_var_d), GET_ARG_DEF2_I("%s", "Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__)); \
+        TEST_INTR_EXPECT_TRUE(((_debug_var_a - _debug_var_b) < _debug_var_d) && ((_debug_var_b - _debug_var_a) < _debug_var_d), GET_ARG_DEF2_M("%s", "Check((" #a ") - (" #b ") < (" #d ")) failed", ## __VA_ARGS__)); \
     }
 #define EXPECT_IN_RANGE(a, l, r, ...) \
     { \
         const auto _debug_var_a = (a); \
         const auto _debug_var_l = (l); \
         const auto _debug_var_r = (r); \
-        EXPECT_TRUE((_debug_var_a >= _debug_var_l) && (_debug_var_a <= _debug_var_r), GET_ARG_DEF2("%s", "Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__)); \
+        TEST_INTR_EXPECT_TRUE((_debug_var_a >= _debug_var_l) && (_debug_var_a <= _debug_var_r), GET_ARG_DEF2_M("%s", "Check((" #a " in [(" #l ")..(" #r ")]) failed", ## __VA_ARGS__)); \
     }
-#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<typeof(a)>::epsilon()), GET_ARG_DEF2("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<float>::epsilon()), GET_ARG_DEF2("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
-#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<double>::epsilon()), GET_ARG_DEF2("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_FLOATING_POINT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<typeof(a)>::epsilon()), GET_ARG_DEF2_M("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_FLOAT_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<float>::epsilon()), GET_ARG_DEF2_M("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
+#define EXPECT_DOUBLE_EQ(a, b, ...) EXPECT_NEAR(a, b, sqrt(std::numeric_limits<double>::epsilon()), GET_ARG_DEF2_M("%s", "Check((" #a " ~ " #b ")) failed", ## __VA_ARGS__))
 #define EXPECT_CSTRING_EQ(a, b, ...) \
     { \
         unsigned long i = 0; \
@@ -273,7 +273,7 @@ namespace test_namespace
                 break; \
             else \
                 i++; \
-        EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF2("%s", "Check strings((" #a ") == (" #b ")) failed", ## __VA_ARGS__)); \
+        TEST_INTR_EXPECT_TRUE(a[i] == b[i], GET_ARG_DEF2_M("%s", "Check strings((" #a ") == (" #b ")) failed", ## __VA_ARGS__)); \
     }
 #define LAST_COMPOSE_EQ(msg, a, b) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")")
 #define COMPOSE_EQ(msg, a, b, ...) EXPECT_EQ(a, b, msg + "(" QUOTE(a) "!=" QUOTE(b) ")"); __VA_ARGS__
@@ -285,27 +285,28 @@ namespace test_namespace
 #define EXPECT_EQ_RA(a, b, len, ...) \
     { \
         for(size_t i = 0;i < (len);i++) \
-            EXPECT_EQ((a)[i], (b)[i], GET_ARG_DEF2("%s", "Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len ")) failed", ## __VA_ARGS__)); \
+            EXPECT_EQ((a)[i], (b)[i], GET_ARG_DEF2_M("%s", "Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len ")) failed", ## __VA_ARGS__)); \
     }
 #define EXPECT_EQ_RA_LEN(a, b, len1, len2, ...) \
     { \
         auto len = (len1); \
         if(len != (len2)) \
-            EXPECT_TRUE(false, GET_ARG_DEF2("%s", "Check((" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
+            TEST_INTR_EXPECT_TRUE(false, GET_ARG_DEF2_M("%s", "Check((" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
         else \
             EXPECT_EQ_RA(a, b, len, GET_ARG_DEF2("%s", "Check((" #a ")[i] == (" #b ")[i], i=0,...,(" #len1 ") == (" #len2 ")) failed", ## __VA_ARGS__)); \
     }
 #define LAST_COMPOSE_EQ_I(i, a, b) TEST_INTR_EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")")
 #define COMPOSE_EQ_I(i, a, b, ...) TEST_INTR_EXPECT_TRUE((a[(i)]) == (b), "Check(equals random access) failed(" QUOTE(a) "[" QUOTE(i) "] != " QUOTE(b) ")"); __VA_ARGS__
-#define EXPECT_EQ_RA_VALS(a, len, ...) \
+//EXPECT_EQ_RA_VALS(rand_access_seq, len, values...)
+#define EXPECT_EQ_RA_VALS(rand_access_seq, ...) \
     { \
-        if((len) != GET_ARGS_COUNT(__VA_ARGS__)) \
+        if((GET_FIRST(__VA_ARGS__)) != PREV_NUM(GET_ARGS_COUNT_L(__VA_ARGS__))) \
         { \
-            EXPECT_TRUE(false, "Check(random access length) failed((" #len ") == " QUOTE(GET_ARGS_COUNT(__VA_ARGS__)) ") failed"); \
+            TEST_INTR_EXPECT_TRUE(false, "Check(random access length) failed((" QUOTE_W(GET_FIRST(__VA_ARGS__)) ") == " QUOTE_W(GET_ARGS_COUNT_L(SKIP_1L(__VA_ARGS__))) ") failed"); \
         } \
         else \
         { \
-            MULT_ARG_R_N(GET_ARGS_COUNT(__VA_ARGS__), COMPOSE_EQ_I, GET_3, SKIP_3_1_INC_1, 0, a, ## __VA_ARGS__); \
+            MULT_ARG_R_N(PREV_NUM(GET_ARGS_COUNT_L(__VA_ARGS__)), COMPOSE_EQ_I, GET_3, SKIP_3_1_INC_1, 0, rand_access_seq, SKIP_1L(__VA_ARGS__)); \
         } \
     }
 #define EXPECT_EXCEPTION(a, exception, ...) \
@@ -319,7 +320,7 @@ namespace test_namespace
         { \
             _test_exception_check = true; \
         } \
-        EXPECT_TRUE(_test_exception_check, GET_ARG_DEF2("%s", "Check(exception) failed", ## __VA_ARGS__)); \
+        TEST_INTR_EXPECT_TRUE(_test_exception_check, GET_ARG_DEF2_M("%s", "Check(exception) failed", ## __VA_ARGS__)); \
     }
 #define EXPECT_EXCEPTION_ANY(a, ...) \
     { \
@@ -332,5 +333,5 @@ namespace test_namespace
         { \
             _test_exception_check = true; \
         } \
-        EXPECT_TRUE(_test_exception_check, GET_ARG_DEF2("%s", "Check(exception_any) failed", ## __VA_ARGS__)); \
+        TEST_INTR_EXPECT_TRUE(_test_exception_check, GET_ARG_DEF2_M("%s", "Check(exception_any) failed", ## __VA_ARGS__)); \
     }

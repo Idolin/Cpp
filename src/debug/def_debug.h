@@ -71,14 +71,15 @@ private:
             DEBUGLVLMSG(level, ## __VA_ARGS__); \
     }
 #define DEBUGIFMSG(cond, ...) DEBUGLVLIFMSG(4, cond, ## __VA_ARGS__)
-#define ASSERT_NO_THROW(cond, ...) \
+// ASSERT_NO_THROW(condition[, printf args...])
+#define ASSERT_NO_THROW(...) \
     { \
-        if(!(cond)) \
+        if(!(GET_FIRST(__VA_ARGS__))) \
         { \
             set_term_color(term_color::RED, stderr); \
             DEBUGLVLMSG(1, "%s %d in file %s!", "Assertion failed at line", __LINE__, __FILE__); \
             set_term_color(term_color::DEFAULT, stderr); \
-            START_IF_ARGS_NDEF(DEBUGLVLMSG, 1, 1, ## __VA_ARGS__); \
+            FCALL_IF_ARGS_GT_N_L(1, DEBUGLVLMSG, 1 CSKIP_1L(__VA_ARGS__)); \
             fflush(DEBUG_OUTPUT_STREAM); \
         } \
     }
