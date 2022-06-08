@@ -144,7 +144,7 @@ IMPL_TYPE_TAGS_STRUCT_T_IS(hashable, std::is_same<
                 typename std::add_const<T>::type>::type>().hash()), uint64_t>::value)
 
 
-namespace cmt
+namespace cmt // compatibility with different standards
 {
     #if __cplusplus < 201703L
 
