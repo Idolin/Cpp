@@ -223,8 +223,8 @@ TEST_PACK(sort)
 
 	TEST(line_sort_unsigned, TEST_INFO_STR("with sort_algo<unsigned> sort = bucketsort<unsigned>"))
 	{
-		auto u = new unsigned[1000000000];
-	    SUBTEST(equal_numbers)
+        auto u = new unsigned[1000000000];
+        SUBTEST(equal_numbers)
         {
             WITH_VALUES(unsigned, length, 0, SEQ_10_POW(9))
             {
