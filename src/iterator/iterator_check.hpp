@@ -87,7 +87,7 @@ namespace
         static_assert(!throw_error || check, message); \
         result &= check; \
 
-    #define ASSERT_ENABLE_STATIC(...) ASSERT_ENABLE_STATIC_IMPL((EXCLUDE_LAST(__VA_ARGS__)), GET_LAST(__VA_ARGS__))
+    #define ASSERT_ENABLE_STATIC(...) ASSERT_ENABLE_STATIC_IMPL((EXCLUDE_LAST_L(__VA_ARGS__)), GET_LAST_L(__VA_ARGS__))
 
 
     template<typename T, typename Enable = void>
@@ -180,7 +180,7 @@ namespace
                                  "Iterator must be copy-assignable");
             ASSERT_ENABLE_STATIC(std::is_destructible<T>::value,
                                  "Iterator must be destructible");
-            ASSERT_ENABLE_STATIC(std::is_swappable<R>::value,
+            ASSERT_ENABLE_STATIC(cmt::is_swappable<R>::value,
                                  "Iterator: lvalue of type It must be swappable");
 
             ASSERT_ENABLE_STATIC(is_dereferencable_v<R>,
