@@ -63,11 +63,11 @@ void process_time_counter::start()
     FILETIME createTime;
     FILETIME exitTime;
     FILETIME kernelTime;
-    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+    ASSERT_CODE_ZERO(GetProcessTimes(GetCurrentProcess(),
         &createTime, &exitTime, &kernelTime, &time));
     milliseconds = 0;
 #else
-    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &time));
+    ASSERT_CODE_ZERO(getrusage(RUSAGE_SELF, &time));
     microseconds = 0;
 #endif
 }
@@ -78,10 +78,10 @@ void process_time_counter::cont()
     FILETIME createTime;
     FILETIME exitTime;
     FILETIME kernelTime;
-    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+    ASSERT_CODE_ZERO(GetProcessTimes(GetCurrentProcess(),
         &createTime, &exitTime, &kernelTime, &time));
 #else
-    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &time));
+    ASSERT_CODE_ZERO(getrusage(RUSAGE_SELF, &time));
 #endif
 }
 
@@ -92,12 +92,12 @@ void process_time_counter::stop()
     FILETIME exitTime;
     FILETIME kernelTime;
     FILETIME userTime;
-    ASSERT_CODE_OK(GetProcessTimes(GetCurrentProcess(),
+    ASSERT_CODE_ZERO(GetProcessTimes(GetCurrentProcess(),
         &createTime, &exitTime, &kernelTime, &userTime));
     SYSTEMTIME userSystemTime;
     SYSTEMTIME userSystemTimeNow;
-    ASSERT_CODE_OK(FileTimeToSystemTime(&userTime, &userSystemTime));
-    ASSERT_CODE_OK(FileTimeToSystemTime(&userTime, &userSystemTimeNow));
+    ASSERT_CODE_ZERO(FileTimeToSystemTime(&userTime, &userSystemTime));
+    ASSERT_CODE_ZERO(FileTimeToSystemTime(&userTime, &userSystemTimeNow));
     milliseconds += static_cast<unsigned long long>(
             userSystemTimeNow.wHour - userSystemTime.wHour) * 3600000 +
         static_cast<unsigned long long>(
@@ -108,7 +108,7 @@ void process_time_counter::stop()
             userSystemTimeNow.wMilliseconds - userSystemTime.wMilliseconds);
 #else
     rusage now;
-    ASSERT_CODE_OK(getrusage(RUSAGE_SELF, &now));
+    ASSERT_CODE_ZERO(getrusage(RUSAGE_SELF, &now));
     microseconds += static_cast<unsigned long long>(now.ru_utime.tv_sec -
                                                     time.ru_utime.tv_sec) * 1000000 +
             static_cast<unsigned long long>(now.ru_utime.tv_usec - time.ru_utime.tv_usec);
