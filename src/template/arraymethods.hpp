@@ -7,8 +7,10 @@
 #include "../debug/def_debug.h"
 #include "type_tags.hpp"
 
+#include <cstdio>
 #include <cstring>
 #include <type_traits>
+#include <utility>
 
 #ifdef _MSC_VER
     #define __restrict__ __restrict
