@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.2)
 project(AADS)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 if ( MSVC )
@@ -34,11 +37,14 @@ add_subdirectory(src/flow_processing)
 
 set(MAIN_FILE ./src/main.cpp)
 set(SOURCE_FILES "${MAIN_FILE}")
-add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 
+add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib cstr_lib term_lib parallel_lib bit_array_lib int128_lib)
 
 add_executable(only_main "${MAIN_FILE}")
+
+add_executable(macros_test "${MAIN_FILE}" ./src/other/macros.test.cpp)
+target_link_libraries(macros_test debug_lib)
 
 add_custom_target(valgrind
         COMMAND valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes $<TARGET_FILE:AADS>
