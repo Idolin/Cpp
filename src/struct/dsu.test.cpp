@@ -4,7 +4,7 @@
 TEST_PACK(dsu)
 {
     TEST_WITH_TYPES(zero_dsu, ((t_adapter::seq<dsu<>, dsu<void, true>, dsu<void, false, true>, dsu<void, true, true>>),
-    dsu_type))
+            dsu_type))
     {
         dsu_type d;
         EXPECT_EQ(d.size(), 0);
