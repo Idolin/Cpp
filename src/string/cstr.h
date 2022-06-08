@@ -7,6 +7,8 @@
 #include "../template/commonmethods.hpp"
 #include "../other/hash.hpp"
 
+#include <iterator>
+#include <limits>
 #include <ostream>
 #include <string>
 #include <type_traits>

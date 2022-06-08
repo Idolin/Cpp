@@ -4,6 +4,7 @@
 #include "../other/singleton.hpp"
 
 #include <cstdio>
+#include <typeinfo>
 
 namespace
 {
