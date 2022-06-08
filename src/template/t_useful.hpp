@@ -32,6 +32,23 @@ struct rank_p<0>
 };
 
 
+namespace cmt // compatibility with different standards
+{
+
+    #if __cplusplus < 201703L
+
+        template<typename...>
+        using void_t = void;
+
+    #else
+
+        using std::void_t;
+
+    #endif
+
+}
+
+
 namespace
 {
 
@@ -62,7 +79,7 @@ namespace
     };
 
     template<typename TTrait>
-    struct _GetMemberTypedefedType<TTrait, std::void_t<typename TTrait::type>>
+    struct _GetMemberTypedefedType<TTrait, cmt::void_t<typename TTrait::type>>
     {
         static constexpr bool value = true;
 
