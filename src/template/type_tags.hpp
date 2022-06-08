@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "./t_useful.hpp"
+
 template<typename T>
 struct is_numeric
 {
@@ -92,8 +94,8 @@ struct is_mergeable
 #define IMPL_TYPE_TAGS_STRUCT_T_IS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK_T(is_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 #define IMPL_TYPE_TAGS_STRUCT_IS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(is_ ## name, typename std::enable_if_t<__VA_ARGS__>)
 
-#define IMPL_TYPE_TAGS_STRUCT_T_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK_T(has_ ## name, typename std::void_t<__VA_ARGS__>)
-#define IMPL_TYPE_TAGS_STRUCT_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(has_ ## name, typename std::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_STRUCT_T_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK_T(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_STRUCT_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
 
 
 IMPL_TYPE_TAGS_STRUCT_IS(dereferencable, std::is_lvalue_reference<
@@ -105,13 +107,13 @@ IMPL_TYPE_TAGS_STRUCT_IS(pre_incrementable,
         std::is_same<decltype(++std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
 
 IMPL_TYPE_TAGS_STRUCT_CHECK(is_post_incrementable,
-        std::void_t<decltype(std::declval<T>()++)>)
+        cmt::void_t<decltype(std::declval<T>()++)>)
 
 IMPL_TYPE_TAGS_STRUCT_IS(pre_decrementable,
         std::is_same<decltype(--std::declval<T>()), std::add_lvalue_reference_t<T>>::value)
 
 IMPL_TYPE_TAGS_STRUCT_CHECK(is_post_decrementable,
-        std::void_t<decltype(std::declval<T>()--)>)
+        cmt::void_t<decltype(std::declval<T>()--)>)
 
 
 IMPL_TYPE_TAGS_STRUCT_HAS(dereference_operator, decltype(*std::declval<T>()))
@@ -141,24 +143,43 @@ IMPL_TYPE_TAGS_STRUCT_T_IS(hashable, std::is_same<
         decltype(std::declval<typename std::add_lvalue_reference<
                 typename std::add_const<T>::type>::type>().hash()), uint64_t>::value)
 
-IMPL_TYPE_TAGS_STRUCT_IS(block_splittable, std::is_integral<T>::value || std::is_pointer<T>::value)
 
-IMPL_TYPE_TAGS_STRUCT_T_IS(block_splittable, std::is_same<decltype(std::declval<
-             typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().size()), std::size_t>::value &&
-        is_block_splittable<decltype(std::declval<
-                typename std::add_lvalue_reference<
-                        typename std::add_const<T>::type>::type>().operator[][static_cast<std::size_t>(0)])>::value)
+namespace cmt
+{
+    #if __cplusplus < 201703L
 
-IMPL_TYPE_TAGS_STRUCT_IS(block_iterable, is_block_splittable<T>::value)
+        namespace
+        {
+            template<typename T, typename Enable = void>
+            struct is_swappable_user_provided
+            {
+                static constexpr bool value = false;
+            };
 
-IMPL_TYPE_TAGS_STRUCT_IS(block_iterable_class, std::is_same<
-        decltype(std::declval<typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>().cbegin()),
-        decltype(std::declval<typename std::add_lvalue_reference<
-                typename std::add_const<T>::type>::type>().cend())>::value &&
-    is_block_iterable<decltype(*(std::declval<typename std::add_lvalue_reference<
-            typename std::add_const<T>::type>::type>().cbegin()))>::value)
+            template<typename T>
+            struct is_swappable_user_provided<T,
+                cmt::void_t<decltype(swap(std::declval<T&>(), std::declval<T&>()))>>
+            {
+                static constexpr bool value = true;
+            };
+        }
 
-IMPL_TYPE_TAGS_STRUCT_T_IS(block_iterable, is_block_iterable_class<T>::value)
+        IMPL_TYPE_TAGS_STRUCT_IS(swappable,
+                is_swappable_user_provided<T>::value || std::is_move_constructible<T>::value && std::is_move_assignable<T>::value)
+
+        template<typename T, std::size_t N>
+        struct is_swappable<T[N]>
+        {
+            static constexpr bool value = is_swappable<T>::value;
+        };
+
+    #else
+
+        using std::is_swappable;
+
+    #endif
+
+}
 
 
 template<typename T>
@@ -299,10 +320,10 @@ constexpr bool is_const_ignore_reference_and_pointer_v = is_const_ignore_referen
 #define IMPL_TYPE_TAGS_CHECK_TWO_DEF_IS(name, def_type, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(is_ ## name, def_type, typename std::enable_if_t<__VA_ARGS__>)
 
 
-#define IMPL_TYPE_TAGS_CHECK_TWO_T_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_T(has_ ## name, typename std::void_t<__VA_ARGS__>)
-#define IMPL_TYPE_TAGS_CHECK_TWO_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO(has_ ## name, typename std::void_t<__VA_ARGS__>)
-#define IMPL_TYPE_TAGS_CHECK_TWO_COPY_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, T, typename std::void_t<__VA_ARGS__>)
-#define IMPL_TYPE_TAGS_CHECK_TWO_DEF_HAS(name, def_type, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, def_type, typename std::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_T_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_T(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_COPY_HAS(name, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, T, typename cmt::void_t<__VA_ARGS__>)
+#define IMPL_TYPE_TAGS_CHECK_TWO_DEF_HAS(name, def_type, ...) IMPL_TYPE_TAGS_CHECK_TWO_COPY(has_ ## name, def_type, typename cmt::void_t<__VA_ARGS__>)
 
 
 IMPL_TYPE_TAGS_CHECK_TWO_IS(explicitly_convertible,
