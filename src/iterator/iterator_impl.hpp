@@ -78,7 +78,7 @@ namespace iterator_impl_def
         };
 
         template<typename It>
-        struct ArrowOperatorReturnTypeOrVoid<It, std::void_t<decltype(std::declval<It>().operator->())>>
+        struct ArrowOperatorReturnTypeOrVoid<It, cmt::void_t<decltype(std::declval<It>().operator->())>>
         {
             typedef decltype(std::declval<It>().operator->()) return_type;
             typedef return_type type;
@@ -92,7 +92,7 @@ namespace iterator_impl_def
         };
 
         template<typename It>
-        struct SubtractionReturnTypeOrVoid<It, std::void_t<decltype(std::declval<It>() - std::declval<It>())>>
+        struct SubtractionReturnTypeOrVoid<It, cmt::void_t<decltype(std::declval<It>() - std::declval<It>())>>
         {
             typedef decltype(std::declval<It>() - std::declval<It>()) return_type;
             typedef return_type type;
