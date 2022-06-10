@@ -164,6 +164,7 @@ namespace cmt // compatibility with different standards
             };
         }
 
+        // this implementation of is_swappable may produce output which differs from std::is_swappable output
         IMPL_TYPE_TAGS_STRUCT_IS(swappable,
                 is_swappable_user_provided<T>::value || std::is_move_constructible<T>::value && std::is_move_assignable<T>::value)
 
