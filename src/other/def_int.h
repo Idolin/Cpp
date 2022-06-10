@@ -65,14 +65,14 @@
 #define D_INTR_TAKE53(...) D_INTR_CALL_TAKE(D_INTR_TAKE53_, (__VA_ARGS__, D_INTR_DUMMY_ARG))
 
 // return amount of arguments
-#define D_INTR_GET_ARGS_COUNT_L(...) D_INTR_TAKE53(53, 52, __VA_ARGS__, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, \
+#define D_INTR_GET_ARGS_COUNT_L(...) D_INTR_TAKE53(__VA_ARGS__, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, \
                                                 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 // returns 1 on zero or one argument and 2 otherwise
-#define D_INTR_GET_ARGS_COUNT_FEW2L(...) D_INTR_TAKE53(2, __VA_ARGS__, \
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1)
+#define D_INTR_GET_ARGS_COUNT_FEW2L(...) D_INTR_TAKE53(__VA_ARGS__, \
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1)
 
 #define D_INTR_SKIP_1L_1(...) // was given one argument, thus returning nothing
 #define D_INTR_SKIP_1L_2(a, ...) __VA_ARGS__
@@ -278,6 +278,7 @@
 #define D_INTR_MULT_ARG_48(...) D_INTR_MULT_ARG_47(__VA_ARGS__), __VA_ARGS__
 #define D_INTR_MULT_ARG_49(...) D_INTR_MULT_ARG_48(__VA_ARGS__), __VA_ARGS__
 #define D_INTR_MULT_ARG_50(...) D_INTR_MULT_ARG_49(__VA_ARGS__), __VA_ARGS__
+#define D_INTR_MULT_ARG_51(...) D_INTR_MULT_ARG_50(__VA_ARGS__), __VA_ARGS__
 
 #define D_INTR_MULT_ARG_N(N, ...) D_INTR_CALL_MULT_ARG_N(D_INTR_CONCAT(D_INTR_MULT_ARG_, N), (__VA_ARGS__))
 
@@ -344,7 +345,7 @@
     28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, \
     45, 46, 47, 48, 49, 50)
 
-// returns N - 1, N > 0 && N <= 50
+// returns N - 1, N > 0 && N <= 51
 #define D_INTR_PREV(N) D_INTR_TAKE53(D_INTR_EXP2 D_INTR_MULT_ARG_N(N, ()), \
     50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, \
     32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, \

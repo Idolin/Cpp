@@ -69,8 +69,8 @@
 // emulates GNU C++ extension behaviour for , ## __VA_ARGS__
 // if __VA_ARGS__ is empty, then expands to nothing
 // if __VA_ARGS__ is not empty, then expands to ", __VA_ARGS__"
-// no macro in arguments allowed
-#define GNU_VA_ARGS_COMMA(...) D_INTR_CE_M(__VA_ARGS__)
+// no macro arguments
+#define GNU_VA_ARGS_COMMA_M(...) D_INTR_CE_M(__VA_ARGS__)
 
 // returns amount of arguments in argument list
 // GET_ARGS_COUNT(args...) -> int
@@ -118,7 +118,7 @@
 // returns 50 - N, N >= 0 && N <= 50
 #define SUB_FROM_50(N) D_INTR_50_MN(N)
 
-// returns N - 1, N > 0 && N <= 50
+// returns N - 1, N >= 1 && N <= 51
 #define PREV_NUM(N) D_INTR_PREV(N)
 
 // returns N + 1, N >= 0 && N <= 50
@@ -163,12 +163,12 @@
 #define FCALL_IF_ARGS_M(...) D_INTR_FCALL_IF_ARGS_M(__VA_ARGS__)
 
 // returns function(args...) if amount of arguments more than N, N < 50
-// 49 arguments limit
+// 50 arguments limit
 // FCALL_IF_ARGS_GT_N_L(N, function[, args...])
 #define FCALL_IF_ARGS_GT_N_L(N, ...) D_INTR_FCALL_IF_ARGS_GT_N_L(N, __VA_ARGS__)
 
 // if only 1 argument is provided and it in braces than removes outer braces, otherwise returns arguments intact
-// 49 arguments limit
+// 50 arguments limit
 #define FREE_L(...) D_INTR_FREE_L(__VA_ARGS__)
 
 // if only 1 argument is provided and it in braces than removes outer braces, otherwise returns arguments intact
