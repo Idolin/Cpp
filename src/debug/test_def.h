@@ -6,17 +6,21 @@
 #include "../other/defdef.h"
 #include "def_debug.h"
 #include "../string/cstr.h"
+
 #include "../template/t_useful.hpp"
+#include "../template/compile_time.hpp"
+#include "./type_generator.hpp"
 
 #include <cmath>
 #include <exception>
 #include <iterator>
 
+
 //TODO
 /*
  * Nested tests
  * Time limit, memory limit
- * Summary statistics(memory peak, which tests failed)
+ * Memory usage statistics
  * Regular expression for test chooser
 */
 
@@ -61,18 +65,14 @@ namespace test_namespace
 #define TESTS_ENABLED
 
 #define EXCEPTION_EXPECTED _this_test_ptr -> exception_expected = true;
-#define STOP_AFTER_ERROR(n) _this_test_ptr -> errors_to_stop = n;
-#define REPEAT(n) _this_test_ptr -> test_repeat_amount = n;
-#define TEST_INFO_STR(s) _this_test_ptr -> test_info_str = s;
+#define STOP_AFTER_ERROR(...) _this_test_ptr -> errors_to_stop = __VA_ARGS__;
+#define REPEAT(...) _this_test_ptr -> test_repeat_amount = __VA_ARGS__;
+#define TEST_INFO_STR(...) _this_test_ptr -> test_info_str = __VA_ARGS__;
 
 #define GET_TEST_TDEF(i, t_name, ...) \
     typedef typename TSeq::template type_n<i>::type t_name;
 #define SKIP2_1(a, b, ...) a, ## __VA_ARGS__
-#define SKIP_2_1_INC_1(i, ...) NEXT_NUM(i), __VA_ARGS__
 #define SKIP_3_1_INC_1(i, a, b, ...) NEXT_NUM(i), a, ## __VA_ARGS__
-
-#define TEST_INTR_CONCAT_(a, b) a ## b
-#define TEST_INTR_CONCAT(a, b) D_INTR_CONCAT_(a, b)
 
 #ifdef TESTS_ENABLED
 
@@ -80,111 +80,123 @@ namespace test_namespace
     
 #define LAST_TEST_COMPOSE_TYPE_GET(...) 
 
-#define TEST_PACK(pack_name, ...) \
-    struct _test_pack_ ## pack_name: test_namespace::_test_pack_class \
+// TEST_PACK(test_pack_name[, test_pack_options])
+#define TEST_PACK(...) \
+    namespace \
     { \
-        _test_pack_ ## pack_name(): test_namespace::_test_pack_class(#pack_name) \
+        struct CONCAT(_test_pack_, GET_FIRST(__VA_ARGS__)): test_namespace::_test_pack_class \
         { \
-                g_static::global_static_var<vect<test_namespace::_test_pack_class*>, "Test"_gsh, "All test packs"_gsh>().push(this); \
-                auto _this_test_ptr = this; \
-                MAYBE_UNUSED(_this_test_ptr); \
-                __VA_ARGS__; \
-                test_classes_main_sequence = &(this -> test_classes); \
-        } \
-        ~_test_pack_ ## pack_name() = default; \
-    }; \
+            CONCAT(_test_pack_, GET_FIRST(__VA_ARGS__))(): test_namespace::_test_pack_class(QUOTE_W(GET_FIRST(__VA_ARGS__))) \
+            { \
+                    g_static::global_static_var<vect<test_namespace::_test_pack_class*>, "Test"_gsh, "All test packs"_gsh>().push(this); \
+                    auto _this_test_ptr = this; \
+                    MAYBE_UNUSED(_this_test_ptr); \
+                    SKIP_1L(__VA_ARGS__); \
+                    test_classes_main_sequence = &(this->test_classes); \
+            } \
+            ~CONCAT(_test_pack_, GET_FIRST(__VA_ARGS__))() = default; \
+        }; \
+        \
+        CONCAT(_test_pack_, GET_FIRST(__VA_ARGS__)) CONCAT(_test_pack_class_, GET_FIRST(__VA_ARGS__)); \
+    } \
     \
-    _test_pack_ ## pack_name _test_pack_class_ ## pack_name; \
-    \
-    namespace test_namespace_ ## pack_name
+    namespace CONCAT(test_namespace_, GET_FIRST(__VA_ARGS__))
 
-#define TEST_WITH_TYPES(test_name, types, ...) \
-    \
-    template<typename TypeSeqAdapter> \
-    struct test_ ## test_name; \
-    \
-    template<typename TypeSeqAdapter> \
-    test_namespace::_test_class_abstract* _get_next_test_ ## test_name(test_namespace::_test_class_abstract* outer) \
+// TEST(test_name[, test_options...])
+#define TEST(...) \
+    struct CONCAT(_test_, GET_FIRST(__VA_ARGS__)): test_namespace::_test_class_abstract \
     { \
-        return new test_ ## test_name <TypeSeqAdapter>(outer); \
-    } \
-    \
-    template<> \
-    test_namespace::_test_class_abstract* _get_next_test_ ## test_name<void>(test_namespace::_test_class_abstract*) \
-    { \
-        return nullptr; \
-    } \
-    \
-    template<typename TypeSeqAdapter> \
-    struct test_ ## test_name: test_namespace::_test_class_abstract \
-    { \
-        typedef typename TypeSeqAdapter::TypeSeq TSeq; \
-        EXCLUDE_LAST_L(MULT_ARG_R_N(CALL_I(GET_ARGS_COUNT_L, types), TEST_COMPOSE_TYPE_GET, GET_TEST_TDEF, SKIP_2_1_INC_1, 0, CALL_I(SKIP_1L, types))) \
-        \
-        test_namespace::_test_class_abstract* outer; \
-        \
-        test_ ## test_name(test_namespace::_test_class_abstract* outer=nullptr): \
-            _test_class_abstract(#test_name, 2), outer(outer) \
+        CONCAT(_test_, GET_FIRST(__VA_ARGS__))(): _test_class_abstract(QUOTE_W(GET_FIRST(__VA_ARGS__))) \
         { \
-            outer->subtests.push(this); \
-            __VA_ARGS__; \
+            test_classes_main_sequence->push(this); \
+            SKIP_1L(__VA_ARGS__); \
         } \
-        \
-        ~test_ ## test_name() = default; \
-        \
-        void test_body() override; \
+        ~CONCAT(_test_, GET_FIRST(__VA_ARGS__))() = default; \
+        void test_body(); \
     }; \
+    CONCAT(_test_, GET_FIRST(__VA_ARGS__)) CONCAT(_test_test_name_single_class_, GET_FIRST(__VA_ARGS__)); \
     \
-    template<typename TypeSeqAdapter> \
-    struct testouter_ ## test_name: test_namespace::_test_class_abstract \
+    void CONCAT(_test_, GET_FIRST(__VA_ARGS__))::test_body()
+
+#define GET_TYPENAMES_(...) FREE_L(GET_FIRST(__VA_ARGS__))
+#define GET_TYPENAMES(...) CALL_W(GET_TYPENAMES_, GET_FIRST(__VA_ARGS__))
+// GCC BUG: _testwts_ ## test_name::test_with_types<void> and _testwts_ ## test_name::test_body_type_recursive<void>
+//  without Dummy typename throws compile error: explicit specialization in non-namespace scope (tested on gcc version 12.1.0)
+// see bug report: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85282
+// TEST_WITH_TYPES(test_name, ((type_names...), type_seq_generator)[, test_options...])
+#define TEST_WITH_TYPES(test_name, ...) \
+    template<typename... TDesc> \
+    struct _testwt_ ## test_name: test_namespace::_test_class_abstract \
     { \
-        testouter_ ## test_name(): _test_class_abstract(#test_name) \
+        _testwt_ ## test_name(): test_namespace::_test_class_abstract(#test_name, 2) \
         { \
-            test_classes_main_sequence -> push(this); \
-            __VA_ARGS__; \
+            TEST_INFO_STR(cstr("with " QUOTE_W(GET_TYPENAMES(__VA_ARGS__)) " = ") + StrDefined<Join<CommaDelimiter, type_generator::TypeDescriptionStr<TDesc>...>>::value); \
+            SKIP_1L(SKIP_1E(__VA_ARGS__)); \
         } \
         \
-        ~testouter_ ## test_name() = default; \
+        template<GET_TYPENAMES(__VA_ARGS__)> \
+        void test_body_impl(); \
         \
         void test_body() override \
         { \
-            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <TypeSeqAdapter>(this); \
-            if(next == nullptr) \
-                return; \
-            next->run(); \
-        } \
-        \
-        template<typename Adapter> \
-        void run_with_adapter() \
-        { \
-            test_namespace::_test_class_abstract* next = _get_next_test_ ## test_name <Adapter>(this); \
-            if(next == nullptr) \
-                return; \
-            next->run(); \
-            run_with_adapter<typename Adapter::NextAdapter>(); \
+            test_body_impl<typename TDesc::type...>(); \
         } \
     }; \
     \
-    testouter_ ## test_name<CALL(FREE_L, CALL_I(GET_FIRST, types))> test_ ## test_name_single_class_ ## test_name; \
-    \
-    template<typename TypeSeqAdapter> \
-    void test_ ## test_name <TypeSeqAdapter>::test_body()
-
-#define TEST(test_name, ...) \
-    struct test_ ## test_name: test_namespace::_test_class_abstract \
+    template<typename TypeGenerator> \
+    struct _testwts_ ## test_name: test_namespace::_test_class_abstract \
     { \
-        test_ ## test_name(): _test_class_abstract(#test_name) \
+        _testwts_ ## test_name(): test_namespace::_test_class_abstract(#test_name) \
         { \
             test_classes_main_sequence -> push(this); \
-            __VA_ARGS__; \
+            SKIP_1L(SKIP_1E(__VA_ARGS__)); \
         } \
-        ~test_ ## test_name() = default; \
-        void test_body(); \
+        \
+        template<typename TypeDescTuple, typename Dummy = void> \
+        struct test_with_types \
+        { \
+            static void run() \
+            { \
+                TypeDescTuple::template instantiate<_testwt_ ## test_name>().run(); \
+            } \
+        }; \
+        \
+        template<typename Dummy> \
+        struct test_with_types<void, Dummy> \
+        { \
+            static void run() \
+            {} \
+        }; \
+        \
+        template<typename TypeGeneratorRecursive, typename Dummy = void> \
+        struct test_body_type_recursive \
+        { \
+            static void run() \
+            { \
+                test_with_types<typename TypeGeneratorRecursive::CurrentTypes>::run(); \
+                test_body_type_recursive<typename TypeGeneratorRecursive::Next>::run(); \
+            } \
+        }; \
+        \
+        template<typename Dummy> \
+        struct test_body_type_recursive<void, Dummy> \
+        { \
+            static void run() \
+            {} \
+        }; \
+        \
+        void test_body() override \
+        { \
+            test_body_type_recursive<TypeGenerator>::run(); \
+        } \
     }; \
-    test_ ## test_name test_ ## test_name_single_class_ ## test_name; \
     \
-    void test_ ## test_name::test_body()
-    
+    _testwts_ ## test_name<CALL(SKIP_1E, GET_FIRST(__VA_ARGS__))> _test_test_name_single_class_ ## test_name; \
+    \
+    template<typename... TDesc> \
+    template<GET_TYPENAMES(__VA_ARGS__)> \
+    void _testwt_ ## test_name<TDesc...>::test_body_impl() \
+
 #define SUBTEST_CSTR_NAME(subtest_name, ...) \
     for(test_namespace::_subtest_class *_subtest_ = \
             new test_namespace::_subtest_class(_this_test_ptr, subtest_name, \
@@ -197,7 +209,7 @@ namespace test_namespace
             else \
                 _subtest_ -> _test_body = [&](test_namespace::_test_class_abstract *_this_test_ptr)
                 
-#define SUBTEST(subtest_name, ...) SUBTEST_CSTR_NAME(#subtest_name, ## __VA_ARGS__)
+#define SUBTEST(subtest_name, ...) SUBTEST_CSTR_NAME(#subtest_name, __VA_ARGS__)
     
 #define TIMER_START \
     { \
@@ -211,8 +223,8 @@ namespace test_namespace
     }
 #define TIMER_STOP \
     { \
-        _this_test_ptr->counter_running = 0; \
         _this_test_ptr->counter.stop(); \
+        _this_test_ptr->counter_running = 0; \
     }
 
 #define WITH_VALUES(_value_type_, _value_name_, ...) \

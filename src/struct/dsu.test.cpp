@@ -3,14 +3,15 @@
 
 TEST_PACK(dsu)
 {
-    TEST_WITH_TYPES(zero_dsu, ((t_adapter::seq<dsu<>, dsu<void, true>, dsu<void, false, true>, dsu<void, true, true>>),
-            dsu_type))
+    TEST_WITH_TYPES(zero_dsu,
+            (typename dsu_type, type_generator::Sequence<dsu<>, dsu<void, true>, dsu<void, false, true>, dsu<void, true, true>>))
     {
         dsu_type d;
         EXPECT_EQ(d.size(), 0);
     }
 
-    TEST_WITH_TYPES(unite, ((t_adapter::seq<dsu<>, dsu<void, true>, dsu<void, false, true>>), dsu_type))
+    TEST_WITH_TYPES(unite,
+            (typename dsu_type, type_generator::Sequence<dsu<>, dsu<void, true>, dsu<void, false, true>>))
     {
         dsu_type d;
         EXPECT_NE(d.getSetID(0), d.getSetID(2));
@@ -35,7 +36,8 @@ TEST_PACK(dsu)
         EXPECT_NE(d3.getSetID(0), d3.getSetID(1));
     }
 
-    TEST_WITH_TYPES(unite_range, ((t_adapter::seq<dsu<>, dsu<void, false, true>, dsu<void, true, true>>), dsu_type))
+    TEST_WITH_TYPES(unite_range,
+                    (typename dsu_type, type_generator::Sequence<dsu<>, dsu<void, false, true>, dsu<void, true, true>>))
     {
         dsu_type d;
         d.unite(0, 2);
