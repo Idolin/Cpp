@@ -11,6 +11,7 @@
 #define LAST_D_INTR_SELF(...) __VA_ARGS__
 
 // calls another macro function f with arguments args (arguments must be enclosed шт parenthesis's)
+#define D_INTR_CALL(f, args) f args
 #define D_INTR_CALL_GET(f, args) f args
 #define D_INTR_CALL_TAKE(f, args) f args
 #define D_INTR_CALL_SKIP(f, args) f args

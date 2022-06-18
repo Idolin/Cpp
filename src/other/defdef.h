@@ -3,9 +3,9 @@
 #include "def_int.h"
 
 #if __cplusplus >= 201703L
-    #define MAYBE_UNUSED(x) [[maybe_unused]] x  // to avoid compiler warnings
+    #define MAYBE_UNUSED [[maybe_unused]]  // to avoid compiler warnings
 #else
-    #define MAYBE_UNUSED(x) (void)x  // to avoid compiler warnings
+    #define MAYBE_UNUSED (void)  // to avoid compiler warnings
 #endif
 
 // returns first argument
@@ -61,6 +61,10 @@
 // args must be enclosed in brackets (f.e.: args = '(0, 1, 42)'
 #define CALL(f, args) f args
 #define CALL_I(f, args) f args
+
+// call another macro function 'f' with 'args' arguments with some delay for inner macros expansion
+// args must be enclosed in brackets (f.e.: args = '(0, 1, 42)'
+#define CALL_W(f, args) D_INTR_CALL(f, args)
 
 // concatenates two arguments
 #define CONCAT_(a, b) a ## b
