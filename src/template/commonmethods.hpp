@@ -8,6 +8,10 @@
 #include <limits>
 #include <type_traits>
 
+// GCC BUG: compare_func_t<T> compare = def_less<T> can throw undefined reference to def_less<T> on gcc 12.1.0
+// see bug report: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105848
+
+
 template<typename T,
          typename = std::enable_if_t<std::is_scalar<T>::value>>
 inline bool def_less(T x1, T x2)
