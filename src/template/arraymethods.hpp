@@ -12,8 +12,15 @@
 #include <type_traits>
 #include <utility>
 
+
 #ifdef _MSC_VER
-    #define __restrict__ __restrict
+
+    #define RESTRICT __restrict
+
+#else
+
+    #define RESTRICT __restrict__
+
 #endif
 
 using std::size_t;
@@ -87,14 +94,14 @@ inline T* read_to_array(size_t len, const char* scf = type_info<T>::specifier)
 
 template<typename T>
 inline std::enable_if_t<std::is_trivially_copyable<T>::value>
-    copy_array(const T *__restrict__ source, T* end, T *__restrict__ destination)
+    copy_array(const T *RESTRICT source, T* end, T *RESTRICT destination)
 {
     memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
-    copy_array(const T *__restrict__ source, T* end, T *__restrict__ destination)
+    copy_array(const T *RESTRICT source, T* end, T *RESTRICT destination)
 {
     while(source < end)
         *destination++ = *source++;
@@ -102,7 +109,7 @@ inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
 
 template<typename T>
 inline typename std::enable_if<std::is_trivially_copyable<T>::value>::type
-    copy_array(const T *__restrict__ source, size_t len, T *__restrict__ destination)
+    copy_array(const T *RESTRICT source, size_t len, T *RESTRICT destination)
 {
     ASSERT(static_cast<unsigned long long>(len * sizeof(T)) < 9223372036854775807,
            "Specified size %llu exceeds maximum object size 9223372036854775807",
@@ -112,7 +119,7 @@ inline typename std::enable_if<std::is_trivially_copyable<T>::value>::type
 
 template<typename T>
 inline typename std::enable_if<!std::is_trivially_copyable<T>::value>::type
-    copy_array(const T *__restrict__ source, size_t len, T *__restrict__ destination)
+    copy_array(const T *RESTRICT source, size_t len, T *RESTRICT destination)
 {
     while(len--)
         *destination++ = *source++;
@@ -202,14 +209,14 @@ inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
 
 template<typename T>
 inline std::enable_if_t<is_trivially_movable<T>::value>
-    move_array(T *__restrict__ source, T* end, T *__restrict__ destination)
+    move_array(T *RESTRICT source, T* end, T *RESTRICT destination)
 {
     memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
 inline std::enable_if_t<!is_trivially_movable<T>::value>
-    move_array(T *__restrict__ source, T* end, T *__restrict__ destination)
+    move_array(T *RESTRICT source, T* end, T *RESTRICT destination)
 {
     while(source < end)
         *destination++ = std::move(*source++);
@@ -217,14 +224,14 @@ inline std::enable_if_t<!is_trivially_movable<T>::value>
 
 template<typename T>
 inline std::enable_if_t<is_trivially_movable<T>::value>
-    move_array(T *__restrict__ source, size_t len, T *__restrict__ destination)
+    move_array(T *RESTRICT source, size_t len, T *RESTRICT destination)
 {
     memcpy(destination, source, len * sizeof(T));
 }
 
 template<typename T>
 inline std::enable_if_t<!is_trivially_movable<T>::value>
-    move_array(T *__restrict__ source, size_t len, T *__restrict__ destination)
+    move_array(T * source, size_t len, T *RESTRICT destination)
 {
     while(len--)
         *destination++ = std::move(*source++);
@@ -644,8 +651,8 @@ void array_rotate_right(T* start, T* end, ShiftType shift)
 
 // merge(source[0..part_len1], source[part_len1..part_len1 + part_len2]) -> destination
 template<typename T, bool (*compare)(T, T) = def_less<T>>
-void merge_seq_two(const T* __restrict__ source, size_t part_len1,
-                   size_t part_len2, T* __restrict__ destination)
+void merge_seq_two(const T* RESTRICT source, size_t part_len1,
+                   size_t part_len2, T* RESTRICT destination)
 {
     size_t i_dest = 0, i1 = 0, i2 = part_len1;
     while((part_len1) && (part_len2))
