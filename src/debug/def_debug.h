@@ -108,7 +108,7 @@ private:
     #define ASSERT_NO_THROW(...) {}
     #define ASSERT_ERR(condition, ...) {}
     #define ASSERT(...) {}
-    #define ASSERT_CODE_ZERO(...) func;
+    #define ASSERT_CODE_ZERO(...) GET_FIRST(__VA_ARGS__);
 
 #endif
 
