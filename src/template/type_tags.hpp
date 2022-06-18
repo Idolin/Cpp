@@ -23,33 +23,10 @@ struct is_cstr
             std::is_same<typename std::remove_cv_t<typename std::remove_pointer<T>::type>, char>::value);
 };
 
-template<typename T = void>
-struct is_bit_movable;
 
-template<>
-struct is_bit_movable<void>
+struct trivially_movable_tag
 {};
 
-template<typename T>
-struct is_bit_movable
-{
-    static constexpr bool value = std::is_pod<T>::value || std::is_pointer<T>::value ||
-                std::is_base_of<is_bit_movable<>, T>::value;
-};
-
-template<typename T = void>
-struct is_bit_copyable;
-
-template<>
-struct is_bit_copyable<void>
-{};
-
-template<typename T>
-struct is_bit_copyable
-{
-    static constexpr bool value = std::is_pod<T>::value || std::is_pointer<T>::value ||
-                std::is_base_of<is_bit_copyable<>, T>::value;
-};
 
 template<typename Self = void>
 struct mergeable;
@@ -97,6 +74,13 @@ struct is_mergeable
 #define IMPL_TYPE_TAGS_STRUCT_T_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK_T(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
 #define IMPL_TYPE_TAGS_STRUCT_HAS(name, ...) IMPL_TYPE_TAGS_STRUCT_CHECK(has_ ## name, typename cmt::void_t<__VA_ARGS__>)
 
+
+// https://open-std.org/JTC1/SC22/WG21/docs/papers/2020/p1144r5.html#wording-inheritance
+IMPL_TYPE_TAGS_STRUCT_IS(trivially_movable, std::is_trivially_copyable<T>::value ||
+        (std::is_trivially_move_constructible<T>::value && std::is_trivially_move_assignable<T>::value &&
+            std::is_trivially_copy_constructible<T>::value && std::is_trivially_copy_assignable<T>::value &&
+            std::is_trivially_destructible<T>::value) ||
+        std::is_base_of<trivially_movable_tag, T>::value)
 
 IMPL_TYPE_TAGS_STRUCT_IS(dereferencable, std::is_lvalue_reference<
         decltype(*std::declval<typename std::add_lvalue_reference<T>::type>())>::value)
@@ -166,7 +150,7 @@ namespace cmt // compatibility with different standards
 
         // this implementation of is_swappable may produce output which differs from std::is_swappable output
         IMPL_TYPE_TAGS_STRUCT_IS(swappable,
-                is_swappable_user_provided<T>::value || std::is_move_constructible<T>::value && std::is_move_assignable<T>::value)
+                is_swappable_user_provided<T>::value || (std::is_move_constructible<T>::value && std::is_move_assignable<T>::value))
 
         template<typename T, std::size_t N>
         struct is_swappable<T[N]>

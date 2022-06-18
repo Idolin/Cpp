@@ -86,14 +86,14 @@ inline T* read_to_array(size_t len, const char* scf = type_info<T>::specifier)
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_copyable<T>::value>
+inline std::enable_if_t<std::is_trivially_copyable<T>::value>
     copy_array(const T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
-inline std::enable_if_t<!is_bit_copyable<T>::value>
+inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
     copy_array(const T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     while(source < end)
@@ -101,7 +101,7 @@ inline std::enable_if_t<!is_bit_copyable<T>::value>
 }
 
 template<typename T>
-inline typename std::enable_if<is_bit_copyable<T>::value>::type
+inline typename std::enable_if<std::is_trivially_copyable<T>::value>::type
     copy_array(const T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     ASSERT(static_cast<unsigned long long>(len * sizeof(T)) < 9223372036854775807,
@@ -111,7 +111,7 @@ inline typename std::enable_if<is_bit_copyable<T>::value>::type
 }
 
 template<typename T>
-inline typename std::enable_if<!is_bit_copyable<T>::value>::type
+inline typename std::enable_if<!std::is_trivially_copyable<T>::value>::type
     copy_array(const T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     while(len--)
@@ -156,14 +156,14 @@ inline T* new_array_copy(const T* source, const T* end, size_t new_length)
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_copyable<T>::value>
+inline std::enable_if_t<std::is_trivially_copyable<T>::value>
     copy_array_overlapping(const T* source, const T* end, T* destination)
 {
     memmove(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
-inline std::enable_if_t<!is_bit_copyable<T>::value>
+inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
     copy_array_overlapping(const T* source, const T* end, T* destination)
 {
     if(destination < source)
@@ -178,14 +178,14 @@ inline std::enable_if_t<!is_bit_copyable<T>::value>
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_copyable<T>::value>
+inline std::enable_if_t<std::is_trivially_copyable<T>::value>
     copy_array_overlapping(const T *source, size_t len, T *destination)
 {
     memmove(destination, source, len * sizeof(T));
 }
 
 template<typename T>
-inline std::enable_if_t<!is_bit_copyable<T>::value>
+inline std::enable_if_t<!std::is_trivially_copyable<T>::value>
     copy_array_overlapping(const T* source, size_t len, T* destination)
 {
     if(destination < source)
@@ -201,14 +201,14 @@ inline std::enable_if_t<!is_bit_copyable<T>::value>
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_movable<T>::value>
+inline std::enable_if_t<is_trivially_movable<T>::value>
     move_array(T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     memcpy(destination, source, (end - source) * sizeof(T));
 }
 
 template<typename T>
-inline std::enable_if_t<!is_bit_movable<T>::value>
+inline std::enable_if_t<!is_trivially_movable<T>::value>
     move_array(T *__restrict__ source, T* end, T *__restrict__ destination)
 {
     while(source < end)
@@ -216,14 +216,14 @@ inline std::enable_if_t<!is_bit_movable<T>::value>
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_movable<T>::value>
+inline std::enable_if_t<is_trivially_movable<T>::value>
     move_array(T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     memcpy(destination, source, len * sizeof(T));
 }
 
 template<typename T>
-inline std::enable_if_t<!is_bit_movable<T>::value>
+inline std::enable_if_t<!is_trivially_movable<T>::value>
     move_array(T *__restrict__ source, size_t len, T *__restrict__ destination)
 {
     while(len--)
@@ -249,7 +249,7 @@ inline T* resize_array(T* source, T* end, size_t new_length)
 }
 
 template<typename T>
-inline std::enable_if_t<is_bit_movable<T>::value, T*>
+inline std::enable_if_t<is_trivially_movable<T>::value, T*>
 resize_array_alloc(T* source, size_t new_length)
 {
     return reinterpret_cast<T*>(realloc(source, new_length));
