@@ -14,7 +14,7 @@ else()
 endif()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    message("debug mode")
+    message("Debug build")
     enable_testing()
 endif ()
 
