@@ -113,6 +113,8 @@ IMPL_TYPE_TAGS_STRUCT_HAS(pre_decrement_operator, decltype(--std::declval<T>()))
 IMPL_TYPE_TAGS_STRUCT_HAS(post_decrement_operator, void(decltype(std::declval<T>()--)))
 
 
+IMPL_TYPE_TAGS_STRUCT_HAS(type_typedef, typename T::type)
+
 IMPL_TYPE_TAGS_STRUCT_HAS(iterator_category_typedef, typename T::iterator_category)
 IMPL_TYPE_TAGS_STRUCT_HAS(value_type_typedef, typename T::value_type)
 IMPL_TYPE_TAGS_STRUCT_HAS(reference_typedef, typename T::reference)
