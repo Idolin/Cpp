@@ -40,18 +40,18 @@ set(SOURCE_FILES "${MAIN_FILE}")
 add_executable(AADS "${SOURCE_FILES}" "${TEST_FILES}")
 target_link_libraries(AADS debug_lib bigint_lib graph_lib rand_lib cstr_lib term_lib parallel_lib bit_array_lib int128_lib)
 
-add_executable(only_main "${MAIN_FILE}")
+add_executable(only_main EXCLUDE_FROM_ALL "${MAIN_FILE}")
 
-add_executable(macros_test "${MAIN_FILE}" ./src/other/macros.test.cpp)
+add_executable(macros_test EXCLUDE_FROM_ALL "${MAIN_FILE}" ./src/other/macros.test.cpp)
 target_link_libraries(macros_test debug_lib)
 
-add_custom_target(valgrind
+add_custom_target(valgrind EXCLUDE_FROM_ALL
         COMMAND valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes $<TARGET_FILE:AADS>
         DEPENDS AADS
         COMMENT "Checking by valgrind")
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-    add_custom_target(assembler_O2
+    add_custom_target(assembler_O2 EXCLUDE_FROM_ALL
             WORKING_DIRECTORY "/home/cynder/trash"
             COMMAND ${CMAKE_CXX_COMPILER} -O2 -fverbose-asm -S "${CMAKE_SOURCE_DIR}/${MAIN_FILE}" -o main.asm
             COMMAND cat main.asm
