@@ -223,6 +223,55 @@ double get_coeff(cstr file_name)
     return res;
 }
 
+struct DirOpenException: std::exception
+{
+private:
+    const char *message;
+
+public:
+    DirOpenException(cstr dir_path)
+    {
+       message = cstr("Can't open directory: ") + dir_path;
+    }
+
+    const char* what() const noexcept override
+    {
+        return message;
+    }
+};
+
+bool scan_dir(const char *dir_path, vect<picture> &files, bool recursive = false)
+{
+    bool contains_pictures = false;
+    ino_t inode;
+    DIR *dir;
+    struct dirent *ent;
+    if((dir = opendir(dir_path)) != nullptr)
+    {
+        while((ent = readdir(dir)) != nullptr)
+        {
+            cstr d_name = ent->d_name;
+            if((d_name == ".") || (d_name == ".."))
+                continue;
+            cstr full_path = cstr(dir_path) + fs_del + d_name;
+            unsigned char type = file_type(full_path, inode);
+            if(type == 1)
+            {
+                if(is_picture(d_name))
+                    files.push(picture{full_path, d_name, cstr(inode)}), contains_pictures = true;
+            }
+            else if(recursive && (type == 2))
+                contains_pictures |= scan_dir(full_path.c_str(), files, recursive);
+        }
+        closedir(dir);
+    }
+    else
+        throw DirOpenException(dir_path);
+    return contains_pictures;
+}
+
+
+
 int main(int argc, char **argv)
 {
     InitializeMagick(nullptr);
@@ -233,7 +282,7 @@ int main(int argc, char **argv)
     // unsigned char threads_amount = 4;
     double sensibility = 25.0;
     vect<std::pair<cstr, bool>> dirs_and_files;
-    bool unique = false, file_arguments = false, clear_cache = false, all_ok = true, show_in_background = false;
+    bool unique = false, recursive = false, file_arguments = false, clear_cache = false, all_ok = true, show_in_background = false;
     bool symmetry_h = false, symmetry_v = false, symmetry;
     bool show_on = true, readable_format = false;
     for(const char* application_try : {"eog", "gwenview", "feh"})
@@ -261,6 +310,8 @@ int main(int argc, char **argv)
         {
             if(c_str_equals(argv[i], "-u") || c_str_equals(argv[i], "--unique"))
                 unique = true;
+            elif(c_str_equals(argv[i], "-r") || c_str_equals(argv[i], "--recursive"))
+                recursive = true;
             elif(c_str_equals(argv[i], "-N") || c_str_equals(argv[i], "--not-show"))
                 show_on = false;
             elif(c_str_equals(argv[i], "-1") || c_str_equals(argv[i], "--readable"))
@@ -314,6 +365,7 @@ int main(int argc, char **argv)
                        "Options:\\n\\\n"
                        "\t-h or --help: show this help and exit\n"
                        "\t-u or --unique: assume what every given directory contain only unique images\n"
+                       "\t-r or --recursive: recursively scan directories for pictures to compare\n"
                        "\t-s or --sensibility <float>: count two pictures different if they similarity more than given number percents[25 by default]\n"
                        "\t-a or --app <program_name>: choose a program for showing pictures\n"
                        "\t-d or --diff: show difference between pictures\n"
@@ -349,6 +401,7 @@ int main(int argc, char **argv)
         unique = false, show_on = false, dirs_and_files.clear(), dirs_and_files.push(std::make_pair("/home/cynder/Изображения/pic8/ICMPTests/TestDir", false));
     vect<picture> files;
     unsigned *unique_ranges = unique ? new unsigned[dirs_and_files.size()] : nullptr;
+
     for(std::pair<cstr, bool>& f : dirs_and_files)
     {
         ino_t inode;
@@ -368,45 +421,36 @@ int main(int argc, char **argv)
                 unique_ranges[range_i++] = static_cast<unsigned>(files.size());
         }
     }
+
     if(!all_ok)
     {
         delete[] unique_ranges;
         return 1;
     }
-    for(const std::pair<cstr, bool>& f : dirs_and_files)
+
+    try
     {
-        if(f.second)
+        for(const std::pair<cstr, bool>& f : dirs_and_files)
         {
-            bool contain_pictures = false;
-            ino_t inode;
-            DIR *dir;
-            struct dirent *ent;
-            if ((dir = opendir(f.first.c_str())) != nullptr)
+            if(f.second)
             {
-                while((ent = readdir(dir)) != nullptr)
+                if(!scan_dir(f.first.c_str(), files, recursive))
                 {
-                    cstr full_path = f.first + fs_del + ent->d_name;
-                    if(file_type(full_path, inode) == 1 && is_picture(ent->d_name))
-                        files.push(picture{full_path, cstr(ent->d_name), cstr(inode)}), contain_pictures = true;
+                    fprintf(stderr, "No pictures found in the directory: %s\n", f.first.c_str());
+                    all_ok = false;
+                    break;
                 }
-                closedir(dir);
                 if(unique)
                     unique_ranges[range_i++] = static_cast<unsigned>(files.size());
             }
-            else
-            {
-                fprintf(stderr, "Can't open directory: %s\n", f.first.c_str());
-                all_ok = false;
-                break;
-            }
-            if(!contain_pictures)
-            {
-                fprintf(stderr, "No pictures found in the directory: %s\n", f.first.c_str());
-                all_ok = false;
-                break;
-            }
         }
     }
+    catch(const DirOpenException &exception)
+    {
+        fputs(exception.what(), stderr);
+        all_ok = false;
+    }
+
     if(!all_ok)
     {
         delete[] unique_ranges;
