@@ -7,6 +7,10 @@
 #include "../other/rand.h"
 #include "../template/typemethods.hpp"
 
+#include <algorithm>
+#include <numeric>
+
+
 TEST_PACK(sort)
 {
     template<typename T>
@@ -221,7 +225,7 @@ TEST_PACK(sort)
 	    delete [] ull;
 	}
 
-	TEST(line_sort_unsigned, TEST_INFO_STR("with sort_algo<unsigned> sort = bucketsort<unsigned>"))
+    TEST(line_sort_unsigned, TEST_INFO_STR("with sort_algo<unsigned> sort = bucketsort<unsigned>"))
 	{
         auto u = new unsigned[1000000000];
         SUBTEST(equal_numbers)
@@ -265,5 +269,33 @@ TEST_PACK(sort)
             };
         };
         delete[] u;
-	}
+    }
+
+    struct Arr
+    {
+        unsigned long long *arr;
+        Arr(): arr(new unsigned long long[length])
+        {}
+
+        ~Arr()
+        {
+            delete[] arr;
+        }
+
+        static constexpr std::size_t length = 123456;
+    };
+
+    Arr a;
+
+    TEST(line_sort_unsigned_speed, REPEAT(100))
+    {
+        static unsigned long long mask = 0x1000'0000'ff00'007f;
+        std::generate_n(a.arr, a.length, []() { return randomULL() & mask; });
+        unsigned long long sum = std::accumulate(a.arr, a.arr + a.length, 0ull);
+        unsigned long long xor_v = std::accumulate(a.arr, a.arr + a.length, 0ull, [](unsigned long long a, unsigned long long b) {return a ^ b; });
+        bucketsort(a.arr, a.arr + a.length);
+        EXPECT_TRUE(std::is_sorted(a.arr, a.arr + a.length));
+        EXPECT_EQ(sum, (std::accumulate(a.arr, a.arr + a.length, 0ull)));
+        EXPECT_EQ(xor_v, (std::accumulate(a.arr, a.arr + a.length, 0ull, [](unsigned long long a, unsigned long long b) {return a ^ b; })));
+    }
 }
