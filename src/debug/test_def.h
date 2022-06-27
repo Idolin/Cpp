@@ -64,10 +64,10 @@ namespace test_namespace
 
 #define TESTS_ENABLED
 
-#define EXCEPTION_EXPECTED _this_test_ptr -> exception_expected = true;
-#define STOP_AFTER_ERROR(...) _this_test_ptr -> errors_to_stop = __VA_ARGS__;
-#define REPEAT(...) _this_test_ptr -> test_repeat_amount = __VA_ARGS__;
-#define TEST_INFO_STR(...) _this_test_ptr -> test_info_str = __VA_ARGS__;
+#define EXCEPTION_EXPECTED _this_test_ptr -> exception_expected = true
+#define STOP_AFTER_ERROR(...) _this_test_ptr -> errors_to_stop = __VA_ARGS__
+#define REPEAT(...) _this_test_ptr -> test_repeat_amount = __VA_ARGS__
+#define TEST_INFO_STR(...) _this_test_ptr -> test_info_str = __VA_ARGS__
 
 #define GET_TEST_TDEF(i, t_name, ...) \
     typedef typename TSeq::template type_n<i>::type t_name;
@@ -201,7 +201,7 @@ namespace test_namespace
     for(test_namespace::_subtest_class *_subtest_ = \
             new test_namespace::_subtest_class(_this_test_ptr, subtest_name, \
                 [&](test_namespace::_test_class_abstract *_this_test_ptr) \
-                    { REPEAT(_this_test_ptr->test_repeat_amount);  __VA_ARGS__} \
+                    { REPEAT(_this_test_ptr->test_repeat_amount);  __VA_ARGS__; } \
                 );_subtest_->first_run;) \
         for(unsigned char _test_subtest_init = 0; _test_subtest_init < 2; _test_subtest_init++) \
             if(_test_subtest_init) \
