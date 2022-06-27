@@ -12,30 +12,30 @@
 // see bug report: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105848
 
 
-template<typename T,
-         typename = std::enable_if_t<std::is_scalar<T>::value>>
-inline bool def_less(T x1, T x2)
+template<typename T>
+constexpr inline std::enable_if_t<std::is_scalar<T>::value, bool> def_less(T x1, T x2)
 {
+    static_assert(is_less_comparable_v<T>, "operator< must be provided for def_less function");
+    return x1 < x2;
+}
+
+template<typename T>
+constexpr inline std::enable_if_t<!std::is_scalar<T>::value, bool> def_less(const T& x1, const T& x2)
+{
+    static_assert(is_less_comparable_v<T>, "operator< must be provided for def_less function");
     return x1 < x2;
 }
 
 template<typename T,
-         typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
-inline bool def_less(const T& x1, const T& x2)
-{
-    return x1 < x2;
-}
-
-template<typename T,
          typename = std::enable_if_t<std::is_scalar<T>::value>>
-inline bool def_more(T x1, T x2)
+constexpr inline bool def_more(T x1, T x2)
 {
     return def_less(x2, x1);
 }
 
 template<typename T,
          typename = std::enable_if_t<!std::is_scalar<T>::value && is_less_comparable_v<T>>>
-inline bool def_more(const T& x1, const T& x2)
+constexpr inline bool def_more(const T& x1, const T& x2)
 {
     return def_less(x2, x1);
 }
