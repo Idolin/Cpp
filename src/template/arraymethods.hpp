@@ -393,7 +393,7 @@ bool array_checksorted(const T* start, const T* end)
 template<typename T, typename compare_func<T>::type compare = def_less<T>>
 bool array_checksorted(const T* start, size_t len)
 {
-    while(len-- > 0)
+    while(--len)
     {
         if(compare(*(start + 1), *start))
             return false;
