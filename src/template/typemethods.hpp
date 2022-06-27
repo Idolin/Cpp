@@ -240,22 +240,3 @@ struct compare_func
 
 template<typename T>
 using compare_func_t = typename compare_func<T>::type;
-
-
-template<typename T, typename R>
-constexpr inline unsigned short getter_parts()
-{
-    return (sizeof(T) + sizeof(R) - 1) / sizeof(R);
-};
-
-// T - any type, R - unsigned, returns from lowest (least matters) parts to highest (most matters) parts
-template<typename T, typename R = uint8_t,
-    typename = typename std::enable_if<std::is_unsigned<R>::value>::type>
-struct getter_func
-{
-    typedef R (*type)(def_get_by_t<T>, unsigned short);
-
-    typedef R RType;
-
-    constexpr static const unsigned short parts = getter_parts<T, R>();
-};
